@@ -185,7 +185,7 @@ final class UserHelper
         }
         $groups = implode(',', $groups);
 
-        $phone = '';
+        /*$phone = '';
         if ($member->phone) {
             $phone = $member->phone;
         }
@@ -194,7 +194,7 @@ final class UserHelper
                 $phone .= '/';
             }
             $phone .= $member->gsm;
-        }
+        }*/
 
         return [
             'id' => $member->id,
@@ -207,10 +207,10 @@ final class UserHelper
             'mail' => $member->email,
             'language' => $member->language,
 
-            'country' => $member->country,
+            /*'country' => $member->country,
             'zip' => $member->zipcode,
             'city' => $member->town,
-            'phone' => $phone,
+            'phone' => $phone,*/
 
             'status' => $member->status,
             'groups' => $groups, //nextcloud : set fields Groups claim (optional) = groups
