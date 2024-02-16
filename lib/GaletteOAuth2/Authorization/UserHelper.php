@@ -125,9 +125,6 @@ final class UserHelper
         '.' .
         self::stripAccents($nameFPart);
 
-        //FIXME: is that really useful? From a Galette PoV; this does not means much.
-        $etat_adhesion = ($member->isActive() && $member->isUp2Date()) || $member->isAdmin();
-
         if (!$member->isActive()) {
             throw new UserAuthorizationException(_T('You are not an active member.', 'oauth2'));
         }
@@ -216,7 +213,6 @@ final class UserHelper
             'phone' => $phone,
 
             'status' => $member->status,
-            'state' => $etat_adhesion ? 'true' : 'false',
             'groups' => $groups, //nextcloud : set fields Groups claim (optional) = groups
         ];
     }
