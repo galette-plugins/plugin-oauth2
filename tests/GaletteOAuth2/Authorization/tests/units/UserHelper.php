@@ -74,10 +74,10 @@ class UserHelper extends GaletteTestCase
                 'email' => $adh1->email,
                 'mail' => $adh1->email,
                 'language' => $adh1->language,
-                'country' => $adh1->country,
+                /*'country' => $adh1->country,
                 'zip' => $adh1->zipcode,
                 'city' => $adh1->town,
-                'phone' => $adh1->phone,
+                'phone' => $adh1->phone,*/
                 'status' => $adh1->status,
                 'groups' => 'non-member'
             ],
