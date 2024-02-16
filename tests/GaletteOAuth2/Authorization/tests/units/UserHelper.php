@@ -79,7 +79,6 @@ class UserHelper extends GaletteTestCase
                 'city' => $adh1->town,
                 'phone' => $adh1->phone,
                 'status' => $adh1->status,
-                'state' => 'false',
                 'groups' => 'non-member'
             ],
             $user_data
