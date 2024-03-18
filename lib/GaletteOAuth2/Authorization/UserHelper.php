@@ -233,7 +233,7 @@ final class UserHelper
             $options = array_merge($o, $options);
         }
         $options = array_unique($options);
-        Debug::Log('Options: ' . implode(';', $options));
+        Debug::log('Options: ' . implode(';', $options));
 
         return $options;
     }

@@ -36,22 +36,6 @@ use Monolog\Logger;
  */
 final class Debug
 {
-    private static $logger;
-
-    public static function init(): Logger
-    {
-        self::$logger = new Logger('OAuth2');
-        $stream = new StreamHandler(GALETTE_LOGS_PATH . '/oauth.log', Logger::DEBUG);
-        $dateFormat = 'Y-m-d H:i:s';
-        //$output = "[%datetime%] %channel% %level_name%: %message% \n"; // %context% %extra%\n";
-        $output = "[%datetime%] : %message% \n"; // %context% %extra%\n";
-        $formatter = new LineFormatter($output, $dateFormat);
-        $stream->setFormatter($formatter);
-        self::$logger->pushHandler($stream);
-
-        return self::$logger;
-    }
-
     public static function printVar($expression, bool $return = true)
     {
         $export = print_r($expression, true);

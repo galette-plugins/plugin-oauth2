@@ -36,16 +36,11 @@ use GaletteOAuth2\Repositories\RefreshTokenRepository;
 use GaletteOAuth2\Repositories\ScopeRepository;
 use GaletteOAuth2\Repositories\UserRepository;
 use GaletteOAuth2\Tools\Config;
-use GaletteOAuth2\Tools\Debug as Debug;
 use League\OAuth2\Server\AuthorizationServer;
 use League\OAuth2\Server\Grant\AuthCodeGrant;
 use League\OAuth2\Server\Grant\RefreshTokenGrant;
 use League\OAuth2\Server\ResourceServer;
 use Psr\Container\ContainerInterface;
-
-if (OAUTH2_LOG) {
-    Debug::init();
-}
 
 $container = $app->getContainer();
 
