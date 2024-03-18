@@ -27,6 +27,7 @@ use Analog\Analog;
 use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
+use Slim\Psr7\Request;
 
 /**
  * Debug tools
@@ -61,7 +62,7 @@ final class Debug
         );
     }
 
-    public static function logRequest($fct, $request): void
+    public static function logRequest(string $fct, Request $request): void
     {
         $msg = sprintf(
             "%s - URI: %s",
@@ -82,9 +83,5 @@ final class Debug
             $msg,
             Analog::DEBUG
         );
-        /*self::log("{$fct} :");
-        self::log('URI : ' . $request->getUri());
-        self::log('GET dump :' . self::printVar($request->getQueryParams()));
-        self::log('POST dump :' . self::printVar((array) $request->getParsedBody()));*/
     }
 }
