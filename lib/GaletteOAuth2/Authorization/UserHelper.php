@@ -125,8 +125,14 @@ final class UserHelper
         '.' .
         self::stripAccents($nameFPart);
 
+        //check active member ?
         if (!$member->isActive()) {
             throw new UserAuthorizationException(_T('You are not an active member.', 'oauth2'));
+        }
+
+        //check email
+        if (!filter_var($member->email, FILTER_VALIDATE_EMAIL)) {
+            throw new UserAuthorizationException(_T("Sorry, you can't login. Please, add an email address to your account.", 'oauth2'));
         }
 
         //for options=
