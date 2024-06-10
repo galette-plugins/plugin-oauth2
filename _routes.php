@@ -57,7 +57,8 @@ $app->map(
 $app->map(
     ['GET', 'POST'],
     '/authorize',
-    [AuthorizationController::class, 'authorize'])
+    [AuthorizationController::class, 'authorize']
+)
 ->setName(OAUTH2_PREFIX . '_authorize')
 ->add(Authentication::class);
 
