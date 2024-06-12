@@ -30,6 +30,7 @@ use GaletteOAuth2\Authorization\UserAuthorizationException;
 use GaletteOAuth2\Authorization\UserHelper;
 use GaletteOAuth2\Tools\Config;
 use GaletteOAuth2\Tools\Debug;
+use RKA\Session;
 use Slim\Psr7\Request;
 use Slim\Psr7\Response;
 
@@ -50,6 +51,8 @@ final class LoginController extends AbstractPluginController
     protected Container $container;
     #[Inject]
     protected Config $config;
+    #[Inject("oauth_session")]
+    protected Session $session;
 
     /**
      * Display login form
@@ -109,7 +112,6 @@ final class LoginController extends AbstractPluginController
         //FIXME: for both isLoggedIn and user_id, we can rely on login object stored in session
         $this->session->isLoggedIn = 'no';
         $this->session->user_id = $uid = UserHelper::login($this->container, $params['login'], $params['password']);
-        //if($params['login'] == 'manuel') $loginSuccessful = true;
         Debug::log("UserHelper::login({$params['login']}) return '{$uid}'");
 
         if (false === $uid) {

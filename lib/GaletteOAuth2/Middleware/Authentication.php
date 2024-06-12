@@ -45,7 +45,7 @@ final class Authentication
     public function __construct(Container $container)
     {
         $this->routeparser = $container->get(RouteParser::class);
-        $this->session = $container->get('session');
+        $this->session = $container->get('oauth_session');
     }
 
     /**

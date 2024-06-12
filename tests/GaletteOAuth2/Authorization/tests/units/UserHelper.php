@@ -32,6 +32,21 @@ use PHPUnit\Framework\Attributes\DataProvider;
 class UserHelper extends GaletteTestCase
 {
     protected int $seed = 20230324120838;
+    protected bool $load_plugins = true;
+
+    /**
+     * Set up tests
+     *
+     * @return void
+     */
+    public function setUp(): void
+    {
+        global $session;
+
+        parent::setUp();
+        $this->session = $this->container->get('oauth_session');
+        $session = $this->session;
+    }
 
     /**
      * Tear down tests

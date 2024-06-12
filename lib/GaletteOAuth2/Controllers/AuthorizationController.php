@@ -36,6 +36,7 @@ use GaletteOAuth2\Tools\Debug as Debug;
 use League\OAuth2\Server\AuthorizationServer;
 use League\OAuth2\Server\Exception\OAuthServerException;
 use Psr\Http\Message\ResponseInterface;
+use RKA\Session;
 use Slim\Psr7\Request;
 use Slim\Psr7\Response;
 
@@ -54,6 +55,8 @@ final class AuthorizationController extends AbstractPluginController
     protected array $module_info;
     protected Container $container;
     protected Config $config;
+    #[Inject("oauth_session")]
+    protected Session $session;
 
     /**
      * Default constructor

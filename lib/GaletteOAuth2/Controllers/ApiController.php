@@ -32,6 +32,7 @@ use GaletteOAuth2\Authorization\UserHelper;
 use GaletteOAuth2\Tools\Config;
 use GaletteOAuth2\Tools\Debug;
 use League\OAuth2\Server\ResourceServer;
+use RKA\Session;
 use Slim\Psr7\Request;
 use Slim\Psr7\Response;
 
@@ -50,6 +51,8 @@ final class ApiController extends AbstractPluginController
     protected array $module_info;
     protected Container $container;
     protected Config $config;
+    #[Inject("oauth_session")]
+    protected Session $session;
 
     /**
      * Default constructor

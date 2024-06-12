@@ -31,6 +31,21 @@ use Galette\GaletteTestCase;
 class GaletteOAuth2 extends GaletteTestCase
 {
     protected int $seed = 20240613200350;
+    protected bool $load_plugins = true;
+
+    /**
+     * Set up tests
+     *
+     * @return void
+     */
+    public function setUp(): void
+    {
+        global $session;
+
+        parent::setUp();
+        $this->session = $this->container->get('oauth_session');
+        $session = $this->session;
+    }
 
     /**
      * Tear down tests

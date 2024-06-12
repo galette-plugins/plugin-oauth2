@@ -41,8 +41,30 @@ use League\OAuth2\Server\Grant\AuthCodeGrant;
 use League\OAuth2\Server\Grant\RefreshTokenGrant;
 use League\OAuth2\Server\ResourceServer;
 use Psr\Container\ContainerInterface;
+use RKA\SessionMiddleware;
 
 $container = $app->getContainer();
+
+//$app->add($session);
+$container->set(
+    'oauth_session',
+    function (ContainerInterface $container) {
+        $session_name = PREFIX_DB . '_' . NAME_DB . '_' . str_replace('.', '_', GALETTE_VERSION);
+        $session_name = 'galette_oauth_' . $session_name;
+        $session = new SessionMiddleware([
+            'name'      => $session_name,
+            'lifetime'  => GALETTE_TIMEOUT
+        ]);
+
+        $galette_sid = session_id();
+        session_write_close();
+        session_id('galette-oauth-' . $galette_sid);
+        $session->start();
+
+        $container->get('flash')->__construct($_SESSION);
+        return new \RKA\Session();
+    }
+);
 
 $container->set(
     Config::class,

@@ -12,6 +12,9 @@
         {
             "name": "Manuel H",
             "email": "manuelh78dev@ik.me"
+        }, {
+            "name": "Johan Cwiklinski",
+            "email": "trasher@x-tnd.be"
         }
     ],
     "require": {

@@ -39,7 +39,7 @@ require_once 'vendor/autoload.php';
 //Constants and classes from plugin
 require_once $module['root'] . '/_config.inc.php';
 
-require_once '_dependencies.php';
+require '_dependencies.php';
 
 //login is always called by a http_redirect
 $app->get(

@@ -47,7 +47,7 @@ final class ClientRepository implements ClientRepositoryInterface
     {
         $this->container = $container;
         $this->config = $this->container->get(Config::class);
-        $this->session = $this->container->get('session');
+        $this->session = $this->container->get('oauth_session');
     }
 
     public function getClientEntity($client_id): ClientEntityInterface
