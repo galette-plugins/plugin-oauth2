@@ -1,3 +1,4 @@
 {% extends "pages/index.html.twig" %}
 
+{% set ext_auth = true %}
 {% block form_url %}{{ url_for('oauth2_login') }}{% endblock %}

@@ -56,6 +56,6 @@ final class Config extends \Noodlehaus\Config
 
     public function get($name, $default = null)
     {
-        return trim(parent::get($name, $default) ?? '');
+        return parent::get($name, $default) ?? '';
     }
 }

@@ -23,5 +23,9 @@
     },
     "config": {
         "optimize-autoloader": true
+    },
+    "require-dev": {
+        "galette/oauth2-galette": "dev-develop",
+        "guzzlehttp/guzzle": "^7.8"
     }
 }

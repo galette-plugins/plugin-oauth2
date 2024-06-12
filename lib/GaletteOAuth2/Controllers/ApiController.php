@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace GaletteOAuth2\Controllers;
 
+use Analog\Analog;
 use DI\Attribute\Inject;
 use DI\Container;
 use Galette\Controllers\AbstractPluginController;
@@ -50,7 +51,13 @@ final class ApiController extends AbstractPluginController
     protected Container $container;
     protected Config $config;
 
-    // constructor receives container instance
+    /**
+     * Default constructor
+     *
+     * @param Container $container COntainer instance
+     * @throws \DI\DependencyException
+     * @throws \DI\NotFoundException
+     */
     public function __construct(Container $container)
     {
         $this->container = $container;
@@ -65,30 +72,29 @@ final class ApiController extends AbstractPluginController
         $server = $this->container->get(ResourceServer::class);
         $rep = $server->validateAuthenticatedRequest($request);
 
-        $oauth_user_id = (int) $rep->getAttribute('oauth_user_id'); //SESSION is empty, use decrypted data
-        $options = UserHelper::mergeOptions($this->config, $rep->getAttribute('oauth_client_id'), $rep->getAttribute('oauth_scopes'));
-
-        Debug::log("api/user() load user #{$oauth_user_id} - " . Debug::printVar($options));
+        $oauth_user_id = (int)$rep->getAttribute('oauth_user_id'); //SESSION is empty, use decrypted data
+        $client_id = $rep->getAttribute('oauth_client_id');
+        Debug::log("api/user() load user #{$oauth_user_id}");
 
         try {
-            $data = UserHelper::getUserData($this->container, $oauth_user_id, $options);
+            $data = UserHelper::getUserData(
+                $this->container,
+                $oauth_user_id,
+                UserHelper::getAuthorization($this->config, $client_id),
+                UserHelper::mergeScopes(
+                    $this->config,
+                    $client_id,
+                    $rep->getAttribute('oauth_scopes')
+                )
+            );
         } catch (UserAuthorizationException $e) {
-            throw $e;
-            //UserHelper::logout($this->container);
-            /*Analog::log(
+            UserHelper::logout($this->container);
+            Analog::log(
                 'api/user() error : ' . $e->getMessage(),
                 Analog::ERROR
             );
-            $this->flash->addMessage(
-                'error_detected',
-                _T('Check your login / email or password.', 'oauth2')
-            );
-            return $response
-                ->withStatus(301)
-                ->withHeader(
-                    'Location',
-                    $this->routeparser->urlFor(OAUTH2_PREFIX . '_login')
-                );*/
+            $response->getBody()->write(json_encode(['message' => $e->getMessage()]));
+            return $response->withStatus(401);
         }
 
         Debug::log('api/user() return data = ' . Debug::printVar($data));

@@ -20,20 +20,21 @@
  */
 
 /**
- * Bootstrap tests file for OAuth2 plugin
+ * Router file to be launched by php -S
  *
  * @author Johan Cwiklinski <johan@x-tnd.be>
  */
 
-define('GALETTE_PLUGINS_PATH', __DIR__ . '/../../');
-$basepath = '../../../galette/';
+$db = 'mysql';
+$dbenv = getenv('DB');
+if (
+    $dbenv === 'pgsql'
+    || substr($dbenv, 0, strlen('postgres')) === 'postgres'
+) {
+    $db = 'pgsql';
+}
 
+$basepath = '../../tests/';
+define('GALETTE_CONFIG_PATH', $basepath . 'config/' . $db . '/');
 define('OAUTH2_CONFIGPATH', __DIR__ . '/config');
-
-include_once __DIR__ . '/../vendor/autoload.php';
-include_once '../../../tests/TestsBootstrap.php';
-include_once __DIR__ . '/../_dependencies.php';
-$module = [
-    'root' => __DIR__ . '/..'
-];
-include_once __DIR__ . '/../_routes.php';
+return false;

@@ -36,13 +36,12 @@ global:
 galette_flarum:
     title: 'Forum Flarum'
     redirect_logout: 'http://192.168.1.99/flarum/public'
-    options: teamonly
 galette_nc:
     title: 'Nextcloud'
     redirect_logout: 'http://192.168.1.99/nextcloud'
-    options: uptodate
+    scopes:
+        - member:groups
 galette_xxxxx:
-
 ```
 
 The corresponding Flarum configuration:
@@ -54,9 +53,47 @@ The corresponding NextCloud configuration:
 ![Nextcloud configuration example](examples/nextcloud.png)
 
 
-### Available options :
-* teamonly : only staff members can login
-* uptodate : only uptodate members can login
+### Available authorizations:
+
+* `uptodate`: only active and up-to-date members can login
+* `teamonly`: only active team members (admins, staff and groups managers)
+
+When there is no `authorize` entry set in configuration, it defaults to "teamonly".
+
+### Scopes
+
+Default `member` scope will be added if it is not present in your configuration (even if you do not set any scope).
+To declare multiple scopes, separate them with a space like `member member:phone member:localization`.
+
+* `member`: default, basic scope - always included:
+  * user full name,
+  * login,
+  * email,
+  * language
+  * company name if relevant
+* `member:personal` precise personal data:
+  * birthdate,
+  * job,
+  * gender,
+  * birthplace
+  * GPG id
+* `member:localization` localization data:
+  * country,
+  * region,
+  * town,
+  * zipcode
+* `member:localization:precise` precise localization data:
+  * address,
+  * maps plugin coordinates
+* `member:phones`:
+  * mobile phone
+  * phone
+* `member:socials`:
+  * all registered social networks
+* `member:groups`:
+  * groups member is part of
+* `member:due_date`:
+  * due date
 
 # Usage
 

@@ -54,13 +54,15 @@ $app->map(
     [LoginController::class, 'logout']
 )->setName(OAUTH2_PREFIX . '_logout');
 
-$app->map(
-    ['GET', 'POST'],
+$app->get(
     '/authorize',
     [AuthorizationController::class, 'authorize']
-)
-->setName(OAUTH2_PREFIX . '_authorize')
-->add(Authentication::class);
+)->setName(OAUTH2_PREFIX . '_authorize')->add(Authentication::class);
+
+$app->post(
+    '/authorize',
+    [AuthorizationController::class, 'doAuthorize']
+)->setName(OAUTH2_PREFIX . '_doAuthorize')->add(Authentication::class);
 
 $app->post(
     '/access_token',

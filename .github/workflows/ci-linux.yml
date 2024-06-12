@@ -204,6 +204,15 @@ jobs:
           cd galette/plugins/plugin-oauth2
           composer install --ignore-platform-reqs
 
+      - name: Generate keys
+        if: env.skip != 'true'
+        run: |
+          cd galette-core/galette/plugins/plugin-oauth2/tests/config
+          openssl genrsa -out private.key 2048
+          openssl rsa -in private.key -pubout -out public.key
+          chmod 660 *.key
+          sed "s/KEY/$(../../vendor/bin/generate-defuse-key)/" -i encryption-key.php
+
       - name: Init for PostgreSQL
         env:
           POSTGRES_HOST: localhost
@@ -221,5 +230,7 @@ jobs:
       - name: Unit tests
         if: env.skip != 'true'
         run: |
-          cd galette-core/galette/plugins/plugin-oauth2
+          cd galette-core/galette/webroot
+          php -S localhost:8888 ../plugins/plugin-oauth2/tests/router.php &
+          cd ../plugins/plugin-oauth2
           ../../vendor/bin/phpunit --test-suffix=.php --bootstrap tests/TestsBootstrap.php --no-coverage --process-isolation tests/GaletteOAuth2/

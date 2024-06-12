@@ -1,8 +1,9 @@
-{#
+<?php
+
 /**
- * Copyright © 2003-2024 The Galette Team
+ * Copyright © 2021-2024 The Galette Team
  *
- * This file is part of Galette (https://galette.eu).
+ * This file is part of Galette OAuth2 plugin (https://galette-community.github.io/plugin-oauth2/).
  *
  * Galette is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,9 +16,15 @@
  *  GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with Galette. If not, see <http://www.gnu.org/licenses/>.
+ * along with Galette OAuth2 plugin. If not, see <http://www.gnu.org/licenses/>.
  */
-#}
-{% if cur_route starts with 'oauth2_' %}
-    <link rel="stylesheet" type="text/css" href="{{ url_for("plugin_res", {"plugin": module_id, "path": "oauth2_login.css"}) }}"/>
-{% endif %}
+
+declare(strict_types=1);
+
+/**
+ * Encryption key
+ *
+ * @author Manuel Hervouet <manuelh78dev@ik.me>
+ */
+
+$encryptionKey = 'KEY';

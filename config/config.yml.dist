@@ -3,8 +3,13 @@ global:
 galette_flarum:
     title: 'Forum Flarum'
     redirect_logout: 'http://192.168.1.99/flarum/public'
-    options: teamonly
+    authorize: teamonly
 galette_nc:
     title: 'Le cloud de votre association'
     redirect_logout: 'http://192.168.1.99/nextcloud'
-    options: uptodate
+    authorize: teamonly
+    scopes:
+        - member
+        - member:localization
+        - member:phones
+        - member:groups

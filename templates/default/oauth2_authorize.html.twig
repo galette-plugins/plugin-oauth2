@@ -1,0 +1,50 @@
+{% extends "public_page.html.twig" %}
+
+{% set ext_auth = true %}
+{% block content %}
+    <form action="{{ url_for('oauth2_doAuthorize') }}?{{ querystring }}" method="post" class="ui form">
+        <div class="ui segments">
+            <div class="ui segment">
+                <div class="header">
+                    <h3>{{ _T('Application "%s" requests access to following scopes:', 'oauth2')|replace({'%s': clientName}) }}</h3>
+                </div>
+                <div class="ui link cards">
+    {% for requested_scope in requested_scopes %}
+                    <div class="card">
+                        <div class="content">
+                            <div class="header">
+                                {{ requested_scope }}
+        {% if requested_scope == 'member' %}
+                                <i class="ui check circle green big icon right floated tooltip" title="{{ _T('Default scope is mandatory and cannot be unselected', 'oauth2') }}"></i>
+        {% else %}
+                                <div class="ui invisible checkbox right floated">
+                                    <input type="checkbox" id="scope_{{ requested_scope }}" name="scopes[]" checked="checked" value="{{ requested_scope }}">
+                                    <label for="scope_{{ requested_scope }}" class="image tooltip" title="{{ _T('Toggle scope approval', 'oauth2') }}">
+                                        <i class="ui check circle green big icon"></i>
+                                    </label>
+                                </div>
+        {% endif %}
+                            </div>
+                            <div class="description">
+                                {{ known_scopes[requested_scope]['description'] }}
+                            </div>
+                        </div>
+                    </div>
+    {% endfor %}
+                </div>
+
+                {% include "components/forms/csrf.html.twig" %}
+            </div>
+            <div class="ui center aligned secondary segment">
+                <button type="submit" name="approve" class="ui primary submit button tooltip" title="{{ _T('Approve selected scopes', 'oauth2') }}">
+                    <i class="ui icon check double green"></i>
+                    {{ _T("Approve", "oauth2") }}
+                </button>
+                <button type="submit" name="refuse" class="ui secondary submit button tooltip" title="{{ _T('Refuse all scopes', 'oauth2') }}">
+                    <i class="ui icon ban red"></i>
+                    {{ _T("Refuse", "oauth2") }}
+                </button>
+            </div>
+        </div>
+    </form>
+{% endblock %}

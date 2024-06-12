@@ -9,3 +9,5 @@ vendor/
 !/config/.htaccess
 !/config/encryption-key.php
 !/config/config.yml.dist
+
+tests/config/encryption-key.php

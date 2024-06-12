@@ -82,7 +82,11 @@ final class ClientRepository implements ClientRepositoryInterface
             return false;
         }
 
-        $pwd = password_hash($this->config->get('global.password'), PASSWORD_BCRYPT);
+        $password = $this->config->get($clientIdentifier . '.password');
+        if (!$password) {
+            $password = $this->config->get('global.password');
+        }
+        $pwd = password_hash($password, PASSWORD_BCRYPT);
 
         if (password_verify($clientSecret, $pwd) === false) {
             return false;
