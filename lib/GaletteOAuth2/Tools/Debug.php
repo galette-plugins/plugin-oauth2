@@ -88,6 +88,9 @@ final class Debug
             $msg .= "\nGET dump: " . self::printVar($qp);
         }
         if (count($post = (array)$request->getParsedBody()) > 0) {
+            if (isset($post['password'])) {
+                $post['password'] = 'HIDDEN';
+            }
             $msg .= "\nPOST dump: " . self::printVar($post);
         }
         $msg .= "\n";
