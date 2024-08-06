@@ -4,6 +4,7 @@
 *.lock
 vendor/
 .build/
+_disabled
 
 /config/*
 !/config/.htaccess
@@ -11,3 +12,4 @@ vendor/
 !/config/config.yml.dist
 
 tests/config/encryption-key.php
+tests/coverage/
