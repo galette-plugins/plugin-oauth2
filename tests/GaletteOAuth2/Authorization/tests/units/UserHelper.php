@@ -371,7 +371,7 @@ class UserHelper extends GaletteTestCase
         $store = $adh->store();
         $this->assertTrue($store);
 
-        $this->expectExceptionMessage("Sorry, you cant't login because you are not an active member.");
+        $this->expectExceptionMessage("Sorry, you can't login because you are not an active member.");
         \GaletteOAuth2\Authorization\UserHelper::getUserData(
             $container,
             $adh->id,

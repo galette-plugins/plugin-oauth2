@@ -124,7 +124,7 @@ final class UserHelper
 
         //check active member ?
         if (!$member->isActive()) {
-            throw new UserAuthorizationException(_T("Sorry, you cant't login because you are not an active member.", "oauth2"));
+            throw new UserAuthorizationException(_T("Sorry, you can't login because you are not an active member.", "oauth2"));
         }
 
         //check email
