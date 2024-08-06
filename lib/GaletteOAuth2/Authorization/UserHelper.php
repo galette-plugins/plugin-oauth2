@@ -106,13 +106,15 @@ final class UserHelper
      * @param int          $id        User ID
      * @param string       $acl       Requested authorization
      * @param array|string $scopes    Scopes
+     * @param bool         $legacy    Legacy mode for data
+     *
      * @return array
      * @throws UserAuthorizationException
      * @throws \DI\DependencyException
      * @throws \DI\NotFoundException
      * @throws \Throwable
      */
-    public static function getUserData(Container $container, int $id, string $acl, array|string $scopes): array
+    public static function getUserData(Container $container, int $id, string $acl, array|string $scopes, bool $legacy = false): array
     {
         /** @var Db $zdb */
         $zdb = $container->get('zdb');
@@ -160,25 +162,29 @@ final class UserHelper
             );
         }
 
-        //FIXME: I really doubt reworking names is a good idea outside a specific usage
-        $nameExplode = preg_split('/[\\s,-]+/', $member->name);
-        if (count($nameExplode) > 0) {
-            $nameFPart = $nameExplode[0];
-            //too short?
-            if (mb_strlen($nameFPart) < 4 && count($nameExplode) > 1) {
-                $nameFPart .= $nameExplode[1];
-            }
-        } else {
-            $nameFPart = $member->name;
-        }
+        $login = $member->login;
 
-        //Normalized format s.name (example mail usage : s.name@xxxx.xx )
-        //FIXME: why don't use email directly?
-        $norm_login = sprintf(
-            '%s.%s',
-            mb_substr(self::stripAccents($member->surname), 0, 1),
-            self::stripAccents($nameFPart)
-        );
+        if ($legacy === true) {
+            //FIXME: I really doubt reworking names is a good idea outside a specific usage
+            $nameExplode = preg_split('/[\\s,-]+/', $member->name);
+            if (count($nameExplode) > 0) {
+                $nameFPart = $nameExplode[0];
+                //too short?
+                if (mb_strlen($nameFPart) < 4 && count($nameExplode) > 1) {
+                    $nameFPart .= $nameExplode[1];
+                }
+            } else {
+                $nameFPart = $member->name;
+            }
+
+            //Normalized format s.name (example mail usage : s.name@xxxx.xx )
+            //FIXME: why don't use email directly?
+            $login = sprintf(
+                '%s.%s',
+                mb_substr(self::stripAccents($member->surname), 0, 1),
+                self::stripAccents($nameFPart)
+            );
+        }
 
         //FIXME: be compliant with OpenID-Connect (see https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims)
         $oauth_data = [
@@ -187,8 +193,8 @@ final class UserHelper
             'identifier' => $member->id, //nextcloud
             'name' => $member->sfullname, //OpenID-Connect
             'displayName' => $member->sname,
-            'username' => $norm_login, //FIXME: $member->login,
-            'userName' => $norm_login, //FIXME: $member->login,
+            'username' => $login,
+            'userName' => $login,
             'email' => $member->email,
             'mail' => $member->email,
             'locale' => $member->language, //OpenID-Connect

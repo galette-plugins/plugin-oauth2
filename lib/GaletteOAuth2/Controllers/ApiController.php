@@ -85,7 +85,8 @@ final class ApiController extends AbstractPluginController
                     $this->config,
                     $client_id,
                     $rep->getAttribute('oauth_scopes')
-                )
+                ),
+                (bool)$this->config->get($client_id . '.legacy_data', false)
             );
         } catch (UserAuthorizationException $e) {
             UserHelper::logout($this->container);

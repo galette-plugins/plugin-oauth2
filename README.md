@@ -10,6 +10,13 @@ cd plugin-oauth2
 composer install
 ```
 
+# Updating to version 3.0.0
+
+Before updating to version 3.0.0, please take care of the following:
+- the existing `options` entry in configuration file has been renamed to `authorize`. Please update your configuration file accordingly.
+- the `scopes` entry in configuration file has been added; some data you were previously using may be missing.
+- previous versions were using non Galette data (like `username`). If you were using this data and still want to rely on them; add a `legacy_data: true` in you applications entries.
+
 # Configuration
 
 ## Prepare public/private keys
@@ -27,7 +34,7 @@ copy-paste the hexadecimal string result in plugin-oauth2/config/encryption-key.
 
 ## Configure a ClientEntity
 
-Rename `config/config.yml.dist` to `config/config.yml` and edit according to your third party applicaiton settings:
+Rename `config/config.yml.dist` to `config/config.yml` and edit according to your third party application settings:
 
 ```
 global:
@@ -51,7 +58,6 @@ The corresponding Flarum configuration:
 The corresponding NextCloud configuration:
 
 ![Nextcloud configuration example](examples/nextcloud.png)
-
 
 ### Available authorizations:
 

@@ -91,6 +91,35 @@ class UserHelper extends GaletteTestCase
         $store = $this->adh->store();
         $this->assertTrue($store);
 
+        //test for default scope - legacy data mode
+        $user_data = \GaletteOAuth2\Authorization\UserHelper::getUserData(
+            $container,
+            $adh1->id,
+            '',
+            ['member'],
+            true
+        );
+
+        $expected_base = [
+            'id' => $adh1->id,
+            'sub' => $adh1->id,
+            'identifier' => $adh1->id,
+            'name' => $adh1->sfullname,
+            'displayName' => $adh1->sname,
+            'username' => 'r.durand',
+            'userName' => 'r.durand',
+            'email' => $adh1->email,
+            'mail' => $adh1->email,
+            'locale' => $adh1->language,
+            'language' => $adh1->language,
+            'status' => $adh1->status,
+        ];
+
+        $this->assertSame(
+            $expected_base,
+            $user_data
+        );
+
         //test for default scope
         $user_data = \GaletteOAuth2\Authorization\UserHelper::getUserData(
             $container,
@@ -105,8 +134,8 @@ class UserHelper extends GaletteTestCase
             'identifier' => $adh1->id,
             'name' => $adh1->sfullname,
             'displayName' => $adh1->sname,
-            'username' => 'r.durand',
-            'userName' => 'r.durand',
+            'username' => $adh1->login,
+            'userName' => $adh1->login,
             'email' => $adh1->email,
             'mail' => $adh1->email,
             'locale' => $adh1->language,

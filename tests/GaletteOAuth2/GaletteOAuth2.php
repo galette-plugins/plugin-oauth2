@@ -151,7 +151,7 @@ class GaletteOAuth2 extends GaletteTestCase
 
         //check values
         $this->assertSame($adh1->id, $resourceOwner->getId());
-        $this->assertSame('r.durand', $resourceOwner->getUsername()); //not a Galette data
+        $this->assertSame($data['login_adh'], $resourceOwner->getUsername());
         $this->assertSame($data['email_adh'], $resourceOwner->getEmail());
         //due date scope is requested from configuration file
         $this->assertArrayHasKey('due_date', $resourceOwner_array);

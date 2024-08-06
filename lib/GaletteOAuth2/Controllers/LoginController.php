@@ -130,7 +130,8 @@ final class LoginController extends AbstractPluginController
                     $client_id,
                     $this->session->request_args['scope'] ?? [],
                     true
-                )
+                ),
+                (bool)$this->config->get($client_id . '.legacy_data', false)
             );
         } catch (UserAuthorizationException $e) {
             UserHelper::logout($this->container);
