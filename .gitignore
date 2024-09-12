@@ -5,6 +5,7 @@
 vendor/
 .build/
 _disabled
+dist/
 
 /config/*
 !/config/.htaccess
@@ -12,4 +13,6 @@ _disabled
 !/config/config.yml.dist
 
 tests/config/encryption-key.php
+tests/config/config.yml
 tests/coverage/
+
