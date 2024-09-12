@@ -195,7 +195,10 @@ final class LoginController extends AbstractPluginController
     {
         $client_id = $this->session->request_args['client_id'];
         $application = $this->config->get("{$client_id}.title", 'noname');
-        $page_title = _T('Please sign in for', OAUTH2_PREFIX) . " '{$application}'";
+        $page_title = sprintf(
+            _T('Please sign in for %s', 'oauth2'),
+            $application
+        );
 
         return [
             'page_title' => $page_title,

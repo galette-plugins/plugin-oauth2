@@ -1,45 +1,144 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"Report-Msgid-Bugs-To: translations@galette.eu\n"
-"POT-Creation-Date: \n"
-"PO-Revision-Date: 2021-12-11 18:26+0000\n"
-"Last-Translator: XXX\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-09-12 19:13+0200\n"
+"PO-Revision-Date: 2024-09-12 19:14+0200\n"
+"Last-Translator: Johan Cwiklinski <johan@x-tnd.be>\n"
 "Language-Team: French XXXplugin/fr/>\n"
 "Language: fr_FR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n > 1;\n"
+"X-Generator: Poedit 3.5\n"
 
-#: ../templates/default/oauth2_login.tpl:32
-msgid "Username or email"
-msgstr "Votre identifiant ou email"
-
-#: ../templates/default/oauth2_login.tpl:39
-msgid "Password"
-msgstr "Mot de passe"
-
-#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:137
-msgid "Sorry, you can't login because your are not a up-to-date members."
-msgstr "Désolé, vous n'êtes pas à jour de votre cotisation."
-
-#: ../templates/default/oauth2_login.tpl:20
-msgid "Please sign in for"
-msgstr "Se connecter à"
-
-#: ../lib/GaletteOAuth2/Controllers/LoginController.php:106
+#: ../lib/GaletteOAuth2/Controllers/LoginController.php:112
 msgid "Check your login / email or password."
-msgstr "Vos identifiants sont incorrects."
+msgstr "Vérifiez votre login/courriel ou mot de passe."
 
-#: ../templates/default/oauth2_login.tpl:44
-msgid "Login"
-msgstr "Se connecter"
+#: ../lib/GaletteOAuth2/Controllers/LoginController.php:199
+#, php-format
+msgid "Please sign in for %s"
+msgstr "Veuillez vous connecter pour %s"
 
-#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:161
-msgid "You are not an active member."
-msgstr "Vous n'êtes pas un membre actif."
+#: ../lib/GaletteOAuth2/Controllers/AuthorizationController.php:210
+#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:157
+#, php-format
+msgid "Default scope (%s) has not been authorized."
+msgstr "Le périmètre par défaut (%s) n'a pas été autorisé."
 
-#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:131
+#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:71
+msgid "Cannot OAuth login from superadmin account!"
+msgstr "Impossible de se connecter au compte superadmin avec OAuth !"
+
+#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:122
+msgid "User not found."
+msgstr "Utilisateur non trouvé."
+
+#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:127
+msgid "Sorry, you can't login because you are not an active member."
+msgstr ""
+"Désolé, vous ne pouvez pas vous connecter car vous n'êtes pas membre de "
+"l'équipe."
+
+#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:132
+msgid "Sorry, you can't login. Please, add an email address to your account."
+msgstr ""
+"Désolé, vous ne pouvez pas vous connecter. Veuillez ajouter une adresse de "
+"courriel valide à votre compte."
+
+#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:138
 msgid "Sorry, you can't login because your are not a team member."
 msgstr "Désolé, vous n'êtes pas membre de l'équipe."
+
+#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:146
+msgid "Sorry, you can't login because your are not an up-to-date member."
+msgstr ""
+"Désolé, vous ne pouvez pas vous connecter car vous n'êtes pas à jour de "
+"votre cotisation."
+
+#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:45
+msgid ""
+"Access to your member basic information: name, login, email, language, "
+"company name)"
+msgstr ""
+"Accès à vos informations adhérent de base : nom, login, courriel, langue, "
+"nom de l'entreprise"
+
+#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:48
+msgid ""
+"Access to more precise personal data: birth date, job, gender, birth place, "
+"GnuPG ID"
+msgstr ""
+"Accès à de plus précises informations : date de naissance, emploi, genre, "
+"lieu de naissance, ID GnuPG"
+
+#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:51
+msgid "Access to your localization data: zipcode, town, region, country"
+msgstr "Accès à vos données de localisation : code postal, ville, région, pays"
+
+#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:54
+msgid ""
+"Access to your precise localisation data: full address, coordinates (from "
+"maps plugin)"
+msgstr ""
+"Accès à vos données précises de localisation : adresse complète, coordonnées "
+"(depuis le plugin maps)"
+
+#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:57
+msgid "Access to your phone numbers"
+msgstr "Accès à vos numéros de téléphone"
+
+#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:60
+msgid "Access to your social networks data"
+msgstr "Accès à vos informations de réseaux sociaux"
+
+#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:63
+msgid "Access to the groups you belong to"
+msgstr "Accès aux groupes auxquels vous appartenez"
+
+#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:66
+msgid "Access to your due date"
+msgstr "Accès à votre date d'échéance"
+
+#: ../tempcache/oauth2_authorize.html.twig:64
+#, php-format
+msgid "Application \"%s\" requests access to following scopes:"
+msgstr "L'application « %s » requiert l'accès aux périmètres suivants :"
+
+#: ../tempcache/oauth2_authorize.html.twig:86
+msgid "Default scope is mandatory and cannot be unselected"
+msgstr "Le périmètre par défaut est obligatoire et ne peut être désélectionné"
+
+#: ../tempcache/oauth2_authorize.html.twig:102
+msgid "Toggle scope approval"
+msgstr "Inverser l'approbation des périmètres"
+
+#: ../tempcache/oauth2_authorize.html.twig:135
+msgid "Approve selected scopes"
+msgstr "Approuver les périmètres sélectionnés"
+
+#: ../tempcache/oauth2_authorize.html.twig:140
+msgid "Approve"
+msgstr "Approuver"
+
+#: ../tempcache/oauth2_authorize.html.twig:145
+msgid "Refuse all scopes"
+msgstr "Refuser tous les périmètres"
+
+#: ../tempcache/oauth2_authorize.html.twig:150
+msgid "Refuse"
+msgstr "Refuser"
+
+#~ msgid "Username or email"
+#~ msgstr "Votre identifiant ou email"
+
+#~ msgid "Password"
+#~ msgstr "Mot de passe"
+
+#~ msgid "Login"
+#~ msgstr "Se connecter"
+
+#~ msgid "You are not an active member."
+#~ msgstr "Vous n'êtes pas un membre actif."

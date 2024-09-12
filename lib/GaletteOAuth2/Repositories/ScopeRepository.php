@@ -45,7 +45,7 @@ final class ScopeRepository implements ScopeRepositoryInterface
                 'description' => _T('Access to your member basic information: name, login, email, language, company name)', 'oauth2'),
             ],
             'member:personal' => [
-                'description' => _T('Access tp more precise personal data: birth date, job, gender, birth place, GnuPG ID', 'oauth2'),
+                'description' => _T('Access to more precise personal data: birth date, job, gender, birth place, GnuPG ID', 'oauth2'),
             ],
             'member:localization' => [
                 'description' => _T('Access to your localization data: zipcode, town, region, country', 'oauth2'),

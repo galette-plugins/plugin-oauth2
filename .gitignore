@@ -6,6 +6,7 @@ vendor/
 .build/
 _disabled
 dist/
+tempcache/
 
 /config/*
 !/config/.htaccess
