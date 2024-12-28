@@ -158,7 +158,7 @@ class UserHelper extends GaletteTestCase
 
         $this->assertSame(
             $expected_base + [
-                'birthdate' => '1941-12-26',
+                'birthdate' => $user_data['birthdate'],
                 'birthplace' => 'Gonzalez-sur-Meunier',
                 'job' => 'Chef de fabrication',
                 'gender' => 'Unspecified',
