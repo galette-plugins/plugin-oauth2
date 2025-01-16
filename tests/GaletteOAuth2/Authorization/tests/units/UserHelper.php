@@ -576,6 +576,12 @@ class UserHelper extends GaletteTestCase
         );
 
         $this->assertSame(
+            ['member'],
+            \GaletteOAuth2\Authorization\UserHelper::mergeScopes($config, 'any', '', true)
+        );
+
+
+        $this->assertSame(
             [
                 'member:phones',
                 'member:localization:precise',

@@ -381,7 +381,7 @@ final class UserHelper
         //handle requested scopes
         if (!is_array($requested_scopes)) {
             $requested_scopes = str_replace([';', ','], ' ', $requested_scopes);
-            $requested_scopes = explode(' ', $requested_scopes);
+            $requested_scopes = preg_split('/ /', $requested_scopes, -1, PREG_SPLIT_NO_EMPTY);
         }
         $scopes = array_merge($scopes, $requested_scopes);
 
