@@ -27,6 +27,7 @@ use DI\Container;
 use GaletteOAuth2\Entities\ClientEntity;
 use GaletteOAuth2\Tools\Config;
 use GaletteOAuth2\Tools\Debug;
+use League\OAuth2\Server\Entities\ClientEntityInterface;
 use League\OAuth2\Server\Repositories\ClientRepositoryInterface;
 use RKA\Session;
 
@@ -49,7 +50,7 @@ final class ClientRepository implements ClientRepositoryInterface
         $this->session = $this->container->get('session');
     }
 
-    public function getClientEntity($client_id)
+    public function getClientEntity($client_id): ClientEntityInterface
     {
         $client = new ClientEntity();
         $client->setIdentifier($this->config->get("{$client_id}.id", $client_id));

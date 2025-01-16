@@ -25,6 +25,7 @@ namespace GaletteOAuth2\Repositories;
 
 use DI\Container;
 use GaletteOAuth2\Authorization\UserHelper;
+use GaletteOAuth2\Entities\UserEntity;
 use GaletteOAuth2\Tools\Debug;
 use League\OAuth2\Server\Entities\ClientEntityInterface;
 use League\OAuth2\Server\Entities\UserEntityInterface;
@@ -50,8 +51,13 @@ final class UserRepository implements UserRepositoryInterface
         $password,
         $grantType,
         ClientEntityInterface $clientEntity
-    ): UserEntityInterface|null|int {
+    ): UserEntityInterface|null {
         Debug::log("getUserEntityByUserCredentials({$username}, '***', {$grantType}) ");
-        return UserHelper::login($this->container, $username, $password);
+        if (UserHelper::login($this->container, $username, $password)) {
+            //FIXME? Returned entity may be related to just logged-in user?
+            return new UserEntity();
+        }
+
+        return null;
     }
 }

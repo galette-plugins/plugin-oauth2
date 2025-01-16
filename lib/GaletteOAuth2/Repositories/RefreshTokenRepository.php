@@ -50,7 +50,7 @@ final class RefreshTokenRepository implements RefreshTokenRepositoryInterface
         return false; // The refresh token has not been revoked
     }
 
-    public function getNewRefreshToken()
+    public function getNewRefreshToken(): RefreshTokenEntityInterface
     {
         return new RefreshTokenEntity();
     }
