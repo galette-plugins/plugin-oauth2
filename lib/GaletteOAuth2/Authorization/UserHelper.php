@@ -289,7 +289,14 @@ final class UserHelper
      */
     protected static function getUserGroups(Adherent $member): array
     {
-        $groups = [$member->sstatus]; //first group is the member status
+        $groups = array_map(
+            function ($group) {
+                return $group->getName();
+            },
+            $member->getGroups()
+        );
+
+        $groups[] = $member->sstatus;
 
         if ($member->isAdmin()) {
             $groups[] = 'admin';
