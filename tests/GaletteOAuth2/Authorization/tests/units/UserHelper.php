@@ -191,7 +191,7 @@ class UserHelper extends GaletteTestCase
         $this->assertSame(
             $expected_base + [
                 'groups' => [
-                    'non-member',
+                    'Non-member',
                     'admin'
                 ]
             ],
@@ -208,7 +208,7 @@ class UserHelper extends GaletteTestCase
         $this->assertSame(
             $expected_base + [
                 'groups' => [
-                    'non-member',
+                    'Non-member',
                     'admin'
                 ]
             ],

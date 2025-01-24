@@ -16,6 +16,10 @@ Before updating to version 3.0.0, please take care of the following:
 - the existing `options` entry in configuration file has been renamed to `authorize`. Please update your configuration file accordingly.
 - the `scopes` entry in configuration file has been added; some data you were previously using may be missing.
 - previous versions were using non Galette data (like `username`). If you were using this data and still want to rely on them; add a `legacy_data: true` in you applications entries.
+- Real Galette groups have been added to `member:groups:` scope
+- Member status is no longer the first groups entry
+- Groups hack from `info_adh` field has been removed
+- Groups names reformatting has been removed
 
 # Configuration
 
@@ -100,16 +104,6 @@ To declare multiple scopes, separate them with a space like `member member:phone
   * groups member is part of
 * `member:due_date`:
   * due date
-
-# Usage
-
-## Nextcloud - how add groups for a specific member
-Edit a member : In `info_adh` field you can add a line with `#GROUPS:group1;group2#`
-
-Example :
-```
-#GROUPS:accouting;home#
-```
 
 # More information about OAuth2 Server
 * https://oauth2.thephpleague.com/

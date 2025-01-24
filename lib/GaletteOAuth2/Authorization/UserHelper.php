@@ -102,13 +102,13 @@ final class UserHelper
     /**
      * Get user data
      *
-     * @param Container    $container Container instance
-     * @param int          $id        User ID
-     * @param string       $acl       Requested authorization
-     * @param array|string $scopes    Scopes
-     * @param bool         $legacy    Legacy mode for data
+     * @param Container       $container Container instance
+     * @param int             $id        User ID
+     * @param string          $acl       Requested authorization
+     * @param string[]|string $scopes    Scopes
+     * @param bool            $legacy    Legacy mode for data
      *
-     * @return array
+     * @return array<string, mixed>
      * @throws UserAuthorizationException
      * @throws \DI\DependencyException
      * @throws \DI\NotFoundException
@@ -267,9 +267,7 @@ final class UserHelper
 
         //member:groups
         if (in_array('member:groups', $scopes)) {
-            //nextcloud : set fields Groups claim (optional) = groups
-            //FIXME: I don't know how nextcloud manages groups, but there are not groups...
-            $oauth_data['groups'] = self::getUserGroups($member);
+            $oauth_data['groups'] = self::getUserGroups($member, $legacy);
         }
 
         //member:due_date
@@ -284,10 +282,11 @@ final class UserHelper
      * Comma separated groups names
      *
      * @param Adherent $member Member
+     * @param bool     $legacy Legacy mode for data
      *
      * @return array
      */
-    protected static function getUserGroups(Adherent $member): array
+    protected static function getUserGroups(Adherent $member, bool $legacy = false): array
     {
         $groups = array_map(
             function ($group) {
@@ -314,24 +313,21 @@ final class UserHelper
             $groups[] = 'uptodate';
         }
 
-        //FIXME: add groups from groups table? Or another way? info_adh does not seems a good way for everyone
-        //FIXME: For example, data is replaced on duplication, thus oauth groups configuration would be lost
-        //FIXME: maybe should we just rely on real Galette groups.
-        //Add externals groups (free text in info_adh)
-        //Example #GROUPS:compta;accueil#
-        if (preg_match('/#GROUPS:([^#]*([^#]*))#/mui', $member->others_infos_admin, $matches, PREG_OFFSET_CAPTURE)) {
-            $g = $matches[1][0];
-            Debug::log("Groups added {$g}");
-            $groups = array_merge($groups, explode(';', $g));
-        }
+        if ($legacy === true) {
+            //Add externals groups (free text in info_adh)
+            //Example #GROUPS:compta;accueil#
+            if (preg_match('/#GROUPS:([^#]*([^#]*))#/mui', $member->others_infos_admin, $matches, PREG_OFFSET_CAPTURE)) {
+                $g = $matches[1][0];
+                $groups = array_merge($groups, explode(';', $g));
+            }
 
-        //TODO: maybe a bit excessive for a global usage?
-        //Reformat group with strtolower, remove whites & slashs
-        foreach ($groups as &$group) {
-            $group = trim($group);
-            $group = str_replace([' ', '/', '(', ')'], ['_', '', '', ''], $group);
-            $group = str_replace('__', '_', $group);
-            $group = self::stripAccents($group);
+            //Reformat group with strtolower, remove whites & slashs
+            foreach ($groups as &$group) {
+                $group = trim($group);
+                $group = str_replace([' ', '/', '(', ')'], ['_', '', '', ''], $group);
+                $group = str_replace('__', '_', $group);
+                $group = self::stripAccents($group);
+            }
         }
 
         return $groups;
