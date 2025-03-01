@@ -292,7 +292,7 @@ final class UserHelper
             function ($group) {
                 return $group->getName();
             },
-            $member->getGroups()
+            array_values($member->getGroups())
         );
 
         $groups[] = $member->sstatus;
