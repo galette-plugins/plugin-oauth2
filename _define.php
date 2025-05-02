@@ -33,7 +33,7 @@ $this->register(
     'OAuth 2.0 integration',               //Short description
     'Manuel Hervouet, , Johan Cwiklinski', //Author
     '3.0.0',                               //Version
-    '1.1.0',                               //Galette compatible version
+    '1.2.0',                               //Galette compatible version
     'oauth2',                              //routing name and translation domain
     '2024-09-12',                          //Release date
     [//Permissions needed
