@@ -90,8 +90,8 @@ class GaletteOAuth2 extends GaletteTestCase
 
         $jar = new \GuzzleHttp\Cookie\CookieJar(
             false,
-             [
-                 [
+            [
+                [
                     'Name' => 'session_id',
                     'Value' => 'galette-oauthtests-session',
                     'Domain' => 'localhost'

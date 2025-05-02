@@ -24,9 +24,6 @@ declare(strict_types=1);
 namespace GaletteOAuth2\Tools;
 
 use Analog\Analog;
-use Monolog\Formatter\LineFormatter;
-use Monolog\Handler\StreamHandler;
-use Monolog\Logger;
 use Slim\Psr7\Request;
 
 /**

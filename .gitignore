@@ -1,6 +1,5 @@
 *.key
 *.log
-.php*
 *.lock
 vendor/
 .build/

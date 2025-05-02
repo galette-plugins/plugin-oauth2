@@ -28,7 +28,6 @@ use DI\Attribute\Inject;
 use DI\Container;
 use Exception;
 use Galette\Controllers\AbstractPluginController;
-use GaletteOAuth2\Authorization\UserAuthorizationException;
 use GaletteOAuth2\Authorization\UserHelper;
 use GaletteOAuth2\Entities\UserEntity;
 use GaletteOAuth2\Repositories\ScopeRepository;
