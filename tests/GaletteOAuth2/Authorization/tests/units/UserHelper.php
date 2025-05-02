@@ -238,7 +238,7 @@ class UserHelper extends GaletteTestCase
 
         $address = new \stdClass();
         $address->locality = 'Martel';
-        $address->region = '';
+        $address->region = 'Caribbean';
         $address->postal_code = '39 069';
         $address->country = 'Antarctique';
         $this->assertEquals(
@@ -256,7 +256,7 @@ class UserHelper extends GaletteTestCase
             ['member', 'member:localization:precise']
         );
 
-        $address->formatted = "66, boulevard De Oliveira\r\n\r\n39 069 Martel\r\nAntarctique";
+        $address->formatted = "66, boulevard De Oliveira\r\n\r\n39 069 Martel\r\nCaribbean\r\nAntarctique";
         $address->street_address = "66, boulevard De Oliveira";
         $this->assertEquals(
             $expected_base + [
@@ -494,12 +494,20 @@ class UserHelper extends GaletteTestCase
             'teamonly',
             \GaletteOAuth2\Authorization\UserHelper::getAuthorization($config, 'any')
         );
+        $this->expectLogEntry(
+            \Analog::ERROR,
+            'Invalid authorization configuration for client any'
+        );
 
         $client_id = 'galette_test';
         $config->set($client_id . '.authorize', 'unknown');
         $this->assertSame(
             'teamonly',
             \GaletteOAuth2\Authorization\UserHelper::getAuthorization($config, 'galette_test')
+        );
+        $this->expectLogEntry(
+            \Analog::ERROR,
+            'Invalid authorization configuration for client galette_test'
         );
 
         //correct value will be retrieved
