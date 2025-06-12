@@ -63,6 +63,18 @@ The corresponding NextCloud configuration:
 
 ![Nextcloud configuration example](examples/nextcloud.png)
 
+The corresponding Wordpress configuration:
+
+![Wordpress configuration example](examples/wordpress.png)
+
+The corresponding Drupal CMS configuration:
+
+![Drupal CMS configuration example](examples/drupal.png)
+
+The corresponding DokuWiki configuration:
+
+![DokuWiki configuration example](examples/dokuwiki.png)
+
 ### Available authorizations:
 
 * `uptodate`: only active and up-to-date members can login
