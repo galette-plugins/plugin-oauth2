@@ -1,4 +1,5 @@
 global:
+    title: 'Galette'
     password: abc123
 galette_flarum:
     title: 'Forum Flarum'
