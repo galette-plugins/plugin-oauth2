@@ -195,15 +195,20 @@ final class LoginController extends AbstractPluginController
     private function prepareVarsForm()
     {
         $client_id = $this->session->request_args['client_id'];
+        $server_title = $this->config->get('global.title', 'Galette');
+        $sign_in_with = sprintf(
+            _T('Sign in with %s', 'oauth2'),
+            $server_title
+        );
         $application = $this->config->get("{$client_id}.title", 'noname');
         $page_title = sprintf(
-            _T('Please sign in for %s', 'oauth2'),
+            _T('Sign in %s', 'oauth2'),
             $application
         );
 
         return [
+            'sign_in_with' => $sign_in_with,
             'page_title' => $page_title,
-            'application' => $application,
             'prefix' => OAUTH2_PREFIX
         ];
     }

@@ -127,6 +127,16 @@ final class AuthorizationController extends AbstractPluginController
             $user->setIdentifier($this->session->user_id);
             $authRequest->setUser($user);
 
+            $server_title = $this->config->get('global.title', 'Galette');
+            $sign_in_with = sprintf(
+                _T('Sign in with %s', 'oauth2'),
+                $server_title
+            );
+            $application = $this->config->get("{$client_id}.title", 'noname');
+            $page_title = sprintf(
+                _T('%s is requesting access to the following details', 'oauth2'),
+                $application
+            );
             $scopes = UserHelper::mergeScopes(
                 $this->config,
                 $client_id,
@@ -138,8 +148,8 @@ final class AuthorizationController extends AbstractPluginController
                 $response,
                 $this->getTemplate(OAUTH2_PREFIX . '_authorize'),
                 [
-                    'page_title' => 'Authorize',
-                    'clientName' => $authRequest->getClient()->getName(),
+                    'sign_in_with' => $sign_in_with,
+                    'page_title' => $page_title,
                     'requested_scopes' => $scopes,
                     'known_scopes' => ScopeRepository::knownScopes(),
                     'queryParams' => $queryParams,
