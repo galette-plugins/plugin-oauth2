@@ -1,5 +1,7 @@
 Makes Galette act as a oAuth2 server; so it is possible to use existing members to log-in on third party websites, like [Flarum](https://flarum.org/), [Nextcould](https://nextcloud.com/), and so on!
 
+Most of the time, oAuth2 client capacities on third party websites are available from "plugins". Check their docs and forums ;)
+
 # Setup
 
 This project use `league/oauth2-server`, `symfony/yaml` and `hassankhan/config` packages.
