@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-12 19:13+0200\n"
-"PO-Revision-Date: 2024-09-12 19:14+0200\n"
+"POT-Creation-Date: 2025-09-11 17:40+0200\n"
+"PO-Revision-Date: 2025-09-11 17:43+0200\n"
 "Last-Translator: Johan Cwiklinski <johan@x-tnd.be>\n"
 "Language-Team: French XXXplugin/fr/>\n"
 "Language: fr_FR\n"
@@ -11,19 +11,30 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n > 1;\n"
-"X-Generator: Poedit 3.5\n"
+"X-Generator: Poedit 3.7\n"
 
 #: ../lib/GaletteOAuth2/Controllers/LoginController.php:112
 msgid "Check your login / email or password."
 msgstr "Vérifiez votre login/courriel ou mot de passe."
 
-#: ../lib/GaletteOAuth2/Controllers/LoginController.php:199
+#: ../lib/GaletteOAuth2/Controllers/LoginController.php:200
+#: ../lib/GaletteOAuth2/Controllers/AuthorizationController.php:132
 #, php-format
-msgid "Please sign in for %s"
-msgstr "Veuillez vous connecter pour %s"
+msgid "Sign in with %s"
+msgstr "Se connecter avec %s"
 
-#: ../lib/GaletteOAuth2/Controllers/AuthorizationController.php:210
-#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:157
+#: ../lib/GaletteOAuth2/Controllers/LoginController.php:205
+#, php-format
+msgid "Sign in %s"
+msgstr "Connecter %s"
+
+#: ../lib/GaletteOAuth2/Controllers/AuthorizationController.php:137
+#, php-format
+msgid "%s is requesting access to the following details"
+msgstr "%s requiert l'accès aux détails suiovants"
+
+#: ../lib/GaletteOAuth2/Controllers/AuthorizationController.php:219
+#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:159
 #, php-format
 msgid "Default scope (%s) has not been authorized."
 msgstr "Le périmètre par défaut (%s) n'a pas été autorisé."
@@ -32,27 +43,27 @@ msgstr "Le périmètre par défaut (%s) n'a pas été autorisé."
 msgid "Cannot OAuth login from superadmin account!"
 msgstr "Impossible de se connecter au compte superadmin avec OAuth !"
 
-#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:122
+#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:124
 msgid "User not found."
 msgstr "Utilisateur non trouvé."
 
-#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:127
+#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:129
 msgid "Sorry, you can't login because you are not an active member."
 msgstr ""
 "Désolé, vous ne pouvez pas vous connecter car vous n'êtes pas membre de "
 "l'équipe."
 
-#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:132
+#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:134
 msgid "Sorry, you can't login. Please, add an email address to your account."
 msgstr ""
 "Désolé, vous ne pouvez pas vous connecter. Veuillez ajouter une adresse de "
 "courriel valide à votre compte."
 
-#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:138
+#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:140
 msgid "Sorry, you can't login because your are not a team member."
 msgstr "Désolé, vous n'êtes pas membre de l'équipe."
 
-#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:146
+#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:148
 msgid "Sorry, you can't login because your are not an up-to-date member."
 msgstr ""
 "Désolé, vous ne pouvez pas vous connecter car vous n'êtes pas à jour de "
@@ -102,11 +113,6 @@ msgstr "Accès aux groupes auxquels vous appartenez"
 msgid "Access to your due date"
 msgstr "Accès à votre date d'échéance"
 
-#: ../tempcache/oauth2_authorize.html.twig:64
-#, php-format
-msgid "Application \"%s\" requests access to following scopes:"
-msgstr "L'application « %s » requiert l'accès aux périmètres suivants :"
-
 #: ../tempcache/oauth2_authorize.html.twig:86
 msgid "Default scope is mandatory and cannot be unselected"
 msgstr "Le périmètre par défaut est obligatoire et ne peut être désélectionné"
@@ -115,21 +121,29 @@ msgstr "Le périmètre par défaut est obligatoire et ne peut être désélectio
 msgid "Toggle scope approval"
 msgstr "Inverser l'approbation des périmètres"
 
-#: ../tempcache/oauth2_authorize.html.twig:135
-msgid "Approve selected scopes"
-msgstr "Approuver les périmètres sélectionnés"
+#: ../tempcache/oauth2_authorize.html.twig:138
+msgid "Cancel"
+msgstr "Annuler"
 
-#: ../tempcache/oauth2_authorize.html.twig:140
-msgid "Approve"
-msgstr "Approuver"
+#: ../tempcache/oauth2_authorize.html.twig:146
+msgid "Allow"
+msgstr "Autoriser"
 
-#: ../tempcache/oauth2_authorize.html.twig:145
-msgid "Refuse all scopes"
-msgstr "Refuser tous les périmètres"
+#, php-format
+#~ msgid "Please sign in for %s"
+#~ msgstr "Veuillez vous connecter pour %s"
 
-#: ../tempcache/oauth2_authorize.html.twig:150
-msgid "Refuse"
-msgstr "Refuser"
+#~ msgid "Approve selected scopes"
+#~ msgstr "Approuver les périmètres sélectionnés"
+
+#~ msgid "Approve"
+#~ msgstr "Approuver"
+
+#~ msgid "Refuse all scopes"
+#~ msgstr "Refuser tous les périmètres"
+
+#~ msgid "Refuse"
+#~ msgstr "Refuser"
 
 #~ msgid "Username or email"
 #~ msgstr "Votre identifiant ou email"
