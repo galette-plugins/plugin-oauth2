@@ -31,7 +31,7 @@ msgstr "Connecter %s"
 #: ../lib/GaletteOAuth2/Controllers/AuthorizationController.php:137
 #, php-format
 msgid "%s is requesting access to the following details"
-msgstr "%s requiert l'accès aux détails suiovants"
+msgstr "%s requiert l'accès aux détails suivants"
 
 #: ../lib/GaletteOAuth2/Controllers/AuthorizationController.php:219
 #: ../lib/GaletteOAuth2/Authorization/UserHelper.php:159
