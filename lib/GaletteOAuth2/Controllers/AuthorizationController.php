@@ -260,8 +260,8 @@ final class AuthorizationController extends AbstractPluginController
             return $exception->generateHttpResponse($response);
         } catch (Exception $exception) {
             Debug::log(
-                'authorization/Exception: ' .
-                $exception->getMessage() . '<br>' . $exception->getTraceAsString()
+                'authorization/Exception: '
+                . $exception->getMessage() . '<br>' . $exception->getTraceAsString()
             );
             // Catch unexpected exceptions
             $body = $response->getBody();

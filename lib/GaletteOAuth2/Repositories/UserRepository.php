@@ -51,7 +51,7 @@ final class UserRepository implements UserRepositoryInterface
         $password,
         $grantType,
         ClientEntityInterface $clientEntity
-    ): UserEntityInterface|null {
+    ): ?UserEntityInterface {
         Debug::log("getUserEntityByUserCredentials({$username}, '***', {$grantType}) ");
         if (UserHelper::login($this->container, $username, $password)) {
             //FIXME? Returned entity may be related to just logged-in user?
