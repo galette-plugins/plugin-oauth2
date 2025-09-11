@@ -39,11 +39,10 @@ class GaletteOAuth2 extends GaletteTestCase
      */
     public function tearDown(): void
     {
-        parent::tearDown();
+        $this->zdb = new \Galette\Core\Db();
 
-        $delete = $this->zdb->delete(\Galette\Entity\Adherent::TABLE);
-        $delete->where(['fingerprint' => 'FAKER' . $this->seed]);
-        $this->zdb->execute($delete);
+        $this->cleanMembers();
+        parent::tearDown();
     }
 
     /**
@@ -54,18 +53,9 @@ class GaletteOAuth2 extends GaletteTestCase
     public function testFlow(): void
     {
         $this->initStatus();
-        $adh1  = $this->getMemberOne();
-
+        $member_one = $this->getMemberOne();
         $data = $this->dataAdherentOne();
-        $data['bool_admin_adh'] = true;
-        $check = $this->adh->check($data, [], []);
-        if (is_array($check)) {
-            var_dump($check);
-        }
-        $this->assertTrue($check);
-
-        $store = $this->adh->store();
-        $this->assertTrue($store);
+        $this->getAdminMember($member_one);
 
         $provider = new \Galette\OAuth2\Client\Provider\Galette([
             //information related to the app where you will use galette-oauth2
@@ -150,7 +140,7 @@ class GaletteOAuth2 extends GaletteTestCase
         $this->assertInstanceOf(\Galette\OAuth2\Client\Provider\GaletteResourceOwner::class, $resourceOwner);
 
         //check values
-        $this->assertSame($adh1->id, $resourceOwner->getId());
+        $this->assertSame($member_one->id, $resourceOwner->getId());
         $this->assertSame($data['login_adh'], $resourceOwner->getUsername());
         $this->assertSame($data['email_adh'], $resourceOwner->getEmail());
         //due date scope is requested from configuration file
