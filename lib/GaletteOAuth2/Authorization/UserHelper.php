@@ -66,6 +66,10 @@ final class UserHelper
             }
 
             if ($pw_superadmin) {
+                Analog::log(
+                    'OAuth login attempt from superadmin account',
+                    Analog::WARNING
+                );
                 $flash->addMessage(
                     'error_detected',
                     _T('Cannot OAuth login from superadmin account!', 'oauth2')
