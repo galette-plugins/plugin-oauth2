@@ -42,11 +42,15 @@ require_once $module['root'] . '/_config.inc.php';
 require_once '_dependencies.php';
 
 //login is always called by a http_redirect
-$app->map(
-    ['GET', 'POST'],
+$app->get(
     '/login',
     [LoginController::class, 'login']
 )->setName(OAUTH2_PREFIX . '_login');
+
+$app->post(
+    '/login',
+    [LoginController::class, 'doLogin']
+)->setName(OAUTH2_PREFIX . '_doLogin');
 
 $app->map(
     ['GET', 'POST'],

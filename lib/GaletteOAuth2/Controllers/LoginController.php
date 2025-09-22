@@ -46,51 +46,57 @@ final class LoginController extends AbstractPluginController
      */
     #[Inject("Plugin Galette OAuth2")]
     protected array $module_info;
+    #[Inject]
     protected Container $container;
+    #[Inject]
     protected Config $config;
 
     /**
-     * Default constructor
+     * Display login form
      *
-     * @param Container $container Container instance
-     * @throws \DI\DependencyException
-     * @throws \DI\NotFoundException
+     * @param Request  $request  Received request
+     * @param Response $response Response instance
+     *
+     * @return Response
      */
-    public function __construct(Container $container)
-    {
-        $this->container = $container;
-        $this->config = $this->container->get(Config::class);
-        parent::__construct($container);
-    }
-
     public function login(Request $request, Response $response): Response
     {
         Debug::logRequest('login()', $request);
 
-        if ($request->getMethod() === 'GET') {
-            $redirect_url = $request->getQueryParams()['redirect_url'] ?? false;
+        $redirect_url = $request->getQueryParams()['redirect_url'] ?? false;
 
-            if ($redirect_url) {
-                $url = urldecode($redirect_url);
-                $url_query = parse_url($url, PHP_URL_QUERY);
-                parse_str($url_query, $url_args);
-                $this->session->request_args = $url_args;
-            }
-
-            /** @phpstan-ignore-next-line */
-            if (OAUTH2_DEBUGSESSION) {
-                Debug::log('GET _SESSION = ' . Debug::printVar($this->session));
-            }
-
-            // display page
-            $this->view->render(
-                $response,
-                $this->getTemplate(OAUTH2_PREFIX . '_login'),
-                $this->prepareVarsForm()
-            );
-            return $response;
+        //FIXME: redirect URL seems required: session request_args is considered as existing in self::prepareVarsForm()
+        if ($redirect_url) {
+            $url = urldecode($redirect_url);
+            $url_query = parse_url($url, PHP_URL_QUERY);
+            parse_str($url_query, $url_args);
+            $this->session->request_args = $url_args;
         }
 
+        /** @phpstan-ignore-next-line */
+        if (OAUTH2_DEBUGSESSION) {
+            Debug::log('GET _SESSION = ' . Debug::printVar($this->session));
+        }
+
+        // display page
+        $this->view->render(
+            $response,
+            $this->getTemplate(OAUTH2_PREFIX . '_login'),
+            $this->prepareVarsForm()
+        );
+        return $response;
+    }
+
+    /**
+     * Do login
+     *
+     * @param Request  $request  Received request
+     * @param Response $response Response instance
+     *
+     * @return Response
+     */
+    public function doLogin(Request $request, Response $response): Response
+    {
         /** @phpstan-ignore-next-line */
         if (OAUTH2_DEBUGSESSION) {
             Debug::log('POST _SESSION = ' . Debug::printVar($this->session));
