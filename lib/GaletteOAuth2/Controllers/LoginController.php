@@ -182,21 +182,20 @@ final class LoginController extends AbstractPluginController
         Debug::logRequest('logout()', $request);
         UserHelper::logout($this->container);
 
-        //FIXME: for both isLoggedIn and user_id, we can rely on login object stored in session
-        $this->session->user_id = null;
-        $this->session->isLoggedIn = 'no';
-        $client_id = $this->session->request_args['client_id'];
-        $this->session->request_args = [];
+        unset(
+            $this->session->user_id,
+            $this->session->isLoggedIn,
+            $this->session->request_args
+        );
+        session_destroy();
 
-        //By default : client_id.redirect_logout else '/'
-        $redirect_logout = '/';
-        if ($client_id) {
+        $redirect_logout = $this->routeparser->urlFor('slash');
+        if ($client_id = $this->session->request_args['client_id'] ?? null) {
             $redirect_logout = $this->config->get("{$client_id}.redirect_logout", $redirect_logout);
+            Debug::log("logout():url_logout for client:'{$client_id}' = '{$redirect_logout}'");
         }
 
-        Debug::log("logout():url_logout for client:'{$client_id}' = '{$redirect_logout}'");
-
-        //Add an url redirection in config.yml : $client_id:   redirect_logout:"https:\\xxx");
+        //Add an url redirection in config.yml: $client_id:   redirect_logout:"https:\\xxx");
         return $response->withHeader('Location', $redirect_logout)->withStatus(302);
     }
 
