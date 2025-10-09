@@ -35,7 +35,7 @@ $this->register(
     '3.0.0',                               //Version
     '1.2.0',                               //Galette compatible version
     'oauth2',                              //routing name and translation domain
-    '2024-09-12',                          //Release date
+    '2025-10-09',                          //Release date
     [//Permissions needed
         'oauth2_authorize' => 'member'
     ],
