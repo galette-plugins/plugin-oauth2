@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright © 2021-2024 The Galette Team
+ * Copyright © 2021-2025 The Galette Team
  *
  * This file is part of Galette OAuth2 plugin (https://galette-community.github.io/plugin-oauth2/).
  *
@@ -28,4 +28,12 @@
 define('GALETTE_PLUGINS_PATH', __DIR__ . '/../../');
 $basepath = '../../../galette/';
 
+define('OAUTH2_CONFIGPATH', __DIR__ . '/config');
+
+include_once __DIR__ . '/../vendor/autoload.php';
 include_once '../../../tests/TestsBootstrap.php';
+include_once __DIR__ . '/../_dependencies.php';
+$module = [
+    'root' => __DIR__ . '/..'
+];
+include_once __DIR__ . '/../_routes.php';

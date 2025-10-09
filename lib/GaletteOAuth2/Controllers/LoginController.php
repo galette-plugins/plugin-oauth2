@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright © 2021-2024 The Galette Team
+ * Copyright © 2021-2025 The Galette Team
  *
  * This file is part of Galette OAuth2 plugin (https://galette-community.github.io/plugin-oauth2/).
  *
@@ -30,6 +30,7 @@ use GaletteOAuth2\Authorization\UserAuthorizationException;
 use GaletteOAuth2\Authorization\UserHelper;
 use GaletteOAuth2\Tools\Config;
 use GaletteOAuth2\Tools\Debug;
+use RKA\Session;
 use Slim\Psr7\Request;
 use Slim\Psr7\Response;
 
@@ -46,45 +47,59 @@ final class LoginController extends AbstractPluginController
      */
     #[Inject("Plugin Galette OAuth2")]
     protected array $module_info;
+    #[Inject]
     protected Container $container;
+    #[Inject]
     protected Config $config;
+    #[Inject("oauth_session")]
+    protected Session $session;
 
-    // constructor receives container instance
-    public function __construct(Container $container)
-    {
-        $this->container = $container;
-        $this->config = $this->container->get(Config::class);
-        parent::__construct($container);
-    }
-
+    /**
+     * Display login form
+     *
+     * @param Request  $request  Received request
+     * @param Response $response Response instance
+     *
+     * @return Response
+     */
     public function login(Request $request, Response $response): Response
     {
         Debug::logRequest('login()', $request);
 
-        if ($request->getMethod() === 'GET') {
-            $redirect_url = $request->getQueryParams()['redirect_url'] ?? false;
+        $redirect_url = $request->getQueryParams()['redirect_url'] ?? false;
 
-            if ($redirect_url) {
-                $url = urldecode($redirect_url);
-                $url_query = parse_url($url, PHP_URL_QUERY);
-                parse_str($url_query, $url_args);
-                $this->session->request_args = $url_args;
-            }
-
-            /** @phpstan-ignore-next-line */
-            if (OAUTH2_DEBUGSESSION) {
-                Debug::log('GET _SESSION = ' . Debug::printVar($this->session));
-            }
-
-            // display page
-            $this->view->render(
-                $response,
-                $this->getTemplate(OAUTH2_PREFIX . '_login'),
-                $this->prepareVarsForm()
-            );
-            return $response;
+        //FIXME: redirect URL seems required: session request_args is considered as existing in self::prepareVarsForm()
+        if ($redirect_url) {
+            $url = urldecode($redirect_url);
+            $url_query = parse_url($url, PHP_URL_QUERY);
+            parse_str($url_query, $url_args);
+            $this->session->request_args = $url_args;
         }
 
+        /** @phpstan-ignore-next-line */
+        if (OAUTH2_DEBUGSESSION) {
+            Debug::log('GET _SESSION = ' . Debug::printVar($this->session));
+        }
+
+        // display page
+        $this->view->render(
+            $response,
+            $this->getTemplate(OAUTH2_PREFIX . '_login'),
+            $this->prepareVarsForm()
+        );
+        return $response;
+    }
+
+    /**
+     * Do login
+     *
+     * @param Request  $request  Received request
+     * @param Response $response Response instance
+     *
+     * @return Response
+     */
+    public function doLogin(Request $request, Response $response): Response
+    {
         /** @phpstan-ignore-next-line */
         if (OAUTH2_DEBUGSESSION) {
             Debug::log('POST _SESSION = ' . Debug::printVar($this->session));
@@ -94,9 +109,9 @@ final class LoginController extends AbstractPluginController
         $params = (array) $request->getParsedBody();
 
         //Try login
+        //FIXME: for both isLoggedIn and user_id, we can rely on login object stored in session
         $this->session->isLoggedIn = 'no';
         $this->session->user_id = $uid = UserHelper::login($this->container, $params['login'], $params['password']);
-        //if($params['login'] == 'manuel') $loginSuccessful = true;
         Debug::log("UserHelper::login({$params['login']}) return '{$uid}'");
 
         if (false === $uid) {
@@ -112,15 +127,20 @@ final class LoginController extends AbstractPluginController
                 );
         }
 
-        //check rights with scopes
-        $options = UserHelper::mergeOptions(
-            $this->config,
-            $this->session->request_args['client_id'],
-            explode(' ', $this->session->request_args['scope'])
-        );
-
         try {
-            UserHelper::getUserData($this->container, $uid, $options);
+            $client_id = $this->session->request_args['client_id'];
+            UserHelper::getUserData(
+                $this->container,
+                $uid,
+                UserHelper::getAuthorization($this->config, $client_id),
+                UserHelper::mergeScopes(
+                    $this->config,
+                    $client_id,
+                    $this->session->request_args['scope'] ?? [],
+                    true
+                ),
+                (bool)$this->config->get($client_id . '.legacy_data', false)
+            );
         } catch (UserAuthorizationException $e) {
             UserHelper::logout($this->container);
             Debug::log('login() check rights error ' . $e->getMessage());
@@ -137,6 +157,7 @@ final class LoginController extends AbstractPluginController
                 );
         }
 
+        //FIXME: for both isLoggedIn and user_id, we can rely on login object stored in session
         $this->session->isLoggedIn = 'yes';
 
         // User is logged in, redirect them to authorize
@@ -161,33 +182,40 @@ final class LoginController extends AbstractPluginController
         Debug::logRequest('logout()', $request);
         UserHelper::logout($this->container);
 
-        $this->session->user_id = null;
-        $this->session->isLoggedIn = 'no';
-        $client_id = $this->session->request_args['client_id'];
-        $this->session->request_args = [];
+        unset(
+            $this->session->user_id,
+            $this->session->isLoggedIn,
+            $this->session->request_args
+        );
+        session_destroy();
 
-        //By default : client_id.redirect_logout else '/'
-        $redirect_logout = '/';
-
-        if ($client_id) {
+        $redirect_logout = $this->routeparser->urlFor('slash');
+        if ($client_id = $this->session->request_args['client_id'] ?? null) {
             $redirect_logout = $this->config->get("{$client_id}.redirect_logout", $redirect_logout);
+            Debug::log("logout():url_logout for client:'{$client_id}' = '{$redirect_logout}'");
         }
 
-        Debug::log("logout():url_logout for client:'{$client_id}' = '{$redirect_logout}'");
-
-        //Add an url redirection in config.yml : $client_id:   redirect_logout:"https:\\xxx");
+        //Add an url redirection in config.yml: $client_id:   redirect_logout:"https:\\xxx");
         return $response->withHeader('Location', $redirect_logout)->withStatus(302);
     }
 
     private function prepareVarsForm()
     {
         $client_id = $this->session->request_args['client_id'];
+        $server_title = $this->config->get('global.title', 'Galette');
+        $sign_in_with = sprintf(
+            _T('Sign in with %s', 'oauth2'),
+            $server_title
+        );
         $application = $this->config->get("{$client_id}.title", 'noname');
-        $page_title = _T('Please sign in for', OAUTH2_PREFIX) . " '{$application}'";
+        $page_title = sprintf(
+            _T('Sign in %s', 'oauth2'),
+            $application
+        );
 
         return [
+            'sign_in_with' => $sign_in_with,
             'page_title' => $page_title,
-            'application' => $application,
             'prefix' => OAUTH2_PREFIX
         ];
     }

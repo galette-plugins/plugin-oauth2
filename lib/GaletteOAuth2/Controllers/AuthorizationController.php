@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright © 2021-2024 The Galette Team
+ * Copyright © 2021-2025 The Galette Team
  *
  * This file is part of Galette OAuth2 plugin (https://galette-community.github.io/plugin-oauth2/).
  *
@@ -28,12 +28,15 @@ use DI\Attribute\Inject;
 use DI\Container;
 use Exception;
 use Galette\Controllers\AbstractPluginController;
+use GaletteOAuth2\Authorization\UserHelper;
 use GaletteOAuth2\Entities\UserEntity;
+use GaletteOAuth2\Repositories\ScopeRepository;
 use GaletteOAuth2\Tools\Config as Config;
 use GaletteOAuth2\Tools\Debug as Debug;
 use League\OAuth2\Server\AuthorizationServer;
 use League\OAuth2\Server\Exception\OAuthServerException;
 use Psr\Http\Message\ResponseInterface;
+use RKA\Session;
 use Slim\Psr7\Request;
 use Slim\Psr7\Response;
 
@@ -52,8 +55,16 @@ final class AuthorizationController extends AbstractPluginController
     protected array $module_info;
     protected Container $container;
     protected Config $config;
+    #[Inject("oauth_session")]
+    protected Session $session;
 
-    // constructor receives container instance
+    /**
+     * Default constructor
+     *
+     * @param Container $container Container instance
+     * @throws \DI\DependencyException
+     * @throws \DI\NotFoundException
+     */
     public function __construct(Container $container)
     {
         $this->container = $container;
@@ -61,6 +72,15 @@ final class AuthorizationController extends AbstractPluginController
         parent::__construct($container);
     }
 
+    /**
+     * Display authorization form
+     *
+     * @param Request $request
+     * @param Response $response
+     * @return Response|ResponseInterface
+     * @throws \DI\DependencyException
+     * @throws \DI\NotFoundException
+     */
     public function authorize(Request $request, Response $response): Response|ResponseInterface
     {
         Debug::logRequest('authorization/authorize()', $request);
@@ -69,12 +89,12 @@ final class AuthorizationController extends AbstractPluginController
 
         try {
             $queryParams = $request->getQueryParams();
+            $client_id = $queryParams['client_id'];
 
             //Save redirect_uri (it's not possible with Sessions)
             //FIXME [JC]: I really do not like the idea of using a file on disk;
             // this may also cause severe issues in case of concurrent logins
             if (isset($queryParams['redirect_uri'])) {
-                $client_id = $queryParams['client_id'];
                 $key = $client_id . '.redirect_uri';
                 if (!isset($this->session->$client_id)) {
                     $this->session->$client_id = new \stdClass();
@@ -94,7 +114,6 @@ final class AuthorizationController extends AbstractPluginController
                     );
                     fclose($stream);
 
-                    /*$this->config->writeFile();*/
                     Analog::log(
                         'Auto add redirect_uri ok.',
                         Analog::DEBUG
@@ -107,44 +126,109 @@ final class AuthorizationController extends AbstractPluginController
             $authRequest = $server->validateAuthorizationRequest($request);
 
             $user = new UserEntity();
+            //FIXME: for both isLoggedIn and user_id, we can rely on login object stored in session
             $user->setIdentifier($this->session->user_id);
             $authRequest->setUser($user);
 
-            //TODO : Scopes implementation
-            /*if (0) {
-                if ($request->getMethod() === 'GET') {
-                    //$queryParams = $request->getQueryParams();
-                    $scopes = isset($queryParams['scope']) ? explode(' ', $queryParams['scope']) : ['default'];
-                    $this->view->render(
-                        $response,
-                        $this->getTemplate(OAUTH2_PREFIX . '_authorize'),
-                        [
-                            'pageTitle' => 'Authorize',
-                            'clientName' => $authRequest->getClient()->getName(),
-                            'scopes' => $scopes
-                        ]
-                    );
-                    return $response;
-                }
+            $server_title = $this->config->get('global.title', 'Galette');
+            $sign_in_with = sprintf(
+                _T('Sign in with %s', 'oauth2'),
+                $server_title
+            );
+            $application = $this->config->get("{$client_id}.title", 'noname');
+            $page_title = sprintf(
+                _T('%s is requesting access to the following details', 'oauth2'),
+                $application
+            );
+            $scopes = UserHelper::mergeScopes(
+                $this->config,
+                $client_id,
+                $queryParams['scope'] ?? [],
+                true
+            );
 
-                $params = (array) $request->getParsedBody();
-            } else {
-                $params = [];
-                $params['authorized'] = 'true';
-            }*/
-            $params = [];
-            $params['authorized'] = 'true';
+            $this->view->render(
+                $response,
+                $this->getTemplate(OAUTH2_PREFIX . '_authorize'),
+                [
+                    'sign_in_with' => $sign_in_with,
+                    'page_title' => $page_title,
+                    'requested_scopes' => $scopes,
+                    'known_scopes' => ScopeRepository::knownScopes(),
+                    'queryParams' => $queryParams,
+                    'querystring' => $request->getUri()->getQuery()
+                ]
+            );
+            return $response;
+        } catch (OAuthServerException $exception) {
+            return $exception->generateHttpResponse($response);
+        } catch (Exception $exception) {
+            $body = $response->getBody();
+            $body->write($exception->getMessage());
 
+            return $response->withStatus(500)->withBody($body);
+        }
+    }
+
+    /**
+     * Proceed authorization
+     *
+     * @param Request $request
+     * @param Response $response
+     * @return Response|ResponseInterface
+     * @throws \DI\DependencyException
+     * @throws \DI\NotFoundException
+     */
+    public function doAuthorize(Request $request, Response $response): Response|ResponseInterface
+    {
+        Debug::logRequest('authorization/doAuthorize()', $request);
+
+        $server = $this->container->get(AuthorizationServer::class);
+
+        try {
+            $params = (array)$request->getParsedBody();
+            $queryParams = $request->getQueryParams();
+
+            // Validate the HTTP request and return an AuthorizationRequest object.
+            // The auth request object can be serialized into a user's session
+            $authRequest = $server->validateAuthorizationRequest($request);
+            $user = new UserEntity();
+            //FIXME: for both isLoggedIn and user_id, we can rely on login object stored in session
+            $user->setIdentifier($this->session->user_id);
+            $authRequest->setUser($user);
 
             // Once the user has approved or denied the client update the status
             // (true = approved, false = denied)
-            $authorized = 'true' === $params['authorized'];
-            $authRequest->setAuthorizationApproved($authorized);
+            if (isset($params['approve'])) {
+                $authRequest->setAuthorizationApproved(true);
+                $scopes = UserHelper::mergeScopes(
+                    null,
+                    $queryParams['client_id'],
+                    $params['scopes'] ?? [],
+                    true
+                );
+                $req_scopes = [];
+                $srepo = new ScopeRepository();
+                foreach ($scopes as $scope) {
+                    $req_scopes[] = $srepo->getScopeEntityByIdentifier($scope);
+                }
+                $authRequest->setScopes($req_scopes);
+            } else {
+                $authRequest->setAuthorizationApproved(true);
+                $authRequest->setScopes([]);
+
+                throw OAuthServerException::accessDenied(
+                    sprintf(
+                        _T('Default scope (%s) has not been authorized.', 'oauth2'),
+                        'member'
+                    )
+                );
+            }
 
             // Return the HTTP redirect response
             $r = $server->completeAuthorizationRequest($authRequest, $response);
             Analog::log(
-                'authorization/authorize() exit ok',
+                'authorization/doAuthorize() exit ok',
                 Analog::DEBUG
             );
 
@@ -156,6 +240,8 @@ final class AuthorizationController extends AbstractPluginController
             $body->write($exception->getMessage());
 
             return $response->withStatus(500)->withBody($body);
+        } finally {
+            $this->login->logout();
         }
     }
 
@@ -163,7 +249,7 @@ final class AuthorizationController extends AbstractPluginController
     {
         Debug::logRequest('authorization/token()', $request);
         $server = $this->container->get(AuthorizationServer::class);
-        $params = (array) $request->getParsedBody(); //POST
+        $params = (array)$request->getParsedBody(); //POST
 
         try {
             // Try to respond to the access token request
@@ -177,8 +263,8 @@ final class AuthorizationController extends AbstractPluginController
             return $exception->generateHttpResponse($response);
         } catch (Exception $exception) {
             Debug::log(
-                'authorization/Exception: ' .
-                $exception->getMessage() . '<br>' . $exception->getTraceAsString()
+                'authorization/Exception: '
+                . $exception->getMessage() . '<br>' . $exception->getTraceAsString()
             );
             // Catch unexpected exceptions
             $body = $response->getBody();

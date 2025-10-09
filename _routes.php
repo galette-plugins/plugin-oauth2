@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright © 2021-2024 The Galette Team
+ * Copyright © 2021-2025 The Galette Team
  *
  * This file is part of Galette OAuth2 plugin (https://galette-community.github.io/plugin-oauth2/).
  *
@@ -39,14 +39,18 @@ require_once 'vendor/autoload.php';
 //Constants and classes from plugin
 require_once $module['root'] . '/_config.inc.php';
 
-require_once '_dependencies.php';
+require '_dependencies.php';
 
 //login is always called by a http_redirect
-$app->map(
-    ['GET', 'POST'],
+$app->get(
     '/login',
     [LoginController::class, 'login']
 )->setName(OAUTH2_PREFIX . '_login');
+
+$app->post(
+    '/login',
+    [LoginController::class, 'doLogin']
+)->setName(OAUTH2_PREFIX . '_doLogin');
 
 $app->map(
     ['GET', 'POST'],
@@ -54,13 +58,15 @@ $app->map(
     [LoginController::class, 'logout']
 )->setName(OAUTH2_PREFIX . '_logout');
 
-$app->map(
-    ['GET', 'POST'],
+$app->get(
     '/authorize',
     [AuthorizationController::class, 'authorize']
-)
-->setName(OAUTH2_PREFIX . '_authorize')
-->add(Authentication::class);
+)->setName(OAUTH2_PREFIX . '_authorize')->add(Authentication::class);
+
+$app->post(
+    '/authorize',
+    [AuthorizationController::class, 'doAuthorize']
+)->setName(OAUTH2_PREFIX . '_doAuthorize')->add(Authentication::class);
 
 $app->post(
     '/access_token',

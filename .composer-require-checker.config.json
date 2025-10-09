@@ -23,6 +23,7 @@
 
     "// Galette constants (not detected as they are dynamically declared)",
     "GALETTE_ATTACHMENTS_PATH",
+    "GALETTE_ADAPTATIVE_CARDS",
     "GALETTE_BASE_PATH",
     "GALETTE_CACHE_DIR",
     "GALETTE_CARD_COLS",
@@ -46,6 +47,7 @@
     "GALETTE_NIGHTLY",
     "GALETTE_PHOTOS_PATH",
     "GALETTE_PLUGINS_PATH",
+    "GALETTE_PLUGINS_DATA_PATH",
     "GALETTE_ROOT",
     "GALETTE_TELEMETRY_URI",
     "GALETTE_TEMPIMAGES_PATH",

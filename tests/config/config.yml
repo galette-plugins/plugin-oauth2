@@ -1,0 +1,22 @@
+global:
+    password: abc123
+galette_flarum:
+    title: 'Forum Flarum'
+    redirect_logout: 'http://flarum.localhost'
+    authorize: uptodate
+galette_nc:
+    title: 'Nextcloud'
+    redirect_logout: 'http://localhost/nextcloud'
+    authorize: teamonly
+    scopes:
+        - member
+        - member:localization
+        - member:phones
+        - member:groups
+galette_cli:
+    password: 4567zyx
+    title: CLI for testing
+    redirect_logout: 'http://localhost'
+    authorize: teamonly
+    scopes:
+        - member:due_date

@@ -1,32 +1,122 @@
-#: ../templates/default/oauth2_login.tpl:32
-msgid "Username or email"
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
 msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-09-11 17:40+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
 
-#: ../templates/default/oauth2_login.tpl:39
-msgid "Password"
-msgstr ""
-
-#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:137
-msgid "Sorry, you can't login because your are not a up-to-date members."
-msgstr ""
-
-#: ../templates/default/oauth2_login.tpl:20
-msgid "Please sign in for"
-msgstr ""
-
-#: ../lib/GaletteOAuth2/Controllers/LoginController.php:106
+#: ../lib/GaletteOAuth2/Controllers/LoginController.php:112
 msgid "Check your login / email or password."
 msgstr ""
 
-#: ../templates/default/oauth2_login.tpl:44
-msgid "Login"
+#: ../lib/GaletteOAuth2/Controllers/LoginController.php:200
+#: ../lib/GaletteOAuth2/Controllers/AuthorizationController.php:132
+#, php-format
+msgid "Sign in with %s"
 msgstr ""
 
-#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:161
-msgid "You are not an active member."
+#: ../lib/GaletteOAuth2/Controllers/LoginController.php:205
+#, php-format
+msgid "Sign in %s"
 msgstr ""
 
-#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:131
+#: ../lib/GaletteOAuth2/Controllers/AuthorizationController.php:137
+#, php-format
+msgid "%s is requesting access to the following details"
+msgstr ""
+
+#: ../lib/GaletteOAuth2/Controllers/AuthorizationController.php:219
+#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:159
+#, php-format
+msgid "Default scope (%s) has not been authorized."
+msgstr ""
+
+#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:71
+msgid "Cannot OAuth login from superadmin account!"
+msgstr ""
+
+#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:124
+msgid "User not found."
+msgstr ""
+
+#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:129
+msgid "Sorry, you can't login because you are not an active member."
+msgstr ""
+
+#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:134
+msgid "Sorry, you can't login. Please, add an email address to your account."
+msgstr ""
+
+#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:140
 msgid "Sorry, you can't login because your are not a team member."
 msgstr ""
 
+#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:148
+msgid "Sorry, you can't login because your are not an up-to-date member."
+msgstr ""
+
+#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:45
+msgid ""
+"Access to your member basic information: name, login, email, language, "
+"company name)"
+msgstr ""
+
+#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:48
+msgid ""
+"Access to more precise personal data: birth date, job, gender, birth place, "
+"GnuPG ID"
+msgstr ""
+
+#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:51
+msgid "Access to your localization data: zipcode, town, region, country"
+msgstr ""
+
+#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:54
+msgid ""
+"Access to your precise localisation data: full address, coordinates (from "
+"maps plugin)"
+msgstr ""
+
+#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:57
+msgid "Access to your phone numbers"
+msgstr ""
+
+#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:60
+msgid "Access to your social networks data"
+msgstr ""
+
+#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:63
+msgid "Access to the groups you belong to"
+msgstr ""
+
+#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:66
+msgid "Access to your due date"
+msgstr ""
+
+#: ../tempcache/oauth2_authorize.html.twig:86
+msgid "Default scope is mandatory and cannot be unselected"
+msgstr ""
+
+#: ../tempcache/oauth2_authorize.html.twig:102
+msgid "Toggle scope approval"
+msgstr ""
+
+#: ../tempcache/oauth2_authorize.html.twig:138
+msgid "Cancel"
+msgstr ""
+
+#: ../tempcache/oauth2_authorize.html.twig:146
+msgid "Allow"
+msgstr ""

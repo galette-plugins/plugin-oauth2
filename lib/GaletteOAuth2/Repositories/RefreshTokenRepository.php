@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright © 2021-2024 The Galette Team
+ * Copyright © 2021-2025 The Galette Team
  *
  * This file is part of Galette OAuth2 plugin (https://galette-community.github.io/plugin-oauth2/).
  *
@@ -50,7 +50,7 @@ final class RefreshTokenRepository implements RefreshTokenRepositoryInterface
         return false; // The refresh token has not been revoked
     }
 
-    public function getNewRefreshToken()
+    public function getNewRefreshToken(): RefreshTokenEntityInterface
     {
         return new RefreshTokenEntity();
     }

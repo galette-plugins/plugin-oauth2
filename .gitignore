@@ -1,11 +1,18 @@
 *.key
 *.log
-.php*
 *.lock
 vendor/
 .build/
+_disabled
+dist/
+tempcache/
 
 /config/*
 !/config/.htaccess
 !/config/encryption-key.php
 !/config/config.yml.dist
+
+tests/config/encryption-key.php
+tests/config/config.yml
+tests/coverage/
+

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright © 2021-2024 The Galette Team
+ * Copyright © 2021-2025 The Galette Team
  *
  * This file is part of Galette OAuth2 plugin (https://galette-community.github.io/plugin-oauth2/).
  *
@@ -23,10 +23,12 @@ declare(strict_types=1);
 
 namespace GaletteOAuth2\Authorization;
 
+use Analog\Analog;
 use DI\Container;
 use Galette\Core\Db;
 use Galette\Core\Login;
 use Galette\Entity\Adherent;
+use Galette\Entity\Social;
 use GaletteOAuth2\Tools\Config;
 use GaletteOAuth2\Tools\Debug;
 
@@ -44,7 +46,7 @@ final class UserHelper
         /** @var Login $login */
         $login = $container->get('login');
         $history = $container->get('history');
-        $session = $container->get('session');
+        $session = $container->get('oauth_session');
         $flash = $container->get('flash');
 
         if (trim($nick) === '' || trim($password) === '') {
@@ -64,6 +66,10 @@ final class UserHelper
             }
 
             if ($pw_superadmin) {
+                Analog::log(
+                    'OAuth login attempt from superadmin account',
+                    Analog::WARNING
+                );
                 $flash->addMessage(
                     'error_detected',
                     _T('Cannot OAuth login from superadmin account!', 'oauth2')
@@ -90,59 +96,57 @@ final class UserHelper
         /** @var Login $login */
         $login = $container->get('login');
         $history = $container->get('history');
-        $session = $container->get('session');
+        $session = $container->get('oauth_session');
 
         $login->logout();
         $session->login = $login;
         $history->add(_T('Logout'));
     }
 
-    public static function getUserData(Container $container, int $id, array $options)
+    /**
+     * Get user data
+     *
+     * @param Container       $container Container instance
+     * @param int             $id        User ID
+     * @param string          $acl       Requested authorization
+     * @param string[]|string $scopes    Scopes
+     * @param bool            $legacy    Legacy mode for data
+     *
+     * @return array<string, mixed>
+     * @throws UserAuthorizationException
+     * @throws \DI\DependencyException
+     * @throws \DI\NotFoundException
+     * @throws \Throwable
+     */
+    public static function getUserData(Container $container, int $id, string $acl, array|string $scopes, bool $legacy = false): array
     {
         /** @var Db $zdb */
         $zdb = $container->get('zdb');
 
         $member = new Adherent($zdb);
-        $member->load($id);
-
-        $nameExplode = preg_split('/[\\s,-]+/', $member->name);
-        //$surnameExplode = preg_split('/[\\s,-]+/', $member->surname);
-
-        if (count($nameExplode) > 0) {
-            $nameFPart = $nameExplode[0];
-            //too short?
-            if (mb_strlen($nameFPart) < 4 && count($nameExplode) > 1) {
-                $nameFPart .= $nameExplode[1];
-            }
-        } else {
-            $nameFPart = $member->name;
+        if (!$member->load($id)) {
+            throw new UserAuthorizationException(_T('User not found.', 'oauth2'));
         }
 
-        //Normalized format s.name (example mail usage : s.name@xxxx.xx )
-        //FIXME: why don't use email directly?
-        $norm_login =
-        mb_substr(self::stripAccents($member->surname), 0, 1) .
-        '.' .
-        self::stripAccents($nameFPart);
-
-        //FIXME: is that really useful? From a Galette PoV; this does not means much.
-        $etat_adhesion = ($member->isActive() && $member->isUp2Date()) || $member->isAdmin();
-
+        //check active member ?
         if (!$member->isActive()) {
-            throw new UserAuthorizationException(_T('You are not an active member.', 'oauth2'));
+            throw new UserAuthorizationException(_T("Sorry, you can't login because you are not an active member.", "oauth2"));
         }
 
-        //for options=
-        //teamonly
-        if (in_array('teamonly', $options, true)) {
+        //check email
+        if (!filter_var($member->email, FILTER_VALIDATE_EMAIL)) {
+            throw new UserAuthorizationException(_T("Sorry, you can't login. Please, add an email address to your account.", 'oauth2'));
+        }
+
+        if ($acl === 'teamonly') {
             if (!$member->isAdmin() && !$member->isStaff() && !$member->isGroupManager(null)) {
                 throw new UserAuthorizationException(
                     _T("Sorry, you can't login because your are not a team member.", 'oauth2')
                 );
             }
         }
-        //uptodate
-        if (in_array('uptodate', $options, true)) {
+
+        if ($acl === 'uptodate') {
             if (!$member->isUp2Date()) {
                 throw new UserAuthorizationException(
                     _T("Sorry, you can't login because your are not an up-to-date member.", 'oauth2')
@@ -150,8 +154,152 @@ final class UserHelper
             }
         }
 
-        //Groups list for Nextcloud
-        $groups = [$member->sstatus]; //first group is the member status
+        $default_scope = array_search('member', $scopes, true);
+        if ($default_scope !== false) {
+            unset($scopes[$default_scope]);
+        } else {
+            throw new UserAuthorizationException(
+                sprintf(
+                    _T('Default scope (%s) has not been authorized.', 'oauth2'),
+                    'member'
+                )
+            );
+        }
+
+        $login = $member->login;
+
+        if ($legacy === true) {
+            //FIXME: I really doubt reworking names is a good idea outside a specific usage
+            $nameExplode = preg_split('/[\\s,-]+/', $member->name);
+            if (count($nameExplode) > 0) {
+                $nameFPart = $nameExplode[0];
+                //too short?
+                if (mb_strlen($nameFPart) < 4 && count($nameExplode) > 1) {
+                    $nameFPart .= $nameExplode[1];
+                }
+            } else {
+                $nameFPart = $member->name;
+            }
+
+            //Normalized format s.name (example mail usage : s.name@xxxx.xx )
+            //FIXME: why don't use email directly?
+            $login = sprintf(
+                '%s.%s',
+                mb_substr(self::stripAccents($member->surname), 0, 1),
+                self::stripAccents($nameFPart)
+            );
+        }
+
+        //FIXME: be compliant with OpenID-Connect (see https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims)
+        $oauth_data = [
+            'id' => $member->id,
+            'sub' => $member->id, //drupal / OpenID-Connect
+            'identifier' => $member->id, //nextcloud
+            'name' => $member->sfullname, //OpenID-Connect
+            'displayName' => $member->sname,
+            'username' => $login,
+            'userName' => $login,
+            'email' => $member->email,
+            'mail' => $member->email,
+            'locale' => $member->language, //OpenID-Connect
+            'language' => $member->language,
+            'status' => $member->status
+        ];
+
+        //member:personal
+        if (in_array('member:personal', $scopes)) {
+            $oauth_data['birthdate'] = $member->birthdate;
+            $oauth_data['birthplace'] = $member->birth_place;
+            $oauth_data['job'] = $member->job;
+            $oauth_data['gender'] = $member->sgender;
+            $oauth_data['gpgid'] = $member->gnupgid;
+        }
+
+        //member:localization
+        if (in_array('member:localization', $scopes) || in_array('member:localization:precise', $scopes)) {
+            $address = new \stdClass();
+
+            if (in_array('member:localization:precise', $scopes)) {
+                $formatted = $member->getAddress();
+                if ($member->getZipcode() || $member->getTown()) {
+                    $formatted .= "\r\n\r\n";
+                    if ($member->getZipcode()) {
+                        $formatted .= $member->getZipcode() . ' ';
+                    }
+                    if ($member->getTown()) {
+                        $formatted .= $member->getTown();
+                    }
+                }
+                if ($member->getRegion()) {
+                    $formatted .= "\r\n" . $member->getRegion();
+                }
+                if ($member->getCountry()) {
+                    $formatted .= "\r\n" . $member->getCountry();
+                }
+
+                $address->formatted = $formatted;
+                $address->street_address = $member->getAddress();
+            }
+            $address->locality = $member->getTown();
+            $address->region = $member->getRegion();
+            $address->postal_code = $member->getZipcode();
+            $address->country = $member->getCountry();
+            $oauth_data['address'] = $address;
+        }
+
+        //member:phones
+        if (in_array('member:phones', $scopes)) {
+            if ($member->phone) {
+                $oauth_data['phone'] = $member->phone;
+            }
+            if ($member->gsm) {
+                if ($member->phone) {
+                    $oauth_data['mobile_phone'] = $member->gsm;
+                } else {
+                    $oauth_data['phone'] = $member->gsm;
+                }
+            }
+        }
+
+        //member:socials
+        if (in_array('member:socials', $scopes)) {
+            $socials = Social::getListForMember($member->id);
+            foreach ($socials as $social) {
+                $oauth_data['socials'][$social->type] = $social->url;
+            }
+        }
+
+        //member:groups
+        if (in_array('member:groups', $scopes)) {
+            $oauth_data['groups'] = self::getUserGroups($member, $legacy);
+        }
+
+        //member:due_date
+        if (in_array('member:due_date', $scopes)) {
+            $oauth_data['due_date'] = $member->due_date;
+        }
+
+        return $oauth_data;
+    }
+
+    /**
+     * Comma separated groups names
+     *
+     * @param Adherent $member Member
+     * @param bool     $legacy Legacy mode for data
+     *
+     * @return array
+     */
+    protected static function getUserGroups(Adherent $member, bool $legacy = false): array
+    {
+        $groups = array_map(
+            function ($group) {
+                return $group->getName();
+            },
+            array_values($member->getGroups())
+        );
+
+        $groups[] = $member->sstatus;
 
         if ($member->isAdmin()) {
             $groups[] = 'admin';
@@ -161,7 +309,7 @@ final class UserHelper
             $groups[] = 'staff';
         }
 
-        if ($member->isGroupManager(null)) {
+        if (count($member->getManagedGroups()) > 0) {
             $groups[] = 'groupmanager';
         }
 
@@ -169,73 +317,98 @@ final class UserHelper
             $groups[] = 'uptodate';
         }
 
-        //FIXME: add groups from groups table? Or another way? info_adh does not seems a good way for everyone
-        //FIXME: For example, data is replaced on duplication, thus oauth groups configuration would be lost
-        //Add externals groups (free text in info_adh)
-        //Example #GROUPS:compta;accueil#
-        if (preg_match('/#GROUPS:([^#]*([^#]*))#/mui', $member->others_infos_admin, $matches, PREG_OFFSET_CAPTURE)) {
-            $g = $matches[1][0];
-            Debug::log("Groups added {$g}");
-            $groups = array_merge($groups, explode(';', $g));
-        }
-
-        //Reformat group with strtolower, remove whites & slashs
-        foreach ($groups as &$group) {
-            $group = trim($group);
-            $group = str_replace([' ', '/', '(', ')'], ['_', '', '', ''], $group);
-            $group = str_replace('__', '_', $group);
-            $group = self::stripAccents($group);
-        }
-        $groups = implode(',', $groups);
-
-        $phone = '';
-        if ($member->phone) {
-            $phone = $member->phone;
-        }
-        if ($member->gsm) {
-            if ($phone) {
-                $phone .= '/';
+        if ($legacy === true) {
+            //Add externals groups (free text in info_adh)
+            //Example #GROUPS:compta;accueil#
+            if (preg_match('/#GROUPS:([^#]*([^#]*))#/mui', $member->others_infos_admin, $matches, PREG_OFFSET_CAPTURE)) {
+                $g = $matches[1][0];
+                $groups = array_merge($groups, explode(';', $g));
             }
-            $phone .= $member->gsm;
+
+            //Reformat group with strtolower, remove whites & slashs
+            foreach ($groups as &$group) {
+                $group = trim($group);
+                $group = str_replace([' ', '/', '(', ')'], ['_', '', '', ''], $group);
+                $group = str_replace('__', '_', $group);
+                $group = self::stripAccents($group);
+            }
         }
 
-        return [
-            'id' => $member->id,
-            'identifier' => $member->id, //nextcloud
-            'displayName' => $member->sname,
-            'username' => $norm_login, //FIXME: $member->login,
-            'userName' => $norm_login, //FIXME: $member->login,
-            'name' => $norm_login, //FIXME: $member->sname,
-            'email' => $member->email,
-            'mail' => $member->email,
-            'language' => $member->language,
-
-            'country' => $member->country,
-            'zip' => $member->zipcode,
-            'city' => $member->town,
-            'phone' => $phone,
-
-            'status' => $member->status,
-            'state' => $etat_adhesion ? 'true' : 'false',
-            'groups' => $groups, //nextcloud : set fields Groups claim (optional) = groups
-        ];
+        return $groups;
     }
 
-    //merge oauth_scopes with user config.yml client_id.options
-    public static function mergeOptions(Config $config, $client_id, array $oauth_scopes)
+    /**
+     * Get required authorizations
+     *
+     * @param Config $config Config instance
+     * @param string $client_id
+     *
+     * @return string
+     */
+    public static function getAuthorization(Config $config, string $client_id): string
     {
-        $options = $oauth_scopes;
-        $o = $config->get("{$client_id}.options");
+        $acl = 'teamonly';
+        $conf_acls = $config->get($client_id . '.authorize');
 
-        if ($o) {
-            $o = str_replace(';', ' ', $o);
-            $o = explode(' ', $o);
-            $options = array_merge($o, $options);
+        if ($conf_acls !== 'teamonly' && $conf_acls !== 'uptodate') {
+            Analog::log(
+                'Invalid authorization configuration for client ' . $client_id . ': ' . $conf_acls,
+                Analog::ERROR
+            );
+        } else {
+            $acl = $conf_acls;
         }
-        $options = array_unique($options);
-        Debug::Log('Options: ' . implode(';', $options));
 
-        return $options;
+        return $acl;
+    }
+
+    /**
+     * Merge requested and configured scopes
+     *
+     * @param Config $config Config instance
+     *
+     * @param string       $client_id        Client app identifier
+     * @param array|string $requested_scopes Requested scopes from query string
+     *
+     * @return array
+     */
+    public static function mergeScopes(
+        ?Config $config,
+        string $client_id,
+        array|string $requested_scopes,
+        bool $with_default = false
+    ): array {
+        $scopes = [];
+
+        //add default scope if requested
+        if ($with_default === true) {
+            $scopes[] = 'member';
+        }
+
+        //handle requested scopes
+        if (!is_array($requested_scopes)) {
+            $requested_scopes = str_replace([';', ','], ' ', $requested_scopes);
+            $requested_scopes = preg_split('/ /', $requested_scopes, -1, PREG_SPLIT_NO_EMPTY);
+        }
+        $scopes = array_merge($scopes, $requested_scopes);
+
+        if ($config !== null) {
+            //handle config scopes
+            $conf_scopes = $config->get($client_id . '.scopes');
+            if ($conf_scopes) {
+                if (!is_array($conf_scopes)) {
+                    $conf_scopes = str_replace([';', ','], ' ', $conf_scopes);
+                    $conf_scopes = explode(' ', $conf_scopes);
+                }
+                $scopes = array_merge($scopes, $conf_scopes);
+            }
+        }
+
+        $scopes = array_unique($scopes);
+        $scopes = array_map('strtolower', $scopes);
+        Debug::log('Scopes: ' . implode(' ', $scopes));
+
+        return $scopes;
     }
 
     // Nextcloud data:

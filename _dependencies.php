@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright © 2021-2024 The Galette Team
+ * Copyright © 2021-2025 The Galette Team
  *
  * This file is part of Galette OAuth2 plugin (https://galette-community.github.io/plugin-oauth2/).
  *
@@ -36,24 +36,56 @@ use GaletteOAuth2\Repositories\RefreshTokenRepository;
 use GaletteOAuth2\Repositories\ScopeRepository;
 use GaletteOAuth2\Repositories\UserRepository;
 use GaletteOAuth2\Tools\Config;
-use GaletteOAuth2\Tools\Debug as Debug;
 use League\OAuth2\Server\AuthorizationServer;
 use League\OAuth2\Server\Grant\AuthCodeGrant;
 use League\OAuth2\Server\Grant\RefreshTokenGrant;
 use League\OAuth2\Server\ResourceServer;
 use Psr\Container\ContainerInterface;
-
-if (OAUTH2_LOG) {
-    Debug::init();
-}
+use RKA\SessionMiddleware;
 
 $container = $app->getContainer();
+
+//$app->add($session);
+$container->set(
+    'oauth_session',
+    function (ContainerInterface $container) {
+        $session_name = PREFIX_DB . '_' . NAME_DB . '_' . str_replace('.', '_', GALETTE_VERSION);
+        $session_name = 'galette_oauth_' . $session_name;
+        $session = new SessionMiddleware([
+            'name'      => $session_name,
+            'lifetime'  => GALETTE_TIMEOUT
+        ]);
+
+        $galette_sid = session_id();
+        session_write_close();
+        session_id('galette-oauth-' . $galette_sid);
+        $session->start();
+
+        $container->get('flash')->__construct($_SESSION);
+        return new \RKA\Session();
+    }
+);
 
 $container->set(
     Config::class,
     static function (ContainerInterface $container) {
         $conf = new GaletteOAuth2\Tools\Config(OAUTH2_CONFIGPATH . '/config.yml');
-        //$conf->writeFile();
+
+        do {
+            $key = $conf->key();
+            $current = $conf->current();
+            if (isset($current['options'])) {
+                Analog::log(
+                    '"options" is deprecated, please use "authorize" instead for ' . $key,
+                    Analog::WARNING
+                );
+
+                if (!isset($current['authorize'])) {
+                    $conf->set($key . '.authorize', $current['options']);
+                }
+                $conf->remove($key . '.options');
+            }
+        } while ($conf->next());
 
         return $conf;
     },

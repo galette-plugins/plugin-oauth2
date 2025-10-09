@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright © 2021-2024 The Galette Team
+ * Copyright © 2021-2025 The Galette Team
  *
  * This file is part of Galette OAuth2 plugin (https://galette-community.github.io/plugin-oauth2/).
  *
@@ -45,7 +45,7 @@ final class Authentication
     public function __construct(Container $container)
     {
         $this->routeparser = $container->get(RouteParser::class);
-        $this->session = $container->get('session');
+        $this->session = $container->get('oauth_session');
     }
 
     /**

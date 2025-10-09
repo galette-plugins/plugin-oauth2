@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright © 2021-2024 The Galette Team
+ * Copyright © 2021-2025 The Galette Team
  *
  * This file is part of Galette OAuth2 plugin (https://galette-community.github.io/plugin-oauth2/).
  *
@@ -24,9 +24,7 @@ declare(strict_types=1);
 namespace GaletteOAuth2\Tools;
 
 use Analog\Analog;
-use Monolog\Formatter\LineFormatter;
-use Monolog\Handler\StreamHandler;
-use Monolog\Logger;
+use Slim\Psr7\Request;
 
 /**
  * Debug tools
@@ -36,22 +34,6 @@ use Monolog\Logger;
  */
 final class Debug
 {
-    private static $logger;
-
-    public static function init(): Logger
-    {
-        self::$logger = new Logger('OAuth2');
-        $stream = new StreamHandler(GALETTE_LOGS_PATH . '/oauth.log', Logger::DEBUG);
-        $dateFormat = 'Y-m-d H:i:s';
-        //$output = "[%datetime%] %channel% %level_name%: %message% \n"; // %context% %extra%\n";
-        $output = "[%datetime%] : %message% \n"; // %context% %extra%\n";
-        $formatter = new LineFormatter($output, $dateFormat);
-        $stream->setFormatter($formatter);
-        self::$logger->pushHandler($stream);
-
-        return self::$logger;
-    }
-
     public static function printVar($expression, bool $return = true)
     {
         $export = print_r($expression, true);
@@ -77,7 +59,7 @@ final class Debug
         );
     }
 
-    public static function logRequest($fct, $request): void
+    public static function logRequest(string $fct, Request $request): void
     {
         $msg = sprintf(
             "%s - URI: %s",
@@ -98,9 +80,5 @@ final class Debug
             $msg,
             Analog::DEBUG
         );
-        /*self::log("{$fct} :");
-        self::log('URI : ' . $request->getUri());
-        self::log('GET dump :' . self::printVar($request->getQueryParams()));
-        self::log('POST dump :' . self::printVar((array) $request->getParsedBody()));*/
     }
 }

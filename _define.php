@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright © 2021-2024 The Galette Team
+ * Copyright © 2021-2025 The Galette Team
  *
  * This file is part of Galette OAuth2 plugin (https://galette-community.github.io/plugin-oauth2/).
  *
@@ -29,13 +29,13 @@ declare(strict_types=1);
  */
 
 $this->register(
-    'Galette OAuth2',       //Name
-    'OAuth 2.0 integration',   //Short description
-    'Manuel Hervouet',     //Author
-    '2.0.0',                //Version
-    '1.1.0',                //Galette compatible version
-    'oauth2',               //routing name and translation domain
-    '2021-11-08',           //Release date
+    'Galette OAuth2',                      //Name
+    'OAuth 2.0 integration',               //Short description
+    'Manuel Hervouet, , Johan Cwiklinski', //Author
+    '3.0.0',                               //Version
+    '1.2.0',                               //Galette compatible version
+    'oauth2',                              //routing name and translation domain
+    '2025-10-09',                          //Release date
     [//Permissions needed
         'oauth2_authorize' => 'member'
     ],

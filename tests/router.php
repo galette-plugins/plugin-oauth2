@@ -19,37 +19,22 @@
  * along with Galette OAuth2 plugin. If not, see <http://www.gnu.org/licenses/>.
  */
 
-declare(strict_types=1);
-
-namespace GaletteOAuth2\Entities;
-
-use League\OAuth2\Server\Entities\ClientEntityInterface;
-use League\OAuth2\Server\Entities\Traits\ClientTrait;
-use League\OAuth2\Server\Entities\Traits\EntityTrait;
-
 /**
- * Class ClientEntity
+ * Router file to be launched by php -S
  *
- * @author Manuel Hervouet <manuelh78dev@ik.me>
  * @author Johan Cwiklinski <johan@x-tnd.be>
  */
-final class ClientEntity implements ClientEntityInterface
-{
-    use EntityTrait;
-    use ClientTrait;
 
-    public function setName($name): void
-    {
-        $this->name = $name;
-    }
-
-    public function setRedirectUri($uri): void
-    {
-        $this->redirectUri = $uri;
-    }
-
-    public function setConfidential(): void
-    {
-        $this->isConfidential = true;
-    }
+$db = 'mysql';
+$dbenv = getenv('DB');
+if (
+    $dbenv === 'pgsql'
+    || substr($dbenv, 0, strlen('postgres')) === 'postgres'
+) {
+    $db = 'pgsql';
 }
+
+$basepath = '../../tests/';
+define('GALETTE_CONFIG_PATH', $basepath . 'config/' . $db . '/');
+define('OAUTH2_CONFIGPATH', __DIR__ . '/config');
+return false;

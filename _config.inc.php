@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright © 2021-2024 The Galette Team
+ * Copyright © 2021-2025 The Galette Team
  *
  * This file is part of Galette OAuth2 plugin (https://galette-community.github.io/plugin-oauth2/).
  *
@@ -30,6 +30,7 @@ declare(strict_types=1);
 
 define('OAUTH2_LOG', true);
 define('OAUTH2_DEBUGSESSION', false);
-define('OAUTH2_CONFIGPATH', __DIR__ . '/config'); //For more security, you can move this folder
-
+if (!defined('OAUTH2_CONFIGPATH')) {
+    define('OAUTH2_CONFIGPATH', __DIR__ . '/config'); //For more security, you can move this folder
+}
 define('OAUTH2_PREFIX', 'oauth2');

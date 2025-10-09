@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright © 2021-2024 The Galette Team
+ * Copyright © 2021-2025 The Galette Team
  *
  * This file is part of Galette OAuth2 plugin (https://galette-community.github.io/plugin-oauth2/).
  *
@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace GaletteOAuth2\Controllers;
 
+use Analog\Analog;
 use DI\Attribute\Inject;
 use DI\Container;
 use Galette\Controllers\AbstractPluginController;
@@ -31,6 +32,7 @@ use GaletteOAuth2\Authorization\UserHelper;
 use GaletteOAuth2\Tools\Config;
 use GaletteOAuth2\Tools\Debug;
 use League\OAuth2\Server\ResourceServer;
+use RKA\Session;
 use Slim\Psr7\Request;
 use Slim\Psr7\Response;
 
@@ -49,8 +51,16 @@ final class ApiController extends AbstractPluginController
     protected array $module_info;
     protected Container $container;
     protected Config $config;
+    #[Inject("oauth_session")]
+    protected Session $session;
 
-    // constructor receives container instance
+    /**
+     * Default constructor
+     *
+     * @param Container $container COntainer instance
+     * @throws \DI\DependencyException
+     * @throws \DI\NotFoundException
+     */
     public function __construct(Container $container)
     {
         $this->container = $container;
@@ -65,30 +75,30 @@ final class ApiController extends AbstractPluginController
         $server = $this->container->get(ResourceServer::class);
         $rep = $server->validateAuthenticatedRequest($request);
 
-        $oauth_user_id = (int) $rep->getAttribute('oauth_user_id'); //SESSION is empty, use decrypted data
-        $options = UserHelper::mergeOptions($this->config, $rep->getAttribute('oauth_client_id'), $rep->getAttribute('oauth_scopes'));
-
-        Debug::log("api/user() load user #{$oauth_user_id} - " . Debug::printVar($options));
+        $oauth_user_id = (int)$rep->getAttribute('oauth_user_id'); //SESSION is empty, use decrypted data
+        $client_id = $rep->getAttribute('oauth_client_id');
+        Debug::log("api/user() load user #{$oauth_user_id}");
 
         try {
-            $data = UserHelper::getUserData($this->container, $oauth_user_id, $options);
+            $data = UserHelper::getUserData(
+                $this->container,
+                $oauth_user_id,
+                UserHelper::getAuthorization($this->config, $client_id),
+                UserHelper::mergeScopes(
+                    $this->config,
+                    $client_id,
+                    $rep->getAttribute('oauth_scopes')
+                ),
+                (bool)$this->config->get($client_id . '.legacy_data', false)
+            );
         } catch (UserAuthorizationException $e) {
-            throw $e;
-            //UserHelper::logout($this->container);
-            /*Analog::log(
+            UserHelper::logout($this->container);
+            Analog::log(
                 'api/user() error : ' . $e->getMessage(),
                 Analog::ERROR
             );
-            $this->flash->addMessage(
-                'error_detected',
-                _T('Check your login / email or password.', 'oauth2')
-            );
-            return $response
-                ->withStatus(301)
-                ->withHeader(
-                    'Location',
-                    $this->routeparser->urlFor(OAUTH2_PREFIX . '_login')
-                );*/
+            $response->getBody()->write(json_encode(['message' => $e->getMessage()]));
+            return $response->withStatus(401);
         }
 
         Debug::log('api/user() return data = ' . Debug::printVar($data));

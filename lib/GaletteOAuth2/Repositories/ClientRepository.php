@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright © 2021-2024 The Galette Team
+ * Copyright © 2021-2025 The Galette Team
  *
  * This file is part of Galette OAuth2 plugin (https://galette-community.github.io/plugin-oauth2/).
  *
@@ -27,6 +27,7 @@ use DI\Container;
 use GaletteOAuth2\Entities\ClientEntity;
 use GaletteOAuth2\Tools\Config;
 use GaletteOAuth2\Tools\Debug;
+use League\OAuth2\Server\Entities\ClientEntityInterface;
 use League\OAuth2\Server\Repositories\ClientRepositoryInterface;
 use RKA\Session;
 
@@ -46,10 +47,10 @@ final class ClientRepository implements ClientRepositoryInterface
     {
         $this->container = $container;
         $this->config = $this->container->get(Config::class);
-        $this->session = $this->container->get('session');
+        $this->session = $this->container->get('oauth_session');
     }
 
-    public function getClientEntity($client_id)
+    public function getClientEntity($client_id): ClientEntityInterface
     {
         $client = new ClientEntity();
         $client->setIdentifier($this->config->get("{$client_id}.id", $client_id));
@@ -82,7 +83,11 @@ final class ClientRepository implements ClientRepositoryInterface
             return false;
         }
 
-        $pwd = password_hash($this->config->get('global.password'), PASSWORD_BCRYPT);
+        $password = $this->config->get($clientIdentifier . '.password');
+        if (!$password) {
+            $password = $this->config->get('global.password');
+        }
+        $pwd = password_hash($password, PASSWORD_BCRYPT);
 
         if (password_verify($clientSecret, $pwd) === false) {
             return false;
