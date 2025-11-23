@@ -1,9 +1,7 @@
 *.key
 *.log
-*.lock
 vendor/
 .build/
-_disabled
 dist/
 tempcache/
 
