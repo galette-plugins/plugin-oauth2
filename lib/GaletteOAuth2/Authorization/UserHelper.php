@@ -26,11 +26,14 @@ namespace GaletteOAuth2\Authorization;
 use Analog\Analog;
 use DI\Container;
 use Galette\Core\Db;
+use Galette\Core\History;
 use Galette\Core\Login;
+use Galette\Core\Preferences;
 use Galette\Entity\Adherent;
 use Galette\Entity\Social;
 use GaletteOAuth2\Tools\Config;
 use GaletteOAuth2\Tools\Debug;
+use Slim\Flash\Messages;
 
 /**
  * Helpers for user authorization
@@ -42,12 +45,12 @@ final class UserHelper
 {
     public static function login(Container $container, $nick, $password): int|false
     {
-        $preferences = $container->get('preferences');
+        $preferences = $container->get(Preferences::class);
         /** @var Login $login */
-        $login = $container->get('login');
-        $history = $container->get('history');
+        $login = $container->get(Login::class);
+        $history = $container->get(History::class);
         $session = $container->get('oauth_session');
-        $flash = $container->get('flash');
+        $flash = $container->get(Messages::class);
 
         if (trim($nick) === '' || trim($password) === '') {
             return false;
@@ -94,8 +97,8 @@ final class UserHelper
     public static function logout(Container $container): void
     {
         /** @var Login $login */
-        $login = $container->get('login');
-        $history = $container->get('history');
+        $login = $container->get(Login::class);
+        $history = $container->get(History::class);
         $session = $container->get('oauth_session');
 
         $login->logout();
@@ -121,7 +124,7 @@ final class UserHelper
     public static function getUserData(Container $container, int $id, string $acl, array|string $scopes, bool $legacy = false): array
     {
         /** @var Db $zdb */
-        $zdb = $container->get('zdb');
+        $zdb = $container->get(Db::class);
 
         $member = new Adherent($zdb);
         if (!$member->load($id)) {
