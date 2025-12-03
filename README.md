@@ -33,7 +33,6 @@ openssl genrsa -out private.key 2048
 openssl rsa -in private.key -pubout -out public.key
 chmod 660 *.key
 
-
 vendor/bin/generate-defuse-key
 copy-paste the hexadecimal string result in plugin-oauth2/config/encryption-key.php
 ```
@@ -79,10 +78,11 @@ The corresponding DokuWiki configuration:
 
 ### Available authorizations:
 
-* `uptodate`: only active and up-to-date members can login
+* `active`: only active members can log in
+* `uptodate`: only active and up-to-date members can log in
 * `teamonly`: only active team members (admins, staff and groups managers)
 
-When there is no `authorize` entry set in configuration, it defaults to "teamonly".
+When there is no `authorize` entry set in configuration, it defaults to `teamonly`.
 
 ### Scopes
 

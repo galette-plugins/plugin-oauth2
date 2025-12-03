@@ -43,6 +43,10 @@ use Slim\Flash\Messages;
  */
 final class UserHelper
 {
+    public const AUTH_TEAMONLY = 'teamonly';
+    public const AUTH_UPTODATE = 'uptodate';
+    public const AUTH_ACTIVE = 'active';
+
     public static function login(Container $container, $nick, $password): int|false
     {
         $preferences = $container->get(Preferences::class);
@@ -131,7 +135,7 @@ final class UserHelper
             throw new UserAuthorizationException(_T('User not found.', 'oauth2'));
         }
 
-        //check active member ?
+        //check active member? Covers $acl === self::AUTH_ACTIVE
         if (!$member->isActive()) {
             throw new UserAuthorizationException(_T("Sorry, you can't login because you are not an active member.", "oauth2"));
         }
@@ -141,7 +145,7 @@ final class UserHelper
             throw new UserAuthorizationException(_T("Sorry, you can't login. Please, add an email address to your account.", 'oauth2'));
         }
 
-        if ($acl === 'teamonly') {
+        if ($acl === self::AUTH_TEAMONLY) {
             if (!$member->isAdmin() && !$member->isStaff() && !$member->isGroupManager(null)) {
                 throw new UserAuthorizationException(
                     _T("Sorry, you can't login because your are not a team member.", 'oauth2')
@@ -149,7 +153,7 @@ final class UserHelper
             }
         }
 
-        if ($acl === 'uptodate') {
+        if ($acl === self::AUTH_UPTODATE) {
             if (!$member->isUp2Date()) {
                 throw new UserAuthorizationException(
                     _T("Sorry, you can't login because your are not an up-to-date member.", 'oauth2')
@@ -350,12 +354,16 @@ final class UserHelper
      */
     public static function getAuthorization(Config $config, string $client_id): string
     {
-        $acl = 'teamonly';
+        $acl = self::AUTH_TEAMONLY;
         $conf_acls = $config->get($client_id . '.authorize');
 
-        if ($conf_acls !== 'teamonly' && $conf_acls !== 'uptodate') {
+        if (!in_array($conf_acls, self::getKnownAuthorizations())) {
             Analog::log(
-                'Invalid authorization configuration for client ' . $client_id . ': ' . $conf_acls,
+                sprintf(
+                    'Invalid authorization "%1$s" for client "%2$s"',
+                    $conf_acls,
+                    $client_id
+                ),
                 Analog::ERROR
             );
         } else {
@@ -438,5 +446,19 @@ final class UserHelper
                 $str
             )
         );
+    }
+
+    /**
+     * Know authorizations
+     *
+     * @return string[]
+     */
+    public static function getKnownAuthorizations(): array
+    {
+        return [
+            static::AUTH_TEAMONLY,
+            static::AUTH_UPTODATE,
+            static::AUTH_ACTIVE
+        ];
     }
 }

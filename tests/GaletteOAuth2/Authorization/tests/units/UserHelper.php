@@ -205,7 +205,7 @@ class UserHelper extends GaletteTestCase
         $user_data = \GaletteOAuth2\Authorization\UserHelper::getUserData(
             $container,
             $member_one->id,
-            'teamonly',
+            \GaletteOAuth2\Authorization\UserHelper::AUTH_TEAMONLY,
             ['member', 'member:groups']
         );
 
@@ -336,7 +336,7 @@ class UserHelper extends GaletteTestCase
         \GaletteOAuth2\Authorization\UserHelper::getUserData(
             $container,
             $adh1->id,
-            'teamonly',
+            \GaletteOAuth2\Authorization\UserHelper::AUTH_TEAMONLY,
             ['member']
         );
     }
@@ -369,7 +369,7 @@ class UserHelper extends GaletteTestCase
             \GaletteOAuth2\Authorization\UserHelper::getUserData(
                 $container,
                 $member_id,
-                'teamonly',
+                \GaletteOAuth2\Authorization\UserHelper::AUTH_TEAMONLY,
                 ['member']
             );
         } catch (\Exception $e) {
@@ -413,7 +413,7 @@ class UserHelper extends GaletteTestCase
         \GaletteOAuth2\Authorization\UserHelper::getUserData(
             $container,
             $adh->id,
-            'teamonly',
+            \GaletteOAuth2\Authorization\UserHelper::AUTH_TEAMONLY,
             ['member']
         );
     }
@@ -451,7 +451,7 @@ class UserHelper extends GaletteTestCase
         \GaletteOAuth2\Authorization\UserHelper::getUserData(
             $container,
             $adh->id,
-            'teamonly',
+            \GaletteOAuth2\Authorization\UserHelper::AUTH_TEAMONLY,
             ['member']
         );
     }
@@ -488,7 +488,7 @@ class UserHelper extends GaletteTestCase
         \GaletteOAuth2\Authorization\UserHelper::getUserData(
             $container,
             $adh->id,
-            'uptodate',
+            \GaletteOAuth2\Authorization\UserHelper::AUTH_UPTODATE,
             ['member']
         );
     }
@@ -502,36 +502,44 @@ class UserHelper extends GaletteTestCase
     {
         $config = new \GaletteOAuth2\Tools\Config(OAUTH2_CONFIGPATH . '/config.yml');
 
-        //always defaults to 'teamonly'
+        //always defaults to \GaletteOAuth2\Authorization\UserHelper::AUTH_TEAMONLY
         $this->assertSame(
-            'teamonly',
+            \GaletteOAuth2\Authorization\UserHelper::AUTH_TEAMONLY,
             \GaletteOAuth2\Authorization\UserHelper::getAuthorization($config, 'any')
         );
         $this->expectLogEntry(
             \Analog::ERROR,
-            'Invalid authorization configuration for client any'
+            'Invalid authorization "" for client "any"'
         );
 
         $client_id = 'galette_test';
         $config->set($client_id . '.authorize', 'unknown');
         $this->assertSame(
-            'teamonly',
+            \GaletteOAuth2\Authorization\UserHelper::AUTH_TEAMONLY,
             \GaletteOAuth2\Authorization\UserHelper::getAuthorization($config, 'galette_test')
         );
         $this->expectLogEntry(
             \Analog::ERROR,
-            'Invalid authorization configuration for client galette_test'
+            'Invalid authorization "unknown" for client "galette_test"'
         );
 
         //correct value will be retrieved
         $this->assertSame(
-            'teamonly',
+            \GaletteOAuth2\Authorization\UserHelper::AUTH_TEAMONLY,
             \GaletteOAuth2\Authorization\UserHelper::getAuthorization($config, 'galette_cli')
         );
         $this->assertSame(
-            'uptodate',
+            \GaletteOAuth2\Authorization\UserHelper::AUTH_UPTODATE,
             \GaletteOAuth2\Authorization\UserHelper::getAuthorization($config, 'galette_flarum')
         );
+
+        foreach (\GaletteOAuth2\Authorization\UserHelper::getKnownAuthorizations() as $authorization) {
+            $config->set($client_id . '.authorize', $authorization);
+            $this->assertSame(
+                $authorization,
+                \GaletteOAuth2\Authorization\UserHelper::getAuthorization($config, 'galette_test')
+            );
+        }
     }
 
     /**
