@@ -42,6 +42,7 @@ use League\OAuth2\Server\Grant\RefreshTokenGrant;
 use League\OAuth2\Server\ResourceServer;
 use Psr\Container\ContainerInterface;
 use RKA\SessionMiddleware;
+use Slim\Flash\Messages;
 
 $container = $app->getContainer();
 
@@ -61,7 +62,7 @@ $container->set(
         session_id('galette-oauth-' . $galette_sid);
         $session->start();
 
-        $container->get('flash')->__construct($_SESSION);
+        $container->get(Messages::class)->__construct($_SESSION);
         return new \RKA\Session();
     }
 );
