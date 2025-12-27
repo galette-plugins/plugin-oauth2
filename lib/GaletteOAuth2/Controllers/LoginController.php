@@ -164,10 +164,12 @@ final class LoginController extends AbstractPluginController
         $url_params = [
             'response_type' => $this->session->request_args['response_type'],
             'client_id' => $this->session->request_args['client_id'],
-            'scope' => $this->session->request_args['scope'],
-            'state' => $this->session->request_args['state'],
+            'scope' => $this->session->request_args['scope'] ?? [],
             'redirect_uri' => $this->session->request_args['redirect_uri'],
         ];
+        if (isset($this->session->request_args['state'])) {
+            $url_params['state'] = $this->session->request_args['state'];
+        }
 
         $url = $this->routeparser->urlFor(OAUTH2_PREFIX . '_authorize', [], $url_params);
 
