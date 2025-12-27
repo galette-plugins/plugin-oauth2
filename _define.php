@@ -32,10 +32,10 @@ $this->register(
     'Galette OAuth2',                      //Name
     'OAuth 2.0 integration',               //Short description
     'Manuel Hervouet, , Johan Cwiklinski', //Author
-    '3.0.1',                               //Version
+    '3.0.2',                               //Version
     '1.2.0',                               //Galette compatible version
     'oauth2',                              //routing name and translation domain
-    '2025-12-04',                          //Release date
+    '2025-12-27',                          //Release date
     [//Permissions needed
         'oauth2_authorize' => 'member'
     ],
