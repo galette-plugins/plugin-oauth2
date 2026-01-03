@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright © 2021-2025 The Galette Team
+ * Copyright © 2021-2026 The Galette Team
  *
  * This file is part of Galette OAuth2 plugin (https://galette-community.github.io/plugin-oauth2/).
  *
