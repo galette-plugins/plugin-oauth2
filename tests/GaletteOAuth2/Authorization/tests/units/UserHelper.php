@@ -21,7 +21,7 @@
 
 namespace GaletteOauth2\Authorization\tests\units;
 
-use Galette\GaletteTestCase;
+use Galette\Tests\GaletteTestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
 
 /**

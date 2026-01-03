@@ -21,7 +21,7 @@
 
 namespace GaletteOAuth2\Controllers\tests\units;
 
-use Galette\GaletteRoutingTestCase;
+use Galette\Tests\GaletteRoutingTestCase;
 
 /**
  * Login controller tests

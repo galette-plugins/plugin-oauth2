@@ -21,7 +21,7 @@
 
 namespace GaletteOAuth2;
 
-use Galette\GaletteTestCase;
+use Galette\Tests\GaletteTestCase;
 
 /**
  * UserHelper tests
