@@ -53,7 +53,7 @@ class UserHelper extends GaletteTestCase
      *
      * @return void
      */
-    public function tearDown(): void
+    /*public function tearDown(): void
     {
         parent::tearDown();
 
@@ -66,7 +66,7 @@ class UserHelper extends GaletteTestCase
         $this->zdb->execute($delete);
 
         $this->cleanMembers();
-    }
+    }*/
 
     /**
      * Test stripAccents
