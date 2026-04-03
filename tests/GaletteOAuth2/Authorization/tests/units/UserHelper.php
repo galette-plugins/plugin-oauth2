@@ -91,7 +91,6 @@ class UserHelper extends GaletteTestCase
     {
         global $container;
 
-        $this->initStatus();
         $member_one  = $this->getMemberOne();
         $this->getAdminMember($member_one); //set admin
 
@@ -329,7 +328,6 @@ class UserHelper extends GaletteTestCase
     {
         global $container;
 
-        $this->initStatus();
         $adh1  = $this->getMemberOne();
 
         $this->expectExceptionMessage("Sorry, you can't login because your are not a team member.");
