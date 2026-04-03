@@ -72,12 +72,12 @@ final class Config implements \Iterator
 
         foreach ($parts as $part) {
             if (!is_array($value) || !array_key_exists($part, $value)) {
-                return $default ?? '';
+                return $default;
             }
             $value = $value[$part];
         }
 
-        return $value ?? '';
+        return $value;
     }
 
     /**
@@ -114,15 +114,16 @@ final class Config implements \Iterator
     {
         $parts = explode('.', $name);
         $current = &$this->data;
+        $lastIndex = count($parts) - 1;
 
-        for ($i = 0; $i < count($parts) - 1; $i++) {
+        for ($i = 0; $i < $lastIndex; $i++) {
             if (!isset($current[$parts[$i]]) || !is_array($current[$parts[$i]])) {
                 return;
             }
             $current = &$current[$parts[$i]];
         }
 
-        unset($current[end($parts)]);
+        unset($current[$parts[$lastIndex]]);
         $this->keys = array_keys($this->data);
     }
 
