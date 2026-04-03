@@ -49,26 +49,6 @@ class UserHelper extends GaletteTestCase
     }
 
     /**
-     * Tear down tests
-     *
-     * @return void
-     */
-    /*public function tearDown(): void
-    {
-        parent::tearDown();
-
-        //delete social networks
-        $delete = $this->zdb->delete(\Galette\Entity\Social::TABLE);
-        $this->zdb->execute($delete);
-
-        //drop dynamic translations
-        $delete = $this->zdb->delete(\Galette\Core\L10n::TABLE);
-        $this->zdb->execute($delete);
-
-        $this->cleanMembers();
-    }*/
-
-    /**
      * Test stripAccents
      *
      * @return void

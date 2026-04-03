@@ -47,18 +47,7 @@ class GaletteOAuth2 extends GaletteTestCase
         $session = $this->session;
     }
 
-    /**
-     * Tear down tests
-     *
-     * @return void
-     */
-    /*public function tearDown(): void
-    {
-        $this->zdb = new \Galette\Core\Db();
 
-        $this->cleanMembers();
-        parent::tearDown();
-    }*/
 
     /**
      * Test stripAccents
