@@ -21,27 +21,24 @@
 
 declare(strict_types=1);
 
+namespace GaletteOAuth2;
+
+use Galette\Core\GalettePlugin;
+
 /**
- * Definitions
+ * Galette OAuth2 plugin main class
  *
- * @author Manuel Hervouet <manuelh78dev@ik.me>
  * @author Johan Cwiklinski <johan@x-tnd.be>
  */
 
-/** @var \Galette\Core\Plugins $this */
-$this->register(
-    name: 'Galette OAuth2',                        //Name
-    desc: 'OAuth 2.0 integration',                 //Short description
-    author: 'Manuel Hervouet, , Johan Cwiklinski', //Author
-    version: '3.0.2',                              //Version
-    compver: '1.2.0',                              //Galette compatible version
-    route: 'oauth2',                               //routing name and translation domain
-    date: '2025-12-27',                            //Release date
-    acls: [                                        //Permissions needed
-        'oauth2_authorize' => 'member'
-    ],
-);
-
-$this->setCsrfExclusions([
-    '/oauth2_*/',
-]);
+class PluginGaletteOauth2 extends GalettePlugin
+{
+    /**
+     * Is the plugin fully installed (including database, extra configuration, etc.)?
+     */
+    public function isInstalled(): bool
+    {
+        //FIXME: check for plugin install requirements (if files are generated and OK, etc.)
+        return true;
+    }
+}

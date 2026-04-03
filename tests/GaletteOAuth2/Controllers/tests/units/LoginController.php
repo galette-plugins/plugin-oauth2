@@ -52,13 +52,13 @@ class LoginController extends GaletteRoutingTestCase
      *
      * @return void
      */
-    public function tearDown(): void
+    /*public function tearDown(): void
     {
         $this->zdb = new \Galette\Core\Db();
 
         $this->cleanMembers();
         parent::tearDown();
-    }
+    }*/
 
     /**
      * Test display login page

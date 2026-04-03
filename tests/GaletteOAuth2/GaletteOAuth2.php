@@ -52,13 +52,13 @@ class GaletteOAuth2 extends GaletteTestCase
      *
      * @return void
      */
-    public function tearDown(): void
+    /*public function tearDown(): void
     {
         $this->zdb = new \Galette\Core\Db();
 
         $this->cleanMembers();
         parent::tearDown();
-    }
+    }*/
 
     /**
      * Test stripAccents
