@@ -67,7 +67,6 @@ class GaletteOAuth2 extends GaletteTestCase
      */
     public function testFlow(): void
     {
-        $this->initStatus();
         $member_one = $this->getMemberOne();
         $data = $this->dataAdherentOne();
         $this->getAdminMember($member_one);
