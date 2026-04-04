@@ -25,8 +25,8 @@ declare(strict_types=1);
  *
  *  @category Plugins
  *
- *  @author    Manuel Hervouet <manuelh78dev@ik.me>
- *  @author    Florian Hatat <github@hatat.me>
+ *  @author Manuel Hervouet <manuelh78dev@ik.me>
+ *  @author Florian Hatat <github@hatat.me>
  *  @copyright Manuel Hervouet (c) 2021
  *  @copyright Florian Hatat (c) 2022
  *  @license   http://www.gnu.org/licenses/gpl-3.0.html GPL License 3.0
@@ -34,10 +34,51 @@ declare(strict_types=1);
 
 namespace GaletteOAuth2\Entities;
 
+use Idaas\OpenID\Entities\ClaimEntityInterface;
 use League\OAuth2\Server\Entities\Traits\EntityTrait;
-use League\OAuth2\Server\Entities\UserEntityInterface;
 
-final class UserEntity implements UserEntityInterface
+class ClaimEntity implements ClaimEntityInterface
 {
     use EntityTrait;
+
+    private $type;
+    private $essential;
+    public const IDENTIFIER = 'id';
+    public const ESSENTIAL = 'essential';
+    public const TYPE = 'type';
+
+    public function __construct($identifier, $type, $essential)
+    {
+        $this->setIdentifier($identifier);
+        $this->type = $type;
+        $this->essential = $essential;
+    }
+
+    /**
+     * Get type of the claim
+     *
+     * @return string userinfo|id_token
+     */
+    public function getType(): string
+    {
+        return $this->type;
+    }
+
+    /**
+     * Whether this is an essential claim
+     *
+     */
+    public function getEssential(): bool
+    {
+        return $this->essential;
+    }
+
+    public function jsonSerialize(): string
+    {
+        return json_encode([
+            self::IDENTIFIER    => $this->getIdentifier(),
+            self::ESSENTIAL  => $this->getEssential(),
+            self::TYPE        => $this->getType()
+        ]);
+    }
 }

@@ -35,6 +35,7 @@ use GaletteOAuth2\Repositories\ClientRepository;
 use GaletteOAuth2\Repositories\RefreshTokenRepository;
 use GaletteOAuth2\Repositories\ScopeRepository;
 use GaletteOAuth2\Repositories\UserRepository;
+use GaletteOAuth2\Repositories\ClaimRepository;
 use GaletteOAuth2\Tools\Config;
 use League\OAuth2\Server\AuthorizationServer;
 use League\OAuth2\Server\Grant\AuthCodeGrant;
@@ -93,31 +94,68 @@ $container->set(
 );
 
 $container->set(
+    ClaimRepository::class,
+    static function (ContainerInterface $container) {
+        return new ClaimRepository();
+    },
+);
+
+$container->set(
     AuthorizationServer::class,
     function (ContainerInterface $container) {
         include OAUTH2_CONFIGPATH . '/encryption-key.php';
 
+        $privateKeyPath = 'file://' . OAUTH2_CONFIGPATH . '/private.key';
+        
+        if (class_exists(\Idaas\OpenID\CryptKey::class)) {
+            $privateKey = new \Idaas\OpenID\CryptKey($privateKeyPath);
+            $privateKey->setKid('signing key');
+            $responseType = new \Idaas\OpenID\ResponseTypes\BearerTokenResponse();
+        } else {
+            $privateKey = 'file://' . OAUTH2_CONFIGPATH . '/private.key';
+            $responseType = new \League\OAuth2\Server\ResponseTypes\BearerTokenResponse();
+        }
+
         // Setup the authorization server
         $server = new AuthorizationServer(
-        // instance of ClientRepositoryInterface
             new ClientRepository($container),
-            // instance of AccessTokenRepositoryInterface
             new AccessTokenRepository(),
-            // instance of ScopeRepositoryInterface
             new ScopeRepository(),
-            // path to private key
-            'file://' . OAUTH2_CONFIGPATH . '/private.key',
-            // encryption key
+            $privateKey,
             Key::loadFromAsciiSafeString($encryptionKey),
+            $responseType
         );
 
         $refreshTokenRepository = new RefreshTokenRepository();
-        $grant = new AuthCodeGrant(
-            new AuthCodeRepository(),
-            // instance of RefreshTokenRepositoryInterface
-            $refreshTokenRepository,
-            new DateInterval('PT10M'),
-        );
+        
+        if (class_exists(\Idaas\OpenID\Grant\AuthCodeGrant::class)) {
+            $claimRepository = $container->get(ClaimRepository::class);
+            $grant = new \Idaas\OpenID\Grant\AuthCodeGrant(
+                new AuthCodeRepository(),
+                $refreshTokenRepository,
+                $claimRepository,
+                new \Idaas\OpenID\Session(),
+                new DateInterval('PT10M'),
+                new DateInterval('PT10M'),
+            );
+            $grant->setIssuer('https://' . $_SERVER['HTTP_HOST']);
+            
+            $implicitGrant = new \Idaas\OpenID\Grant\ImplicitGrant(
+                new UserRepository($container),
+                $claimRepository,
+                new DateInterval('PT10M'),
+                new DateInterval('PT10M')
+            );
+            $implicitGrant->setIssuer('https://' . $_SERVER['HTTP_HOST']);
+            $server->enableGrantType($implicitGrant, new DateInterval('PT1H'));
+            
+        } else {
+            $grant = new AuthCodeGrant(
+                new AuthCodeRepository(),
+                $refreshTokenRepository,
+                new DateInterval('PT10M'),
+            );
+        }
 
         // Enable the password grant on the server
         // with a token TTL of 1 hour
@@ -168,9 +206,30 @@ $container->set(
     static function (ContainerInterface $container) {
         $publicKeyPath = 'file://' . OAUTH2_CONFIGPATH . '/public.key';
 
+        if (class_exists(\Idaas\OpenID\CryptKey::class)) {
+            $publicKey = new \Idaas\OpenID\CryptKey($publicKeyPath);
+            $publicKey->setKid('signing key');
+        } else {
+            $publicKey = $publicKeyPath;
+        }
+
         return new ResourceServer(
             new AccessTokenRepository(),
-            $publicKeyPath,
+            $publicKey,
         );
     },
 );
+
+if (class_exists(\Idaas\OpenID\UserInfo::class)) {
+    $container->set(
+        \Idaas\OpenID\UserInfo::class,
+        static function (ContainerInterface $container) {
+            return new \Idaas\OpenID\UserInfo(
+                new UserRepository($container),
+                new AccessTokenRepository(),
+                $container->get(ResourceServer::class),
+                $container->get(ClaimRepository::class),
+            );
+        },
+    );
+}

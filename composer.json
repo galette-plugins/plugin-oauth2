@@ -24,7 +24,8 @@
         "defuse/php-encryption": "^2.4",
         "psr/http-message": "1.1",
         "league/uri": "7.4",
-        "paragonie/sodium_compat_ext_sodium": "^1.0"
+        "paragonie/sodium_compat_ext_sodium": "^1.0",
+        "nl.idaas/openid-server": ">=0.2.4"
     },
     "config": {
         "optimize-autoloader": true

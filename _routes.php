@@ -31,6 +31,7 @@ declare(strict_types=1);
 use GaletteOAuth2\Controllers\ApiController;
 use GaletteOAuth2\Controllers\AuthorizationController;
 use GaletteOAuth2\Controllers\LoginController;
+use GaletteOAuth2\Controllers\ConfigurationController;
 use GaletteOAuth2\Middleware\Authentication;
 
 //Include specific classes (league/oauth2_server and tools)
@@ -77,3 +78,9 @@ $app->get(
     '/user',
     [ApiController::class, 'user']
 )->setName(OAUTH2_PREFIX . '_user');
+
+// OpenID Connect Endpoints
+$app->get('/openid-configuration', [ConfigurationController::class, 'openid'])
+    ->setName(OAUTH2_PREFIX . '_openid_configuration');
+$app->get('/jwk', [ConfigurationController::class, 'json_web_key'])
+    ->setName(OAUTH2_PREFIX . '_json_web_key');

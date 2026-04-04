@@ -86,7 +86,7 @@ final class ScopeRepository implements ScopeRepositoryInterface
     }
 
     /**
-     * {@inheritDoc}
+     *
      */
     public function finalizeScopes(
         array $scopes,
