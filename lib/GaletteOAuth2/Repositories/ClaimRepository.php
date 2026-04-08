@@ -89,7 +89,6 @@ class ClaimRepository implements ClaimRepositoryInterface
      * Return information about a claim.
      *
      * @param string $identifier The claim identifier
-     *
      */
     public function getClaimEntityByIdentifier(string $identifier, mixed $type, mixed $essential): ?ClaimEntityInterface
     {

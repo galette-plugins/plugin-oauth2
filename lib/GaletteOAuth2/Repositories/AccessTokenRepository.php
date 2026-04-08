@@ -81,9 +81,8 @@ final class AccessTokenRepository implements AccessTokenRepositoryInterface
     }
 
     /**
-     *
      */
-    public function revokeAccessToken($tokenId): void
+    public function revokeAccessToken(mixed $tokenId): void
     {
         $zdb = $this->container->get('zdb');
         // Revoke access token in database
@@ -92,9 +91,8 @@ final class AccessTokenRepository implements AccessTokenRepositoryInterface
     }
 
     /**
-     *
      */
-    public function isAccessTokenRevoked($tokenId)
+    public function isAccessTokenRevoked(mixed $tokenId)
     {
         $zdb = $this->container->get('zdb');
         $query = $zdb->select(AccessTokenEntity::TABLE)->where([AccessTokenEntity::PK => $tokenId]);
@@ -109,9 +107,8 @@ final class AccessTokenRepository implements AccessTokenRepositoryInterface
     }
 
     /**
-     *
      */
-    public function getNewToken(ClientEntityInterface $clientEntity, array $scopes, $userIdentifier = null)
+    public function getNewToken(ClientEntityInterface $clientEntity, array $scopes, mixed $userIdentifier = null)
     {
         $accessToken = new AccessTokenEntity();
         $accessToken->setClient($clientEntity);
@@ -125,9 +122,8 @@ final class AccessTokenRepository implements AccessTokenRepositoryInterface
     }
 
     /**
-     *
      */
-    public function getAccessToken($tokenId)
+    public function getAccessToken(mixed $tokenId)
     {
         $zdb = $this->container->get('zdb');
         $query = $zdb->select(AccessTokenEntity::TABLE)->where([AccessTokenEntity::PK => $tokenId]);

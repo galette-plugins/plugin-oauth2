@@ -79,8 +79,11 @@ $app->get(
     [ApiController::class, 'user']
 )->setName(OAUTH2_PREFIX . '_user');
 
-// OpenID Connect Endpoints
-$app->get('/openid-configuration', [ConfigurationController::class, 'openid'])
+// Discovery Endpoints
+$app->get('/.well-known/openid-configuration', [ConfigurationController::class, 'openid'])
     ->setName(OAUTH2_PREFIX . '_openid_configuration');
+$app->get('/.well-known/oauth-authorization-server', [ConfigurationController::class, 'oauth_server'])
+    ->setName(OAUTH2_PREFIX . '_oauth_server_configuration');
+
 $app->get('/jwk', [ConfigurationController::class, 'json_web_key'])
     ->setName(OAUTH2_PREFIX . '_json_web_key');

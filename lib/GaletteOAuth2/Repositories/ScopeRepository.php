@@ -86,13 +86,12 @@ final class ScopeRepository implements ScopeRepositoryInterface
     }
 
     /**
-     *
      */
     public function finalizeScopes(
         array $scopes,
-        $grantType,
+        mixed $grantType,
         ClientEntityInterface $clientEntity,
-        $userIdentifier = null
+        mixed $userIdentifier = null
     ) {
         /*TODO : ?
          [JC] 2024-06-12: does not seems required; or maybe I misunderstood something. Anyway; that works without it.

@@ -66,7 +66,6 @@ class ClaimEntity implements ClaimEntityInterface
 
     /**
      * Whether this is an essential claim
-     *
      */
     public function getEssential(): bool
     {

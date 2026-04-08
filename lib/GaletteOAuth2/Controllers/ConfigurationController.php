@@ -62,17 +62,39 @@ final class ConfigurationController extends AbstractPluginController
     public function openid(Request $request, Response $response): Response
     {
         Debug::logRequest('openid_configuration()', $request);
-        $issuer = 'https://' . $_SERVER['HTTP_HOST'];
+        $pluginBasePath = str_replace('/.well-known/openid-configuration', '', $this->routeparser->urlFor(OAUTH2_PREFIX . '_openid_configuration'));
+        $issuer = 'https://' . $_SERVER['HTTP_HOST'] . $pluginBasePath;
+
         $data = [
             'issuer' => $issuer,
-            'authorization_endpoint' => $issuer . $this->routeparser->urlFor(OAUTH2_PREFIX . '_authorize', [], []),
-            'jwks_uri' => $issuer . $this->routeparser->urlFor(OAUTH2_PREFIX . '_json_web_key', [], []),
-            'token_endpoint' => $issuer . $this->routeparser->urlFor(OAUTH2_PREFIX . '_token', [], []),
+            'authorization_endpoint' => 'https://' . $_SERVER['HTTP_HOST'] . $this->routeparser->urlFor(OAUTH2_PREFIX . '_authorize'),
+            'jwks_uri' => 'https://' . $_SERVER['HTTP_HOST'] . $this->routeparser->urlFor(OAUTH2_PREFIX . '_json_web_key'),
+            'token_endpoint' => 'https://' . $_SERVER['HTTP_HOST'] . $this->routeparser->urlFor(OAUTH2_PREFIX . '_token'),
             'response_types_supported' => ['code', 'id_token', 'token id_token'],
             'subject_types_supported' => ['public'],
             'id_token_signing_alg_values_supported' => ['RS256'],
             'scopes_supported' => array_keys(ScopeRepository::getScopes()),
             'claims_supported' => ClaimRepository::getAllClaims(),
+        ];
+        $response->getBody()->write(\json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+        return $response->withStatus(200)->withHeader('Content-type', 'application/json');
+    }
+
+    public function oauth_server(Request $request, Response $response): Response
+    {
+        Debug::logRequest('oauth_server_configuration()', $request);
+        $pluginBasePath = str_replace('/.well-known/oauth-authorization-server', '', $this->routeparser->urlFor(OAUTH2_PREFIX . '_oauth_server_configuration'));
+        $issuer = 'https://' . $_SERVER['HTTP_HOST'] . $pluginBasePath;
+
+        $data = [
+            'issuer' => $issuer,
+            'authorization_endpoint' => 'https://' . $_SERVER['HTTP_HOST'] . $this->routeparser->urlFor(OAUTH2_PREFIX . '_authorize'),
+            'token_endpoint' => 'https://' . $_SERVER['HTTP_HOST'] . $this->routeparser->urlFor(OAUTH2_PREFIX . '_token'),
+            'jwks_uri' => 'https://' . $_SERVER['HTTP_HOST'] . $this->routeparser->urlFor(OAUTH2_PREFIX . '_json_web_key'),
+            'response_types_supported' => ['code'],
+            'grant_types_supported' => ['authorization_code', 'password', 'client_credentials', 'refresh_token'],
+            'token_endpoint_auth_methods_supported' => ['client_secret_basic', 'client_secret_post'],
+            'scopes_supported' => array_keys(ScopeRepository::getScopes()),
         ];
         $response->getBody()->write(\json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
         return $response->withStatus(200)->withHeader('Content-type', 'application/json');

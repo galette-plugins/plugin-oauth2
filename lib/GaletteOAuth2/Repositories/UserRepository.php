@@ -147,12 +147,11 @@ final class UserRepository implements UserRepositoryInterface
     }
 
     /**
-     *
      */
     public function getUserEntityByUserCredentials(
-        $username,
-        $password,
-        $grantType,
+        mixed $username,
+        mixed $password,
+        mixed $grantType,
         ClientEntityInterface $clientEntity
     ): void {
         Debug::log("getUserEntityByUserCredentials({$username}, '***', {$grantType}) ");
