@@ -32,6 +32,7 @@ class GaletteOAuth2 extends GaletteTestCase
 {
     protected int $seed = 20240613200350;
     protected bool $load_plugins = true;
+    protected bool $db_transactions = false;
 
     /**
      * Set up tests
