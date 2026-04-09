@@ -176,7 +176,13 @@ jobs:
           openssl genrsa -out private.key 2048
           openssl rsa -in private.key -pubout -out public.key
           chmod 660 *.key
-          sed "s/KEY/$(../../vendor/bin/generate-defuse-key)/" -i encryption-key.php
+          DEFUSE_KEY=$(../../vendor/bin/generate-defuse-key)
+          cat > encryption-key.php << 'EOFKEY'
+          <?php
+          declare(strict_types=1);
+          EOFKEY
+          echo "\$encryptionKey = '${DEFUSE_KEY}';" >> encryption-key.php
+          cat encryption-key.php
 
       - name: Init for PostgreSQL
         env:
@@ -185,7 +191,8 @@ jobs:
         run: |
           cd galette-core
           bin/console galette:install -v --dbtype=pgsql --dbhost=localhost --dbname=galette_tests --dbuser=galette_tests --dbpass=g@l3tte --admin=admin --password=admin --no-interaction -w
-          bin/console galette:plugins:install-db --all
+          bin/console galette:plugins:enable --all
+          bin/console galette:plugins:list --enabled --complete
         if: env.skip != 'true' && startsWith(matrix.db-image, 'postgres')
 
       - name: Init for MariaDB
@@ -193,13 +200,179 @@ jobs:
           cd galette-core
           mysql -e 'create database IF NOT EXISTS galette_tests;' -u galette_tests --password=g@l3tte -h 127.0.0.1 -P 3306
           bin/console galette:install -v --dbtype=mysql --dbhost=127.0.0.1 --dbname=galette_tests --dbuser=galette_tests --dbpass=g@l3tte --admin=admin --password=admin --no-interaction -w
-          bin/console galette:plugins:install-db --all
+          bin/console galette:plugins:enable --all
+          bin/console galette:plugins:list --enabled --complete
         if: env.skip != 'true' && (startsWith(matrix.db-image, 'mysql') || startsWith(matrix.db-image, 'mariadb'))
 
       - name: Unit tests
         if: env.skip != 'true'
         run: |
           cd galette-core/galette/webroot
-          php -S localhost:8888 ../plugins/plugin-oauth2/tests/router.php &
+          DB=${{ env.DB }} php -S localhost:8888 ../plugins/plugin-oauth2/tests/router.php &
           cd ../plugins/plugin-oauth2
           ../../vendor/bin/phpunit --test-suffix=.php --bootstrap tests/TestsBootstrap.php --no-coverage --process-isolation tests/GaletteOAuth2/
+
+      - name: Sanitize ref name for artifact upload
+        if: failure()
+        id: sanitize
+        run: |
+          db_image=$(echo -n "${{ matrix.db-image }}" | sed 's/[\\\/'"'"':<>|*?]/-/g')
+          echo "db_image=$db_image" >> $GITHUB_OUTPUT
+
+      - name: Upload test data (logs, photos, etc.)
+        uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: test-data-${{ matrix.php-version }}-${{ steps.sanitize.outputs.db_image }}
+          path: |
+            galette-core/tests/tests-data/
+            galette-core/galette/data/logs/
+            galette-core/galette/data/photos/
+          retention-days: 7
+          if-no-files-found: ignore
+
+  e2e-tests:
+    runs-on: ubuntu-latest
+    name: "E2E Playwright — ${{ github.event_name == 'schedule' && 'all browsers' || 'chromium' }} (postgres:17)"
+    env:
+      DB: pgsql
+      GALETTE_TESTS: 1
+
+    services:
+      db:
+        image: postgres:17
+        env:
+          POSTGRES_USER: galette_tests
+          POSTGRES_PASSWORD: g@l3tte
+          POSTGRES_DB: galette_tests
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    steps:
+      - name: PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.5"
+          tools: composer, pecl
+          coverage: none
+          extensions: apcu, pdo_pgsql
+          ini-values: apc.enable_cli=1
+
+      - name: Build Galette
+        uses: galette/.github/actions/build-galette@main
+        with:
+          php-version: "8.5"
+          enable-assets-cache: true
+
+      - name: Checkout plugin
+        uses: actions/checkout@v6
+        with:
+          path: galette-core/galette/plugins/plugin-oauth2
+
+      - name: Install plugin dependencies
+        run: |
+          cd galette-core/galette/plugins/plugin-oauth2
+          composer install --ignore-platform-reqs
+
+      - name: Generate OAuth2 keys
+        run: |
+          cd galette-core/galette/plugins/plugin-oauth2
+          # Generate keys for production config path (used by E2E tests)
+          openssl genrsa -out config/private.key 2048
+          openssl rsa -in config/private.key -pubout -out config/public.key
+          chmod 660 config/*.key
+          # Generate encryption key
+          DEFUSE_KEY=$(vendor/bin/generate-defuse-key)
+          cat > config/encryption-key.php << 'EOFKEY'
+          <?php
+          declare(strict_types=1);
+          EOFKEY
+          echo "\$encryptionKey = '${DEFUSE_KEY}';" >> config/encryption-key.php
+          # Create a minimal config.yml for E2E tests
+          cp tests/config/config.yml config/config.yml
+          cat config/encryption-key.php
+
+      - name: Initialize test data
+        run: |
+          cd galette-core
+          php tests/init_test_data.php
+
+      - name: Initialize Galette database
+        run: |
+          cd galette-core
+          bin/console galette:install -v \
+            --dbtype=pgsql \
+            --dbhost=localhost \
+            --dbname=galette_tests \
+            --dbuser=galette_tests \
+            --dbpass=g@l3tte \
+            --admin=admin \
+            --password=admin \
+            --no-interaction
+        env:
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
+
+      - name: Seed E2E fixtures
+        run: |
+          cd galette-core
+          bin/console galette:seed-fixtures -v
+
+      - name: Start PHP built-in server
+        run: |
+          cd galette-core
+          GALETTE_PLUGINS_PATH=$(pwd)/galette/plugins DB=${{ env.DB }} GALETTE_TESTS=1 php -S 0.0.0.0:8090 -t galette/webroot tests/router_e2e.php &
+          timeout 15 bash -c 'until curl -sf http://127.0.0.1:8090/login > /dev/null; do sleep 1; done'
+          CODE=$(curl -s -o /dev/null -w "%{http_code}" "http://127.0.0.1:8090/plugins/oauth2/authorize?response_type=code&client_id=galette_cli&redirect_uri=http://127.0.0.1:8090/plugins/oauth2/test-callback&scope=member&state=ci-check")
+          if [ "$CODE" = "404" ]; then
+            echo "OAuth2 route returned 404 (plugin not initialized/active)."
+            exit 1
+          fi
+          echo "PHP server started"
+
+      - name: Install Playwright browsers
+        run: |
+          cd galette-core
+          if [ "${{ github.event_name }}" == "schedule" ]; then
+            npx playwright install --with-deps chromium firefox
+          else
+            npx playwright install --with-deps chromium
+          fi
+
+      - name: Run OAuth2 E2E tests
+        run: |
+          cd galette-core
+          if [ "${{ github.event_name }}" == "schedule" ]; then
+            npm run test:plugins:all
+          else
+            npm run test:plugins
+          fi
+        env:
+          E2E_BASE_URL: http://127.0.0.1:8090
+          E2E_ADMIN_USER: admin
+          E2E_ADMIN_PASS: admin
+
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: playwright-report-oauth2
+          path: galette-core/playwright-report/
+          retention-days: 7
+
+      - name: Upload test data (logs, photos, etc.)
+        uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: test-data-e2e-oauth2
+          path: |
+            galette-core/tests/tests-data/
+            galette-core/galette/data/logs/
+            galette-core/galette/data/photos/
+          retention-days: 7
+          if-no-files-found: ignore

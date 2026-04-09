@@ -1,6 +1,7 @@
 global:
     title: 'Galette'
     password: abc123
+    encryption_key: 'your-encryption-key-here' # Replace with a secure random string
 galette_flarum:
     title: 'Forum Flarum'
     redirect_logout: 'http://192.168.1.99/flarum/public'

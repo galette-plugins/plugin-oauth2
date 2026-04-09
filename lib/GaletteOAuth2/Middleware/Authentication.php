@@ -23,6 +23,8 @@ declare(strict_types=1);
 
 namespace GaletteOAuth2\Middleware;
 
+use Analog\Analog;
+use GaletteOAuth2\Repositories\ClientRepository;
 use GaletteOAuth2\Tools\Debug;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -39,11 +41,13 @@ use Slim\Routing\RouteParser;
  */
 final class Authentication
 {
+    private Container $container;
     private RouteParser $routeparser;
     private Session $session;
 
     public function __construct(Container $container)
     {
+        $this->container = $container;
         $this->routeparser = $container->get(RouteParser::class);
         $this->session = $container->get('oauth_session');
     }
@@ -56,6 +60,30 @@ final class Authentication
      */
     public function __invoke(Request $request, RequestHandler $handler): Response
     {
+        // Validate client_id before proceeding
+        $queryParams = $request->getQueryParams();
+        $client_id = $queryParams['client_id'] ?? null;
+
+        $clientRepository = new ClientRepository($this->container);
+        if (!$clientRepository->clientExists($client_id)) {
+            Analog::log(
+                sprintf(
+                    'OAuth2: Invalid or missing client_id "%s" in authorization request from IP %s',
+                    $client_id ?? 'null',
+                    $_SERVER['REMOTE_ADDR'] ?? 'unknown'
+                ),
+                Analog::WARNING
+            );
+
+            $response = new \Slim\Psr7\Response();
+            $url = $this->routeparser->urlFor(
+                OAUTH2_PREFIX . '_error',
+                [],
+                ['message' => _T('Unknown client application', 'oauth2')]
+            );
+            return $response->withHeader('Location', $url)->withStatus(302);
+        }
+
         $loggedIn = $this->session->isLoggedIn ?? '';
 
         if ('yes' !== $loggedIn) {

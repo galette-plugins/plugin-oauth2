@@ -59,6 +59,11 @@ $app->map(
 )->setName(OAUTH2_PREFIX . '_logout');
 
 $app->get(
+    '/error',
+    [LoginController::class, 'error']
+)->setName(OAUTH2_PREFIX . '_error');
+
+$app->get(
     '/authorize',
     [AuthorizationController::class, 'authorize']
 )->setName(OAUTH2_PREFIX . '_authorize')->add(Authentication::class);
@@ -77,3 +82,18 @@ $app->get(
     '/user',
     [ApiController::class, 'user']
 )->setName(OAUTH2_PREFIX . '_user');
+
+// Test callback route for E2E tests (only in test environment)
+if (getenv('GALETTE_TESTS') !== false || defined('GALETTE_TESTS')) {
+    $app->get(
+        '/test-callback',
+        function ($request, $response) {
+            $params = $request->getQueryParams();
+            $html = '<!DOCTYPE html><html lang="en"><body><h1>OAuth2 Test Callback</h1>';
+            $html .= '<pre>' . htmlspecialchars(print_r($params, true)) . '</pre>';
+            $html .= '</body></html>';
+            $response->getBody()->write($html);
+            return $response->withHeader('Content-Type', 'text/html');
+        }
+    )->setName(OAUTH2_PREFIX . '_test_callback');
+}

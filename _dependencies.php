@@ -95,7 +95,14 @@ $container->set(
 $container->set(
     AuthorizationServer::class,
     function (ContainerInterface $container) {
-        include OAUTH2_CONFIGPATH . '/encryption-key.php';
+        $encryptionKey = $container->get(Config::class)->get('global.encryption_key', 'NONE');
+        if ($encryptionKey === 'NONE' && file_exists(OAUTH2_CONFIGPATH . '/encryption-key.php')) {
+            include OAUTH2_CONFIGPATH . '/encryption-key.php';
+        }
+
+        if (empty($encryptionKey) || $encryptionKey === 'NONE') {
+            throw new RuntimeException('Encryption key not found!');
+        }
 
         // Setup the authorization server
         $server = new AuthorizationServer(

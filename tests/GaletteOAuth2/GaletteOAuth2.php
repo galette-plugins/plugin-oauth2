@@ -64,7 +64,7 @@ class GaletteOAuth2 extends GaletteTestCase
         $provider = new \Galette\OAuth2\Client\Provider\Galette([
             //information related to the app where you will use galette-oauth2
             'clientId'      => 'galette_cli',          // The client ID assigned to you
-            'clientSecret'  => '4567zyx',      // The client password assigned to you
+            'clientSecret'  => 'abc123',      // The client password assigned to you
             'redirectUri'   => 'http://localhost:8888', // The return URL you specified for your app
             //information related to the galette instance you want to connect to
             'instance'      => 'http://localhost:8888',    // The instance of Galette you want to connect to

@@ -126,3 +126,18 @@ msgstr "Cancel"
 #: ../tempcache/oauth2_authorize.html.twig:146
 msgid "Allow"
 msgstr "Allow"
+
+#: ../lib/GaletteOAuth2/Controllers/LoginController.php
+#: ../lib/GaletteOAuth2/Middleware/Authentication.php
+msgid "Unknown client application"
+msgstr "Unknown client application"
+
+#: ../lib/GaletteOAuth2/Controllers/LoginController.php
+#: ../templates/default/oauth2_error.html.twig
+msgid "OAuth2 error"
+msgstr "OAuth2 error"
+
+#: ../lib/GaletteOAuth2/Controllers/LoginController.php
+msgid "An error occurred"
+msgstr "An error occurred"
+

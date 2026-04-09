@@ -23,11 +23,13 @@ declare(strict_types=1);
 
 namespace GaletteOAuth2\Controllers;
 
+use Analog\Analog;
 use DI\Attribute\Inject;
 use DI\Container;
 use Galette\Controllers\AbstractPluginController;
 use GaletteOAuth2\Authorization\UserAuthorizationException;
 use GaletteOAuth2\Authorization\UserHelper;
+use GaletteOAuth2\Repositories\ClientRepository;
 use GaletteOAuth2\Tools\Config;
 use GaletteOAuth2\Tools\Debug;
 use RKA\Session;
@@ -79,11 +81,26 @@ final class LoginController extends AbstractPluginController
             Debug::log('GET _SESSION = ' . Debug::printVar($this->session));
         }
 
+        // Validate client_id before displaying login form
+        $vars = $this->prepareVarsForm();
+        if ($vars === null) {
+            return $response
+                ->withStatus(302)
+                ->withHeader(
+                    'Location',
+                    $this->routeparser->urlFor(
+                        OAUTH2_PREFIX . '_error',
+                        [],
+                        ['message' => _T('Unknown client application', 'oauth2')]
+                    )
+                );
+        }
+
         // display page
         $this->view->render(
             $response,
             $this->getTemplate(OAUTH2_PREFIX . '_login'),
-            $this->prepareVarsForm()
+            $vars
         );
         return $response;
     }
@@ -193,15 +210,65 @@ final class LoginController extends AbstractPluginController
         return $response->withHeader('Location', $redirect_logout)->withStatus(302);
     }
 
-    private function prepareVarsForm()
+    /**
+     * Display error page
+     *
+     * @param Request  $request  Received request
+     * @param Response $response Response instance
+     */
+    public function error(Request $request, Response $response): Response
     {
-        $client_id = $this->session->request_args['client_id'];
+        Debug::logRequest('error()', $request);
+
+        $error_message = $request->getQueryParams()['message'] ?? _T('An error occurred', 'oauth2');
+
+        $this->view->render(
+            $response,
+            $this->getTemplate(OAUTH2_PREFIX . '_error'),
+            [
+                'page_title' => _T('OAuth2 error', 'oauth2'),
+                'error_message' => $error_message
+            ]
+        );
+        return $response;
+    }
+
+    private function prepareVarsForm(): ?array
+    {
+        $client_id = $this->session->request_args['client_id'] ?? null;
+
+        // Validate client_id exists
+        if ($client_id === null || $client_id === '') {
+            Analog::log(
+                sprintf(
+                    'OAuth2: Missing client_id in request from IP %s',
+                    $_SERVER['REMOTE_ADDR'] ?? 'unknown'
+                ),
+                Analog::WARNING
+            );
+            return null;
+        }
+
+        // Check if client exists in configuration
+        $clientRepository = new ClientRepository($this->container);
+        if (!$clientRepository->clientExists($client_id)) {
+            Analog::log(
+                sprintf(
+                    'OAuth2: Invalid client_id "%s" in request from IP %s',
+                    $client_id,
+                    $_SERVER['REMOTE_ADDR'] ?? 'unknown'
+                ),
+                Analog::WARNING
+            );
+            return null;
+        }
+
         $server_title = $this->config->get('global.title', 'Galette');
         $sign_in_with = sprintf(
             _T('Sign in with %s', 'oauth2'),
             $server_title
         );
-        $application = $this->config->get("{$client_id}.title", 'noname');
+        $application = $this->config->get("{$client_id}.title", '');
         $page_title = sprintf(
             _T('Sign in %s', 'oauth2'),
             $application

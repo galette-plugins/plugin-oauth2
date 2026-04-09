@@ -129,6 +129,20 @@ msgstr "Annuler"
 msgid "Allow"
 msgstr "Autoriser"
 
+#: ../lib/GaletteOAuth2/Controllers/LoginController.php
+#: ../lib/GaletteOAuth2/Middleware/Authentication.php
+msgid "Unknown client application"
+msgstr "Application cliente inconnue"
+
+#: ../lib/GaletteOAuth2/Controllers/LoginController.php
+#: ../templates/default/oauth2_error.html.twig
+msgid "OAuth2 error"
+msgstr "Erreur OAuth2"
+
+#: ../lib/GaletteOAuth2/Controllers/LoginController.php
+msgid "An error occurred"
+msgstr "Une erreur est survenue"
+
 #, php-format
 #~ msgid "Please sign in for %s"
 #~ msgstr "Veuillez vous connecter pour %s"

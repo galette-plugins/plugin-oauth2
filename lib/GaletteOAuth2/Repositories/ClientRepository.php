@@ -50,6 +50,17 @@ final class ClientRepository implements ClientRepositoryInterface
         $this->session = $this->container->get('oauth_session');
     }
 
+    /**
+     * Check if a client exists in the configuration
+     */
+    public function clientExists(?string $client_id): bool
+    {
+        if (empty($client_id)) {
+            return false;
+        }
+        return $this->config->get($client_id) !== '';
+    }
+
     public function getClientEntity($client_id): ClientEntityInterface
     {
         $client = new ClientEntity();

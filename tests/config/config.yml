@@ -14,7 +14,7 @@ galette_nc:
         - member:phones
         - member:groups
 galette_cli:
-    password: 4567zyx
+    password: abc123
     title: CLI for testing
     redirect_logout: 'http://localhost'
     authorize: teamonly
