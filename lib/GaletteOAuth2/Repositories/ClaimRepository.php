@@ -90,7 +90,7 @@ class ClaimRepository implements ClaimRepositoryInterface
      *
      * @param string $identifier The claim identifier
      */
-    public function getClaimEntityByIdentifier(string $identifier, mixed $type, mixed $essential): ?ClaimEntityInterface
+    public function getClaimEntityByIdentifier($identifier, mixed $type, mixed $essential): ?ClaimEntityInterface
     {
         return new ClaimEntity($identifier, $type, $essential);
     }
@@ -107,7 +107,7 @@ class ClaimRepository implements ClaimRepositoryInterface
         return $res;
     }
 
-    public function claimsRequestToEntities(array $json = null)
+    public function claimsRequestToEntities(?array $json = null)
     {
         $res = [];
         foreach ([\Idaas\OpenID\Entities\ClaimEntityInterface::TYPE_ID_TOKEN, \Idaas\OpenID\Entities\ClaimEntityInterface::TYPE_USERINFO] as $type) {
