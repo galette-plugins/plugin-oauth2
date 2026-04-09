@@ -30,6 +30,7 @@ declare(strict_types=1);
 
 use GaletteOAuth2\Controllers\ApiController;
 use GaletteOAuth2\Controllers\AuthorizationController;
+use GaletteOAuth2\Controllers\DiscoveryController;
 use GaletteOAuth2\Controllers\LoginController;
 use GaletteOAuth2\Middleware\Authentication;
 
@@ -77,3 +78,34 @@ $app->get(
     '/user',
     [ApiController::class, 'user']
 )->setName(OAUTH2_PREFIX . '_user');
+
+// OpenID Connect UserInfo endpoint
+$app->get(
+    '/userinfo',
+    [ApiController::class, 'userinfo']
+)->setName(OAUTH2_PREFIX . '_userinfo');
+
+// Also support POST for userinfo (OIDC spec allows both GET and POST)
+$app->post(
+    '/userinfo',
+    [ApiController::class, 'userinfo']
+)->setName(OAUTH2_PREFIX . '_userinfo_post');
+
+// OpenID Connect Discovery endpoint
+$app->get(
+    '/.well-known/openid-configuration',
+    [DiscoveryController::class, 'openidConfiguration']
+)->setName(OAUTH2_PREFIX . '_openid_configuration');
+
+// OAuth 2.0 Authorization Server Metadata (RFC 8414)
+$app->get(
+    '/.well-known/oauth-authorization-server',
+    [DiscoveryController::class, 'oauthServerMetadata']
+)->setName(OAUTH2_PREFIX . '_oauth_metadata');
+
+// JSON Web Key Set endpoint
+$app->get(
+    '/.well-known/jwks.json',
+    [DiscoveryController::class, 'jwks']
+)->setName(OAUTH2_PREFIX . '_jwks');
+

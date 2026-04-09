@@ -67,7 +67,27 @@ msgstr ""
 msgid "Sorry, you can't login because your are not an up-to-date member."
 msgstr ""
 
-#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:45
+#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:54
+msgid "OpenID Connect authentication (required for OIDC)"
+msgstr ""
+
+#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:57
+msgid "Access to your profile information: name, nickname, locale, gender, birthdate"
+msgstr ""
+
+#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:60
+msgid "Access to your email address"
+msgstr ""
+
+#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:63
+msgid "Access to your postal address"
+msgstr ""
+
+#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:66
+msgid "Access to your phone number"
+msgstr ""
+
+#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:70
 msgid ""
 "Access to your member basic information: name, login, email, language, "
 "company name)"

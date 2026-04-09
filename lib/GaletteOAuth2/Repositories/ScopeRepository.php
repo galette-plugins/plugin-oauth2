@@ -38,9 +38,34 @@ use function array_key_exists;
  */
 final class ScopeRepository implements ScopeRepositoryInterface
 {
+    /**
+     * Get all known scopes including OIDC standard scopes
+     *
+     * OIDC scopes (openid, profile, email, address, phone) are mapped to
+     * Galette's internal scopes when claims are extracted.
+     *
+     * @return array<string, array<string, string>> Array of scope definitions
+     */
     public static function knownScopes(): array
     {
         return [
+            // OpenID Connect standard scopes
+            'openid' => [
+                'description' => _T('OpenID Connect authentication (required for OIDC)', 'oauth2'),
+            ],
+            'profile' => [
+                'description' => _T('Access to your profile information: name, nickname, locale, gender, birthdate', 'oauth2'),
+            ],
+            'email' => [
+                'description' => _T('Access to your email address', 'oauth2'),
+            ],
+            'address' => [
+                'description' => _T('Access to your postal address', 'oauth2'),
+            ],
+            'phone' => [
+                'description' => _T('Access to your phone number', 'oauth2'),
+            ],
+            // Galette-specific scopes (backward compatible)
             'member' => [
                 'description' => _T('Access to your member basic information: name, login, email, language, company name)', 'oauth2'),
             ],
@@ -66,6 +91,28 @@ final class ScopeRepository implements ScopeRepositoryInterface
                 'description' => _T('Access to your due date', 'oauth2'),
             ]
         ];
+    }
+
+    /**
+     * Get OIDC-only scopes
+     *
+     * @return string[] Array of OIDC scope identifiers
+     */
+    public static function oidcScopes(): array
+    {
+        return ['openid', 'profile', 'email', 'address', 'phone'];
+    }
+
+    /**
+     * Check if a scope is an OIDC scope
+     *
+     * @param string $scope The scope identifier
+     *
+     * @return bool True if the scope is an OIDC standard scope
+     */
+    public static function isOidcScope(string $scope): bool
+    {
+        return in_array($scope, self::oidcScopes(), true);
     }
 
     public function getScopeEntityByIdentifier($scopeIdentifier)

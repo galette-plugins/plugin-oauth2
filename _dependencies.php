@@ -29,15 +29,18 @@ declare(strict_types=1);
  */
 
 use Defuse\Crypto\Key;
+use GaletteOAuth2\Grant\OidcAuthCodeGrant;
+use GaletteOAuth2\OIDC\ClaimExtractor;
+use GaletteOAuth2\OIDC\IdTokenBuilder;
 use GaletteOAuth2\Repositories\AccessTokenRepository;
 use GaletteOAuth2\Repositories\AuthCodeRepository;
 use GaletteOAuth2\Repositories\ClientRepository;
 use GaletteOAuth2\Repositories\RefreshTokenRepository;
 use GaletteOAuth2\Repositories\ScopeRepository;
 use GaletteOAuth2\Repositories\UserRepository;
+use GaletteOAuth2\ResponseTypes\OidcBearerTokenResponse;
 use GaletteOAuth2\Tools\Config;
 use League\OAuth2\Server\AuthorizationServer;
-use League\OAuth2\Server\Grant\AuthCodeGrant;
 use League\OAuth2\Server\Grant\RefreshTokenGrant;
 use League\OAuth2\Server\ResourceServer;
 use Psr\Container\ContainerInterface;
@@ -97,7 +100,22 @@ $container->set(
     function (ContainerInterface $container) {
         include OAUTH2_CONFIGPATH . '/encryption-key.php';
 
-        // Setup the authorization server
+        // Get the issuer URL for OIDC
+        $config = $container->get(Config::class);
+        $issuer = $config->get('global.issuer', '');
+
+        // Create OIDC-aware response type with IdTokenBuilder
+        $privateKeyPath = 'file://' . OAUTH2_CONFIGPATH . '/private.key';
+        $idTokenBuilder = new IdTokenBuilder(
+            $container,
+            OAUTH2_CONFIGPATH . '/private.key',
+            $issuer
+        );
+
+        $responseType = new OidcBearerTokenResponse();
+        $responseType->setIdTokenBuilder($idTokenBuilder);
+
+        // Setup the authorization server with OIDC response type
         $server = new AuthorizationServer(
         // instance of ClientRepositoryInterface
             new ClientRepository($container),
@@ -106,20 +124,24 @@ $container->set(
             // instance of ScopeRepositoryInterface
             new ScopeRepository(),
             // path to private key
-            'file://' . OAUTH2_CONFIGPATH . '/private.key',
+            $privateKeyPath,
             // encryption key
             Key::loadFromAsciiSafeString($encryptionKey),
+            // OIDC-aware response type
+            $responseType,
         );
 
         $refreshTokenRepository = new RefreshTokenRepository();
-        $grant = new AuthCodeGrant(
+
+        // Use OIDC-aware AuthCodeGrant
+        $grant = new OidcAuthCodeGrant(
             new AuthCodeRepository(),
             // instance of RefreshTokenRepositoryInterface
             $refreshTokenRepository,
             new DateInterval('PT10M'),
         );
 
-        // Enable the password grant on the server
+        // Enable the authorization code grant on the server
         // with a token TTL of 1 hour
         $server->enableGrantType(
             $grant,
@@ -174,3 +196,25 @@ $container->set(
         );
     },
 );
+
+$container->set(
+    ClaimExtractor::class,
+    static function (ContainerInterface $container) {
+        return new ClaimExtractor($container);
+    },
+);
+
+$container->set(
+    IdTokenBuilder::class,
+    static function (ContainerInterface $container) {
+        $config = $container->get(Config::class);
+        $issuer = $config->get('global.issuer', '');
+
+        return new IdTokenBuilder(
+            $container,
+            OAUTH2_CONFIGPATH . '/private.key',
+            $issuer
+        );
+    },
+);
+

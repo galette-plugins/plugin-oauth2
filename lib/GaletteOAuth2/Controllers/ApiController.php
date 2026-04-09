@@ -29,6 +29,7 @@ use DI\Container;
 use Galette\Controllers\AbstractPluginController;
 use GaletteOAuth2\Authorization\UserAuthorizationException;
 use GaletteOAuth2\Authorization\UserHelper;
+use GaletteOAuth2\OIDC\ClaimExtractor;
 use GaletteOAuth2\Tools\Config;
 use GaletteOAuth2\Tools\Debug;
 use League\OAuth2\Server\ResourceServer;
@@ -107,5 +108,72 @@ final class ApiController extends AbstractPluginController
         Debug::log('api/user() exit.');
 
         return $response->withStatus(200);
+    }
+
+    /**
+     * OpenID Connect UserInfo endpoint
+     *
+     * Returns claims about the authenticated user based on the granted scopes.
+     * This endpoint implements the OIDC UserInfo specification.
+     *
+     * The response format follows the OIDC standard claims structure:
+     * - sub: Subject identifier (user ID)
+     * - name, family_name, given_name, etc. for 'profile' scope
+     * - email, email_verified for 'email' scope
+     * - address for 'address' scope
+     * - phone_number, phone_number_verified for 'phone' scope
+     *
+     * @see https://openid.net/specs/openid-connect-core-1_0.html#UserInfo
+     */
+    public function userinfo(Request $request, Response $response): Response
+    {
+        Debug::logRequest('api/userinfo()', $request);
+
+        $server = $this->container->get(ResourceServer::class);
+
+        try {
+            // Validate the access token
+            $validatedRequest = $server->validateAuthenticatedRequest($request);
+
+            $userId = (int)$validatedRequest->getAttribute('oauth_user_id');
+            $scopes = $validatedRequest->getAttribute('oauth_scopes');
+
+            Debug::log("api/userinfo() load user #{$userId}");
+
+            // Use ClaimExtractor for OIDC-compliant claims
+            $claimExtractor = new ClaimExtractor($this->container);
+            $claims = $claimExtractor->extract($userId, $scopes, true);
+
+            Debug::log('api/userinfo() return claims = ' . Debug::printVar($claims));
+
+            $response->getBody()->write(json_encode($claims));
+
+            return $response
+                ->withHeader('Content-Type', 'application/json')
+                ->withStatus(200);
+        } catch (\League\OAuth2\Server\Exception\OAuthServerException $e) {
+            Debug::log('api/userinfo() OAuth error: ' . $e->getMessage());
+
+            $response->getBody()->write(json_encode([
+                'error' => $e->getErrorType(),
+                'error_description' => $e->getMessage(),
+            ]));
+
+            return $response
+                ->withHeader('Content-Type', 'application/json')
+                ->withHeader('WWW-Authenticate', 'Bearer error="' . $e->getErrorType() . '"')
+                ->withStatus($e->getHttpStatusCode());
+        } catch (\Exception $e) {
+            Debug::log('api/userinfo() error: ' . $e->getMessage());
+
+            $response->getBody()->write(json_encode([
+                'error' => 'server_error',
+                'error_description' => 'An internal error occurred',
+            ]));
+
+            return $response
+                ->withHeader('Content-Type', 'application/json')
+                ->withStatus(500);
+        }
     }
 }
