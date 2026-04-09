@@ -3,20 +3,20 @@
 /**
  * Copyright © 2021-2026 The Galette Team
  *
- * This file is part of Galette OAuth2 plugin (https://galette-community.github.io/plugin-oauth2/).
+ *  This file is part of 'Galette OAuth2 plugin'.
  *
- * Galette is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ *  Galette OAuth2 Plugin is free software: you can redistribute it and/or
+ *  modify it under the terms of the GNU General Public License as
+ *  published by the Free Software Foundation, either version 3 of the License,
+ *  or (at your option) any later version.
  *
- * Galette is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ *  Galette OAuth2 Plugin is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
+ *  Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with Galette OAuth2 plugin. If not, see <http://www.gnu.org/licenses/>.
+ *  You should have received a copy of the GNU General Public License along
+ *  with Galette OAuth2 Plugin. If not, see <http://www.gnu.org/licenses/>.
  */
 
 declare(strict_types=1);
@@ -71,6 +71,16 @@ final class ApiController extends AbstractPluginController
     public function user(Request $request, Response $response): Response
     {
         Debug::logRequest('api/user()', $request);
+
+        if ($this->container->has(\Idaas\OpenID\UserInfo::class)) {
+            $userInfo = $this->container->get(\Idaas\OpenID\UserInfo::class);
+            try {
+                return $userInfo->respondToUserInfoRequest($request, $response);
+            } catch (\Exception $e) {
+                Debug::log('api/user() OIDC error : ' . $e->getMessage());
+                // Fallback to legacy behavior or return error
+            }
+        }
 
         $server = $this->container->get(ResourceServer::class);
         $rep = $server->validateAuthenticatedRequest($request);

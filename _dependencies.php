@@ -101,6 +101,20 @@ $container->set(
 );
 
 $container->set(
+    AccessTokenRepository::class,
+    static function (ContainerInterface $container) {
+        return new AccessTokenRepository($container);
+    },
+);
+
+$container->set(
+    UserRepository::class,
+    static function (ContainerInterface $container) {
+        return new UserRepository($container);
+    },
+);
+
+$container->set(
     AuthorizationServer::class,
     function (ContainerInterface $container) {
         include OAUTH2_CONFIGPATH . '/encryption-key.php';
@@ -112,14 +126,14 @@ $container->set(
             $privateKey->setKid('signing key');
             $responseType = new \Idaas\OpenID\ResponseTypes\BearerTokenResponse();
         } else {
-            $privateKey = 'file://' . OAUTH2_CONFIGPATH . '/private.key';
+            $privateKey = $privateKeyPath;
             $responseType = new \League\OAuth2\Server\ResponseTypes\BearerTokenResponse();
         }
 
         // Setup the authorization server
         $server = new AuthorizationServer(
             new ClientRepository($container),
-            new AccessTokenRepository(),
+            $container->get(AccessTokenRepository::class),
             new ScopeRepository(),
             $privateKey,
             Key::loadFromAsciiSafeString($encryptionKey),
@@ -135,25 +149,15 @@ $container->set(
                 $refreshTokenRepository,
                 $claimRepository,
                 new \Idaas\OpenID\Session(),
-                new DateInterval('PT10M'),
-                new DateInterval('PT10M'),
+                new \DateInterval('PT10M'),
+                new \DateInterval('PT10M'),
             );
             $grant->setIssuer('https://' . $_SERVER['HTTP_HOST']);
-            
-            $implicitGrant = new \Idaas\OpenID\Grant\ImplicitGrant(
-                new UserRepository($container),
-                $claimRepository,
-                new DateInterval('PT10M'),
-                new DateInterval('PT10M')
-            );
-            $implicitGrant->setIssuer('https://' . $_SERVER['HTTP_HOST']);
-            $server->enableGrantType($implicitGrant, new DateInterval('PT1H'));
-            
         } else {
             $grant = new AuthCodeGrant(
                 new AuthCodeRepository(),
                 $refreshTokenRepository,
-                new DateInterval('PT10M'),
+                new \DateInterval('PT10M'),
             );
         }
 
@@ -162,22 +166,22 @@ $container->set(
         $server->enableGrantType(
             $grant,
             // access tokens will expire after 1 hour
-            new DateInterval('PT1H'),
+            new \DateInterval('PT1H'),
         );
 
         $rt_grant = new RefreshTokenGrant($refreshTokenRepository);
         // new refresh tokens will expire after 1 month
-        $rt_grant->setRefreshTokenTTL(new DateInterval('P1M'));
+        $rt_grant->setRefreshTokenTTL(new \DateInterval('P1M'));
 
         // Enable the refresh token grant on the server
         $server->enableGrantType(
             $rt_grant,
             // new access tokens will expire after an hour
-            new DateInterval('PT1H'),
+            new \DateInterval('PT1H'),
         );
 
         //--
-        $userRepository = new UserRepository($container); // instance of UserRepositoryInterface
+        $userRepository = $container->get(UserRepository::class); // instance of UserRepositoryInterface
         $grant = new \League\OAuth2\Server\Grant\PasswordGrant(
             $userRepository,
             $refreshTokenRepository,
@@ -214,7 +218,7 @@ $container->set(
         }
 
         return new ResourceServer(
-            new AccessTokenRepository(),
+            $container->get(AccessTokenRepository::class),
             $publicKey,
         );
     },
@@ -225,8 +229,8 @@ if (class_exists(\Idaas\OpenID\UserInfo::class)) {
         \Idaas\OpenID\UserInfo::class,
         static function (ContainerInterface $container) {
             return new \Idaas\OpenID\UserInfo(
-                new UserRepository($container),
-                new AccessTokenRepository(),
+                $container->get(UserRepository::class),
+                $container->get(AccessTokenRepository::class),
                 $container->get(ResourceServer::class),
                 $container->get(ClaimRepository::class),
             );

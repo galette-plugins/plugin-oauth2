@@ -1,13 +1,15 @@
 <?php
 
 /**
- * Copyright © 2021-2026 The Galette Team
+ *  This file is part of 'Galette OAuth2 plugin'.
+ *  Galette OAuth2 Plugin is free software: you can redistribute it and/or
+ *  modify it under the terms of the GNU General Public License as
  *
- * This file is part of Galette OAuth2 plugin (https://galette-community.github.io/plugin-oauth2/).
+ *  Galette OAuth2 Plugin is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *
  * Galette is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
+ *  with Galette OAuth2 Plugin. If not, see <http://www.gnu.org/licenses/>.
  * (at your option) any later version.
  *
  * Galette is distributed in the hope that it will be useful,
@@ -29,6 +31,9 @@ use Idaas\OpenID\Repositories\AccessTokenRepositoryInterface;
 use League\OAuth2\Server\Entities\ClientEntityInterface;
 use League\OAuth2\Server\Entities\AccessTokenEntityInterface as LeagueAccessTokenEntityInterface;
 use Psr\Container\ContainerInterface;
+use GaletteOAuth2\Repositories\ClientRepository;
+use GaletteOAuth2\Repositories\ScopeRepository;
+use GaletteOAuth2\Repositories\ClaimRepository;
 
 /**
  * AccessToken repository
@@ -117,8 +122,10 @@ final class AccessTokenRepository implements AccessTokenRepositoryInterface
     }
 
     /**
+     * @param string $tokenId
+     * @return \Idaas\OpenID\Entities\AccessTokenEntityInterface|null
      */
-    public function getAccessToken(mixed $tokenId)
+    public function getAccessToken($tokenId)
     {
         $zdb = $this->container->get('zdb');
         $query = $zdb->select(AccessTokenEntity::TABLE)->where([AccessTokenEntity::PK => $tokenId]);
@@ -151,17 +158,26 @@ final class AccessTokenRepository implements AccessTokenRepositoryInterface
     }
 
     /**
-     *
+     * @param LeagueAccessTokenEntityInterface $token
+     * @param array $claims
      */
     public function storeClaims(LeagueAccessTokenEntityInterface $token, array $claims): void
     {
+        if (!($token instanceof AccessTokenEntity)) {
+             return;
+        }
+
         foreach ($claims as $serclaim) {
-            $claim = new ClaimEntity(
-                $serclaim[ClaimEntity::IDENTIFIER],
-                $serclaim[ClaimEntity::TYPE],
-                $serclaim[ClaimEntity::ESSENTIAL]
-            );
-            $token->addClaim($claim);
+            if ($serclaim instanceof \Idaas\OpenID\Entities\ClaimEntityInterface) {
+                $token->addClaim($serclaim);
+            } else {
+                $claim = new ClaimEntity(
+                    $serclaim[ClaimEntity::IDENTIFIER],
+                    $serclaim[ClaimEntity::TYPE],
+                    $serclaim[ClaimEntity::ESSENTIAL]
+                );
+                $token->addClaim($claim);
+            }
         }
     }
 }

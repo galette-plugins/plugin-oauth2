@@ -1,13 +1,15 @@
 <?php
 
 /**
- * Copyright © 2021-2026 The Galette Team
+ *  This file is part of 'Galette OAuth2 plugin'.
+ *  Galette OAuth2 Plugin is free software: you can redistribute it and/or
+ *  modify it under the terms of the GNU General Public License as
  *
- * This file is part of Galette OAuth2 plugin (https://galette-community.github.io/plugin-oauth2/).
+ *  Galette OAuth2 Plugin is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *
  * Galette is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
+ *  with Galette OAuth2 Plugin. If not, see <http://www.gnu.org/licenses/>.
  * (at your option) any later version.
  *
  * Galette is distributed in the hope that it will be useful,
@@ -84,7 +86,7 @@ final class UserRepository implements UserRepositoryInterface
         if (in_array('galette', $scope_names)) {
             $attributes['galette_uptodate'] = ($adherent->isActive() && $adherent->isUp2Date()) || $adherent->isAdmin();
             $attributes['galette_status'] = $adherent->status;
-            $attributes['galette_status_priority'] = (new GaletteStatus($zdb, $adherent->status))->third;
+            $attributes['galette_status_priority'] = (new GaletteStatus($zdb, $adherent->status))->priority;
             $attributes['galette_staff'] = $adherent->isStaff();
 
             $attributes['galette_groups'] = [];
@@ -108,12 +110,6 @@ final class UserRepository implements UserRepositoryInterface
         }
 
         return $attributes;
-    }
-
-    private static function stripAccents($str)
-    {
-        //TODO seems shifted, "é" incorrectly replaced par "c"
-        return \strtr(\utf8_decode($str), \utf8_decode('ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïñòóôõöøùúûüýÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĹĺĻļĽľĿŀŁłŃńŅņŇňŉŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƒƠơƯưǍǎǏǐǑǒǓǔǕǖǗǘǙǚǛǜǺǻǼǽǾǿ'), 'AAAAAAAECEEEEIIIIDNOOOOOOUUUUYsaaaaaaaeceeeeiiiinoooooouuuuyyAaAaAaCcCcCcCcDdDdEeEeEeEeEeGgGgGgGgHhHhIiIiIiIiIiIJijJjKkLlLlLlLlllNnNnNnnOoOoOoOEoeRrRrRrSsSsSsSsTtTtTtUuUuUuUuUuUuWwYyYZzZzZzsfOoUuAaIiOoUuUuUuUuUuAaAEaeOo');
     }
 
     private static function normalizeGaletteGroup($group)
@@ -142,16 +138,28 @@ final class UserRepository implements UserRepositoryInterface
     }
 
     /**
+     * @param string $username
+     * @param string $password
+     * @param string $grantType
+     * @param ClientEntityInterface $clientEntity
+     * @return UserEntityInterface|null
      */
     public function getUserEntityByUserCredentials(
-        mixed $username,
-        mixed $password,
-        mixed $grantType,
+        $username,
+        $password,
+        $grantType,
         ClientEntityInterface $clientEntity
-    ): void {
-        Debug::log("getUserEntityByUserCredentials({$username}, '***', {$grantType}) ");
+    ): ?UserEntityInterface {
+        $login = $this->container->get(\Galette\Core\Login::class);
+        $preferences = $this->container->get(\Galette\Entity\Config::class);
+        
+        // Try to login
+        if ($login->login($username, $password, true)) {
+            $user = new UserEntity();
+            $user->setIdentifier((string)$login->id);
+            return $user;
+        }
 
-        $uid = UserHelper::login($this->container, $username, $password);
-        //TODO
+        return null;
     }
 }
