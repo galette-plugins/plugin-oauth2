@@ -86,6 +86,7 @@ final class ScopeRepository implements ScopeRepositoryInterface
     }
 
     /**
+     *
      */
     public function finalizeScopes(
         array $scopes,
