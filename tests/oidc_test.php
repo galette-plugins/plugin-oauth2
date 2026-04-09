@@ -220,4 +220,3 @@ log_message("2. Set up client credentials in config/config.yml", 'blue');
 log_message("3. Test the authorization flow", 'blue');
 
 exit(0);
-
