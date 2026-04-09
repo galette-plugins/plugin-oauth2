@@ -108,4 +108,3 @@ $app->get(
     '/.well-known/jwks.json',
     [DiscoveryController::class, 'jwks']
 )->setName(OAUTH2_PREFIX . '_jwks');
-
