@@ -62,11 +62,14 @@ final class IdTokenBuilder
         $this->claimExtractor = new ClaimExtractor($container);
         $this->issuer = $issuer;
 
-        // Configure JWT with RS256 signer and the private key
+        // Derive public key path from private key path
+        $publicKeyPath = str_replace('private.key', 'public.key', $privateKeyPath);
+
+        // Configure JWT with RS256 signer and the private/public keys
         $this->jwtConfig = Configuration::forAsymmetricSigner(
             new Sha256(),
             InMemory::file($privateKeyPath),
-            InMemory::empty() // Public key not needed for signing
+            InMemory::file($publicKeyPath)
         );
     }
 
