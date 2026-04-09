@@ -61,8 +61,10 @@ $container->set(
         ]);
 
         $galette_sid = session_id();
-        session_write_close();
-        session_id('galette-oauth-' . $galette_sid);
+        if ($galette_sid !== '' && $galette_sid !== false) {
+            session_write_close();
+            session_id('galette-oauth-' . $galette_sid);
+        }
         $session->start();
 
         $container->get(Messages::class)->__construct($_SESSION);

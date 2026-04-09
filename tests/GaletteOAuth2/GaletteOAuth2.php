@@ -82,16 +82,8 @@ class GaletteOAuth2 extends GaletteTestCase
         // Get state and store it to the session
         $state = $provider->getState();
 
-        $jar = new \GuzzleHttp\Cookie\CookieJar(
-            false,
-            [
-                [
-                    'Name' => 'session_id',
-                    'Value' => 'galette-oauthtests-session',
-                    'Domain' => 'localhost'
-                ]
-            ],
-        );
+        // Use a cookie jar that automatically stores and sends cookies from the server
+        $jar = new \GuzzleHttp\Cookie\CookieJar();
         $guzzle = new \GuzzleHttp\Client([
             'cookies' => $jar,
             'allow_redirects' => ['track_redirects' => true],
