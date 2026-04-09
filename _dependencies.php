@@ -50,20 +50,50 @@ $container = $app->getContainer();
 $container->set(
     'oauth_session',
     function (ContainerInterface $container) {
+        static $oauth_session = null;
+
+        // Return singleton instance to preserve session state across injections
+        if ($oauth_session !== null) {
+            /** @phpstan-ignore-next-line */
+            if (OAUTH2_DEBUGSESSION) {
+                \GaletteOAuth2\Tools\Debug::log('oauth_session: Returning existing session instance');
+            }
+            return $oauth_session;
+        }
+
         $session_name = PREFIX_DB . '_' . NAME_DB . '_' . str_replace('.', '_', GALETTE_VERSION);
         $session_name = 'galette_oauth_' . $session_name;
+
+        /** @phpstan-ignore-next-line */
+        if (OAUTH2_DEBUGSESSION) {
+            \GaletteOAuth2\Tools\Debug::log('oauth_session: Creating new session with name: ' . $session_name);
+            \GaletteOAuth2\Tools\Debug::log('oauth_session: Current PHP session_id: ' . (session_id() ?: '(none)'));
+            \GaletteOAuth2\Tools\Debug::log('oauth_session: Session status: ' . session_status());
+        }
+
         $session = new SessionMiddleware([
             'name'      => $session_name,
             'lifetime'  => GALETTE_TIMEOUT
         ]);
 
-        $galette_sid = session_id();
-        session_write_close();
-        session_id('galette-oauth-' . $galette_sid);
-        $session->start();
+        // Only start session if not already started
+        if (session_status() === PHP_SESSION_NONE) {
+            $session->start();
+            /** @phpstan-ignore-next-line */
+            if (OAUTH2_DEBUGSESSION) {
+                \GaletteOAuth2\Tools\Debug::log('oauth_session: Session started, new session_id: ' . session_id());
+            }
+        } else {
+            /** @phpstan-ignore-next-line */
+            if (OAUTH2_DEBUGSESSION) {
+                \GaletteOAuth2\Tools\Debug::log('oauth_session: Session already started, session_id: ' . session_id());
+            }
+        }
 
         $container->get(Messages::class)->__construct($_SESSION);
-        return new \RKA\Session();
+        $oauth_session = new \RKA\Session();
+
+        return $oauth_session;
     }
 );
 

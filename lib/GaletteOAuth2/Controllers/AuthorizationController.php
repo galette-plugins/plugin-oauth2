@@ -221,6 +221,17 @@ final class AuthorizationController extends AbstractPluginController
 
             // Return the HTTP redirect response
             $r = $server->completeAuthorizationRequest($authRequest, $response);
+
+            /** @phpstan-ignore-next-line */
+            if (OAUTH2_DEBUGSESSION) {
+                Debug::log('doAuthorize(): Authorization completed successfully');
+                $location = $r->getHeaderLine('Location');
+                if ($location) {
+                    // Log that we have a redirect URL but not the code itself (sensitive data)
+                    Debug::log('doAuthorize(): Redirecting to client (code generated)');
+                }
+            }
+
             Analog::log(
                 'authorization/doAuthorize() exit ok',
                 Analog::DEBUG

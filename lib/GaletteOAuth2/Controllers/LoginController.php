@@ -156,6 +156,12 @@ final class LoginController extends AbstractPluginController
         //FIXME: for both isLoggedIn and user_id, we can rely on login object stored in session
         $this->session->isLoggedIn = 'yes';
 
+        /** @phpstan-ignore-next-line */
+        if (OAUTH2_DEBUGSESSION) {
+            Debug::log('doLogin(): Login successful - isLoggedIn: yes, user_id set');
+            Debug::log('doLogin(): Session ID before redirect: ' . session_id());
+        }
+
         // User is logged in, redirect them to authorize
         $url_params = [
             'response_type' => $this->session->request_args['response_type'],
@@ -168,6 +174,11 @@ final class LoginController extends AbstractPluginController
         }
 
         $url = $this->routeparser->urlFor(OAUTH2_PREFIX . '_authorize', [], $url_params);
+
+        /** @phpstan-ignore-next-line */
+        if (OAUTH2_DEBUGSESSION) {
+            Debug::log('doLogin(): Redirecting to authorize with client_id: ' . $url_params['client_id']);
+        }
 
         $response = new Response();
 
