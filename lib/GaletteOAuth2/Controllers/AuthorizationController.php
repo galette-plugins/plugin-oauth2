@@ -234,8 +234,6 @@ final class AuthorizationController extends AbstractPluginController
             $body->write($exception->getMessage());
 
             return $response->withStatus(500)->withBody($body);
-        } finally {
-            $this->login->logout();
         }
     }
 
