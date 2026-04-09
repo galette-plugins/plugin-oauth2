@@ -59,8 +59,6 @@ final class LoginController extends AbstractPluginController
      *
      * @param Request  $request  Received request
      * @param Response $response Response instance
-     *
-     * @return Response
      */
     public function login(Request $request, Response $response): Response
     {
@@ -95,8 +93,6 @@ final class LoginController extends AbstractPluginController
      *
      * @param Request  $request  Received request
      * @param Response $response Response instance
-     *
-     * @return Response
      */
     public function doLogin(Request $request, Response $response): Response
     {
@@ -106,7 +102,7 @@ final class LoginController extends AbstractPluginController
         }
 
         // Get all POST parameters
-        $params = (array) $request->getParsedBody();
+        $params = (array)$request->getParsedBody();
 
         //Try login
         //FIXME: for both isLoggedIn and user_id, we can rely on login object stored in session

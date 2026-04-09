@@ -294,8 +294,6 @@ final class UserHelper
      *
      * @param Adherent $member Member
      * @param bool     $legacy Legacy mode for data
-     *
-     * @return array
      */
     protected static function getUserGroups(Adherent $member, bool $legacy = false): array
     {
@@ -348,9 +346,6 @@ final class UserHelper
      * Get required authorizations
      *
      * @param Config $config Config instance
-     * @param string $client_id
-     *
-     * @return string
      */
     public static function getAuthorization(Config $config, string $client_id): string
     {
@@ -380,8 +375,6 @@ final class UserHelper
      *
      * @param string       $client_id        Client app identifier
      * @param array|string $requested_scopes Requested scopes from query string
-     *
-     * @return array
      */
     public static function mergeScopes(
         ?Config $config,
@@ -434,9 +427,6 @@ final class UserHelper
 
     /**
      * Strips accented characters, lower string
-     *
-     * @param string $str
-     * @return string
      */
     public static function stripAccents(string $str): string
     {

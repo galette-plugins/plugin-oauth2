@@ -75,9 +75,6 @@ final class AuthorizationController extends AbstractPluginController
     /**
      * Display authorization form
      *
-     * @param Request $request
-     * @param Response $response
-     * @return Response|ResponseInterface
      * @throws \DI\DependencyException
      * @throws \DI\NotFoundException
      */
@@ -173,9 +170,6 @@ final class AuthorizationController extends AbstractPluginController
     /**
      * Proceed authorization
      *
-     * @param Request $request
-     * @param Response $response
-     * @return Response|ResponseInterface
      * @throws \DI\DependencyException
      * @throws \DI\NotFoundException
      */

@@ -53,8 +53,6 @@ final class Authentication
      *
      * @param Request        $request PSR7 request
      * @param RequestHandler $handler PSR7 request handler
-     *
-     * @return Response
      */
     public function __invoke(Request $request, RequestHandler $handler): Response
     {
