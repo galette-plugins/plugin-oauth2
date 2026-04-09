@@ -64,6 +64,14 @@ final class LoginController extends AbstractPluginController
     {
         Debug::logRequest('login()', $request);
 
+        /** @phpstan-ignore-next-line */
+        if (OAUTH2_DEBUGSESSION) {
+            Debug::log('login(): Session ID: ' . session_id());
+            Debug::log('login(): Has request_args: ' . (isset($this->session->request_args) ? 'yes' : 'no'));
+            Debug::log('login(): Has user_id: ' . (isset($this->session->user_id) ? 'yes (value hidden)' : 'no'));
+            Debug::log('login(): Has isLoggedIn: ' . (isset($this->session->isLoggedIn) ? $this->session->isLoggedIn : 'no'));
+        }
+
         $redirect_url = $request->getQueryParams()['redirect_url'] ?? false;
 
         //FIXME: redirect URL seems required: session request_args is considered as existing in self::prepareVarsForm()
@@ -72,11 +80,17 @@ final class LoginController extends AbstractPluginController
             $url_query = parse_url($url, PHP_URL_QUERY);
             parse_str($url_query, $url_args);
             $this->session->request_args = $url_args;
+
+            /** @phpstan-ignore-next-line */
+            if (OAUTH2_DEBUGSESSION) {
+                Debug::log('login(): Saved request_args with client_id: ' . ($url_args['client_id'] ?? 'none'));
+                Debug::log('login(): Saved request_args with scope: ' . ($url_args['scope'] ?? 'none'));
+            }
         }
 
         /** @phpstan-ignore-next-line */
         if (OAUTH2_DEBUGSESSION) {
-            Debug::log('GET _SESSION = ' . Debug::printVar($this->session));
+            Debug::log('login(): After processing - Has request_args: ' . (isset($this->session->request_args) ? 'yes' : 'no'));
         }
 
         // display page
@@ -98,7 +112,11 @@ final class LoginController extends AbstractPluginController
     {
         /** @phpstan-ignore-next-line */
         if (OAUTH2_DEBUGSESSION) {
-            Debug::log('POST _SESSION = ' . Debug::printVar($this->session));
+            Debug::log('doLogin(): Session ID: ' . session_id());
+            Debug::log('doLogin(): Has request_args: ' . (isset($this->session->request_args) ? 'yes' : 'no'));
+            if (isset($this->session->request_args)) {
+                Debug::log('doLogin(): request_args client_id: ' . ($this->session->request_args['client_id'] ?? 'none'));
+            }
         }
 
         // Get all POST parameters
@@ -109,6 +127,11 @@ final class LoginController extends AbstractPluginController
         $this->session->isLoggedIn = 'no';
         $this->session->user_id = $uid = UserHelper::login($this->container, $params['login'], $params['password']);
         Debug::log("UserHelper::login({$params['login']}) return '{$uid}'");
+
+        /** @phpstan-ignore-next-line */
+        if (OAUTH2_DEBUGSESSION) {
+            Debug::log('doLogin(): Login result - user_id set: ' . (isset($this->session->user_id) ? 'yes (value hidden)' : 'no'));
+        }
 
         if (false === $uid) {
             $this->flash->addMessage(
@@ -125,6 +148,10 @@ final class LoginController extends AbstractPluginController
 
         try {
             $client_id = $this->session->request_args['client_id'];
+            /** @phpstan-ignore-next-line */
+            if (OAUTH2_DEBUGSESSION) {
+                Debug::log('doLogin(): Calling getUserData for client_id: ' . $client_id);
+            }
             UserHelper::getUserData(
                 $this->container,
                 $uid,
@@ -139,6 +166,10 @@ final class LoginController extends AbstractPluginController
             );
         } catch (UserAuthorizationException $e) {
             UserHelper::logout($this->container);
+            /** @phpstan-ignore-next-line */
+            if (OAUTH2_DEBUGSESSION) {
+                Debug::log('doLogin(): UserAuthorizationException caught: ' . $e->getMessage());
+            }
             Debug::log('login() check rights error ' . $e->getMessage());
 
             $this->flash->addMessage(
