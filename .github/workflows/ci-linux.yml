@@ -72,7 +72,7 @@ jobs:
           ../../vendor/bin/phpcs lib/ ./*.php
 
       - name: CS Fixer
-        if: matrix.php-versions == '8.1'
+        if: matrix.php-versions == '8.2'
         run: |
           cd galette-core/galette/plugins/plugin-oauth2
           ../../vendor/bin/php-cs-fixer check --show-progress=dots --verbose --diff
