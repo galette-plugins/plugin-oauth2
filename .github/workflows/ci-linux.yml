@@ -47,18 +47,6 @@ jobs:
         with:
           path: galette-core/galette/plugins/plugin-oauth2
 
-      - name: Get composer cache directory
-        id: composer-cache
-        run: |
-          echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
-
-      - name: Cache dependencies
-        uses: actions/cache@v5
-        with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.json') }}
-          restore-keys: ${{ runner.os }}-composer-
-
       - name: Install dependencies
         run: |
           cd galette-core
@@ -158,46 +146,27 @@ jobs:
           extensions: apcu
           ini-values: apc.enable_cli=1
 
-      - name: "Show versions"
+      - name: Show database version
         if: env.skip != 'true'
         run: |
-          php --version
-          composer --version
-          echo "node $(node --version)"
-          echo "npm $(npm --version)"
           docker exec ${{ job.services.db.id }} bash -c "if [[ -n \$(command -v psql) ]]; then psql --version; else if [[ -n \$(command -v mysql) ]]; then mysql --version; else mariadb --version; fi fi"
 
-      - name: Checkout Galette core
+      - name: Build Galette
         if: env.skip != 'true'
-        uses: actions/checkout@v6
+        uses: galette/.github/actions/build-galette@main
         with:
-          repository: galette/galette
-          path: galette-core
-          fetch-depth: 1
-          ref: develop
+          php-version: ${{ matrix.php-version }}
 
       - name: Checkout plugin
+        if: env.skip != 'true'
         uses: actions/checkout@v6
         with:
           path: galette-core/galette/plugins/plugin-oauth2
 
-      - name: "Restore dependencies cache"
-        if: env.skip != 'true'
-        uses: actions/cache@v5
-        with:
-          path: |
-            ~/.composer/cache/
-            ~/.npm/_cacache/
-          key: "${{ runner.os }}-galette-${{ matrix.php-version }}-${{ hashFiles('galette/composer.lock', 'package-lock.json') }}"
-          restore-keys: |
-            ${{ runner.os }}-galette-${{ matrix.php-version }}-
-
-      - name: Install dependencies
+      - name: Install plugin dependencies
         if: env.skip != 'true'
         run: |
-          cd galette-core
-          bin/install_deps
-          cd galette/plugins/plugin-oauth2
+          cd galette-core/galette/plugins/plugin-oauth2
           composer install --ignore-platform-reqs
 
       - name: Generate keys
