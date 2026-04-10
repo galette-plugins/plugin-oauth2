@@ -95,6 +95,11 @@ final class UserHelper
         }
         $history->add(_T('Authentication failed'), $nick);
 
+        $flash->addMessage(
+            'error_detected',
+            _T('Check your login / email or password.', 'oauth2')
+        );
+
         return false;
     }
 

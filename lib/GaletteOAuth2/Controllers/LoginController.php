@@ -111,10 +111,6 @@ final class LoginController extends AbstractPluginController
         Debug::log("UserHelper::login({$params['login']}) return '{$uid}'");
 
         if (false === $uid) {
-            $this->flash->addMessage(
-                'error_detected',
-                _T('Check your login / email or password.', 'oauth2')
-            );
             return $response
                 ->withStatus(301)
                 ->withHeader(
