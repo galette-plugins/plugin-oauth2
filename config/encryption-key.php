@@ -27,4 +27,4 @@ declare(strict_types=1);
  * @author Manuel Hervouet <manuelh78dev@ik.me>
  */
 
-$encryptionKey = 'def00000c32af81976d27bfcc7e834f92206d88d70711ef21ea465a337ec80b288ce0bf729c76ab6279fb2a0990e19affbfe5ca945e012063121ac74e6b83ff24f7030b2';
+$encryptionKey = 'KEY';
