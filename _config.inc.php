@@ -29,7 +29,9 @@ declare(strict_types=1);
  */
 
 define('OAUTH2_LOG', true);
-define('OAUTH2_DEBUGSESSION', false);
+if (!defined('OAUTH2_DEBUGSESSION')) {
+    define('OAUTH2_DEBUGSESSION', false);
+}
 if (!defined('OAUTH2_CONFIGPATH')) {
     define('OAUTH2_CONFIGPATH', __DIR__ . '/config'); //For more security, you can move this folder
 }
