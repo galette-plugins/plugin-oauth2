@@ -99,8 +99,12 @@ jobs:
 
       - name: Headers checks
         run: |
-          cd galette-core/galette/plugins/plugin-oauth2
-          ../../vendor/bin/docheader check lib ./*.php
+          cd galette-core
+          ./bin/console galette:headers:check \
+            --project-name="Galette OAuth2 plugin" \
+            --start-year="2021" \
+            --project-url="https://galette-community.github.io/plugin-oauth2/" \
+            --directory="galette/plugins/plugin-oauth2"
 
   unit-tests:
     runs-on: ubuntu-latest
