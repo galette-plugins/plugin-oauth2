@@ -21,7 +21,7 @@ $this->register(
     desc: 'OAuth 2.0 integration',                 //Short description
     author: 'Manuel Hervouet, , Johan Cwiklinski', //Author
     version: '3.0.2',                              //Version
-    compver: '1.2.0',                              //Galette compatible version
+    compver: '1.3.0',                              //Galette compatible version
     route: 'oauth2',                               //routing name and translation domain
     date: '2025-12-27',                            //Release date
     acls: [                                        //Permissions needed
