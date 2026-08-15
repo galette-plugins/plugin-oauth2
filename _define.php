@@ -30,5 +30,5 @@ $this->register(
 );
 
 $this->setCsrfExclusions([
-    '/oauth2_*/',
+    '/oauth2_(token|user)/',
 ]);
