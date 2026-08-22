@@ -3,7 +3,7 @@
 /**
  * Copyright © 2021-2026 The Galette Team
  *
- * This file is part of Galette OAuth2 plugin (https://galette-community.github.io/plugin-oauth2/).
+ * This file is part of Galette OAuth2 plugin (https://galette-plugins.github.io/plugin-oauth2/).
  *
  * Galette is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
