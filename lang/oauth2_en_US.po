@@ -1,14 +1,14 @@
 # English translations for plugin-oauth package.
-# Copyright (C) 2025 THE plugin-oauth'S COPYRIGHT HOLDER
+# Copyright (C) 2026 THE plugin-oauth'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the plugin-oauth package.
-# Automatically generated, 2025.
+# Automatically generated, 2026.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: plugin-oauth 2\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-11 17:40+0200\n"
-"PO-Revision-Date: 2025-09-11 17:40+0200\n"
+"POT-Creation-Date: 2026-08-31 19:09+0200\n"
+"PO-Revision-Date: 2026-08-31 19:09+0200\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "Language: en_US\n"
@@ -17,127 +17,127 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: ../lib/GaletteOAuth2/Controllers/LoginController.php:112
-msgid "Check your login / email or password."
-msgstr "Check your login / email or password."
-
-#: ../lib/GaletteOAuth2/Controllers/LoginController.php:200
-#: ../lib/GaletteOAuth2/Controllers/AuthorizationController.php:132
+#: ../lib/GaletteOAuth2/Controllers/AuthorizationController.php:119
+#: ../lib/GaletteOAuth2/Controllers/LoginController.php:255
 #, php-format
 msgid "Sign in with %s"
 msgstr "Sign in with %s"
 
-#: ../lib/GaletteOAuth2/Controllers/LoginController.php:205
-#, php-format
-msgid "Sign in %s"
-msgstr "Sign in %s"
-
-#: ../lib/GaletteOAuth2/Controllers/AuthorizationController.php:137
+#: ../lib/GaletteOAuth2/Controllers/AuthorizationController.php:124
 #, php-format
 msgid "%s is requesting access to the following details"
 msgstr "%s is requesting access to the following details"
 
-#: ../lib/GaletteOAuth2/Controllers/AuthorizationController.php:219
-#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:159
+#: ../lib/GaletteOAuth2/Controllers/AuthorizationController.php:203
+#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:162
 #, php-format
 msgid "Default scope (%s) has not been authorized."
 msgstr "Default scope (%s) has not been authorized."
 
-#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:71
-msgid "Cannot OAuth login from superadmin account!"
-msgstr "Cannot OAuth login from superadmin account!"
-
-#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:124
-msgid "User not found."
-msgstr "User not found."
-
-#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:129
-msgid "Sorry, you can't login because you are not an active member."
-msgstr "Sorry, you can't login because you are not an active member."
-
-#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:134
-msgid "Sorry, you can't login. Please, add an email address to your account."
-msgstr "Sorry, you can't login. Please, add an email address to your account."
-
-#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:140
-msgid "Sorry, you can't login because your are not a team member."
-msgstr "Sorry, you can't login because your are not a team member."
-
-#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:148
-msgid "Sorry, you can't login because your are not an up-to-date member."
-msgstr "Sorry, you can't login because your are not an up-to-date member."
-
-#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:45
-msgid ""
-"Access to your member basic information: name, login, email, language, "
-"company name)"
-msgstr ""
-"Access to your member basic information: name, login, email, language, "
-"company name)"
-
-#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:48
-msgid ""
-"Access to more precise personal data: birth date, job, gender, birth place, "
-"GnuPG ID"
-msgstr ""
-"Access to more precise personal data: birth date, job, gender, birth place, "
-"GnuPG ID"
-
-#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:51
-msgid "Access to your localization data: zipcode, town, region, country"
-msgstr "Access to your localization data: zipcode, town, region, country"
-
-#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:54
-msgid ""
-"Access to your precise localisation data: full address, coordinates (from "
-"maps plugin)"
-msgstr ""
-"Access to your precise localisation data: full address, coordinates (from "
-"maps plugin)"
-
-#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:57
-msgid "Access to your phone numbers"
-msgstr "Access to your phone numbers"
-
-#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:60
-msgid "Access to your social networks data"
-msgstr "Access to your social networks data"
-
-#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:63
-msgid "Access to the groups you belong to"
-msgstr "Access to the groups you belong to"
-
-#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:66
-msgid "Access to your due date"
-msgstr "Access to your due date"
-
-#: ../tempcache/oauth2_authorize.html.twig:86
-msgid "Default scope is mandatory and cannot be unselected"
-msgstr "Default scope is mandatory and cannot be unselected"
-
-#: ../tempcache/oauth2_authorize.html.twig:102
-msgid "Toggle scope approval"
-msgstr "Toggle scope approval"
-
-#: ../tempcache/oauth2_authorize.html.twig:138
-msgid "Cancel"
-msgstr "Cancel"
-
-#: ../tempcache/oauth2_authorize.html.twig:146
-msgid "Allow"
-msgstr "Allow"
-
-#: ../lib/GaletteOAuth2/Controllers/LoginController.php
-#: ../lib/GaletteOAuth2/Middleware/Authentication.php
+#: ../lib/GaletteOAuth2/Controllers/LoginController.php:81
+#: ../lib/GaletteOAuth2/Middleware/Authentication.php:69
 msgid "Unknown client application"
 msgstr "Unknown client application"
 
-#: ../lib/GaletteOAuth2/Controllers/LoginController.php
-#: ../templates/default/oauth2_error.html.twig
-msgid "OAuth2 error"
-msgstr "OAuth2 error"
-
-#: ../lib/GaletteOAuth2/Controllers/LoginController.php
+#: ../lib/GaletteOAuth2/Controllers/LoginController.php:210
 msgid "An error occurred"
 msgstr "An error occurred"
 
+#: ../lib/GaletteOAuth2/Controllers/LoginController.php:216
+#: ../tempcache/oauth2_error.html.twig:67
+msgid "OAuth2 error"
+msgstr "OAuth2 error"
+
+#: ../lib/GaletteOAuth2/Controllers/LoginController.php:260
+#, php-format
+msgid "Sign in %s"
+msgstr "Sign in %s"
+
+#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:69
+msgid "Cannot OAuth login from superadmin account!"
+msgstr "Cannot OAuth login from superadmin account!"
+
+#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:87
+msgid "Check your login / email or password."
+msgstr "Check your login / email or password."
+
+#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:127
+msgid "User not found."
+msgstr "User not found."
+
+#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:132
+msgid "Sorry, you can't login because you are not an active member."
+msgstr "Sorry, you can't login because you are not an active member."
+
+#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:137
+msgid "Sorry, you can't login. Please, add an email address to your account."
+msgstr "Sorry, you can't login. Please, add an email address to your account."
+
+#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:143
+msgid "Sorry, you can't login because your are not a team member."
+msgstr "Sorry, you can't login because your are not a team member."
+
+#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:151
+msgid "Sorry, you can't login because your are not an up-to-date member."
+msgstr "Sorry, you can't login because your are not an up-to-date member."
+
+#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:32
+msgid ""
+"Access to your member basic information: name, login, email, language, "
+"company name)"
+msgstr ""
+"Access to your member basic information: name, login, email, language, "
+"company name)"
+
+#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:35
+msgid ""
+"Access to more precise personal data: birth date, job, gender, birth place, "
+"GnuPG ID"
+msgstr ""
+"Access to more precise personal data: birth date, job, gender, birth place, "
+"GnuPG ID"
+
+#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:38
+msgid "Access to your localization data: zipcode, town, region, country"
+msgstr "Access to your localization data: zipcode, town, region, country"
+
+#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:41
+msgid ""
+"Access to your precise localisation data: full address, coordinates (from "
+"maps plugin)"
+msgstr ""
+"Access to your precise localisation data: full address, coordinates (from "
+"maps plugin)"
+
+#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:44
+msgid "Access to your phone numbers"
+msgstr "Access to your phone numbers"
+
+#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:47
+msgid "Access to your social networks data"
+msgstr "Access to your social networks data"
+
+#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:50
+msgid "Access to the groups you belong to"
+msgstr "Access to the groups you belong to"
+
+#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:53
+msgid "Access to your due date"
+msgstr "Access to your due date"
+
+#: ../tempcache/oauth2_authorize.html.twig:85
+msgid "Default scope is mandatory and cannot be unselected"
+msgstr "Default scope is mandatory and cannot be unselected"
+
+#: ../tempcache/oauth2_authorize.html.twig:87
+#, php-format
+msgid "Give acces to '%1$s' scope"
+msgstr "Give acces to '%1$s' scope"
+
+#: ../tempcache/oauth2_authorize.html.twig:119
+msgid "Cancel"
+msgstr "Cancel"
+
+#: ../tempcache/oauth2_authorize.html.twig:127
+msgid "Allow"
+msgstr "Allow"
