@@ -1,3 +1,9 @@
+---
+ref: home
+title: Galette oAuth2
+description: Galette as oAuth2 server
+---
+
 Makes Galette act as a oAuth2 server; so it is possible to use existing members to log-in on third party websites, like [Flarum](https://flarum.org/), [Nextcould](https://nextcloud.com/), and so on!
 
 # Setup
