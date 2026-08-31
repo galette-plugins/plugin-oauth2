@@ -8,3 +8,12 @@ plugin:
 defaults:
   - scope: {path: ""}
     values: {layout: default, lang: en}
+
+# Without this, README.md would be copied into the published site. It used to be
+# the index page; index.md is now, which is what gives the theme a `ref: home`
+# to build the menu and the language selector from.
+exclude:
+  - README.md
+  - Gemfile
+  - Gemfile.lock
+  - vendor
