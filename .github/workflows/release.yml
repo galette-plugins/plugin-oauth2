@@ -25,6 +25,8 @@ permissions:
   id-token: write
   attestations: write
   artifact-metadata: write
+  # the plugin page reads the latest release, so it has to be rebuilt after one
+  pages: write
 
 jobs:
   release:
