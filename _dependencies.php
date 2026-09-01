@@ -16,6 +16,7 @@ declare(strict_types=1);
  */
 
 use Defuse\Crypto\Key;
+use Galette\Core\Preferences;
 use GaletteOAuth2\Repositories\AccessTokenRepository;
 use GaletteOAuth2\Repositories\AuthCodeRepository;
 use GaletteOAuth2\Repositories\ClientRepository;
@@ -41,7 +42,7 @@ $container->set(
         $session_name = 'galette_oauth_' . $session_name;
         $session = new SessionMiddleware([
             'name'      => $session_name,
-            'lifetime'  => GALETTE_TIMEOUT
+            'lifetime'  => (int)$container->get(Preferences::class)->getConfigValue('pref_session_timeout')
         ]);
 
         $galette_sid = session_id();
