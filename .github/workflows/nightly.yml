@@ -27,5 +27,10 @@ jobs:
           ref: develop
           fetch-depth: 1
 
+      # Not the default `nightly`: that name once carried an immutable release
+      # here, and deleting one burns its tag for good — GitHub refuses to create
+      # the ref at all. The archive is still galette-plugin-oauth2-dev.tar.bz2.
       - name: Build and publish
         uses: galette/.github/actions/release-plugin@main
+        with:
+          nightly-tag: dev
