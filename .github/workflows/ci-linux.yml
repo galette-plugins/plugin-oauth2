@@ -6,7 +6,9 @@ on:
       - main
       - develop
     tags:
-      - '*'
+      # release tags only, the Release workflow builds those
+      - '[0-9]+.[0-9]+.[0-9]+'
+      - '[0-9]+.[0-9]+.[0-9]+.[0-9]+'
   pull_request:
   # Enable manual run
   workflow_dispatch:
