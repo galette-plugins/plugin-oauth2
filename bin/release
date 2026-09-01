@@ -382,6 +382,29 @@ def add_libs(rel_name, galette_archive):
     galette.extractall(path=src_dir)
     galette.close()
 
+    plugin_dir = os.path.join(src_dir, rel_name)
+
+    # development only, nothing a Galette installation needs
+    todrop = [
+        '.composer-require-checker.config.json',
+        '.docheader',
+        '.gitignore',
+        '.php-cs-fixer.dist.php',
+        '.phpcs.xml',
+        '.scrutinizer.yml',
+        'composer.json.checker',
+        'phpstan.neon'
+    ]
+    for td in todrop:
+        target = os.path.join(plugin_dir, td)
+        if os.path.exists(target):
+            os.remove(target)
+
+    for todrop in ['.github', 'bin', 'tests']:
+        target = os.path.join(plugin_dir, todrop)
+        if os.path.exists(target):
+            shutil.rmtree(target)
+
     composer_dir = os.path.join(src_dir, rel_name)
     has_composer = os.path.exists(
         os.path.join(
