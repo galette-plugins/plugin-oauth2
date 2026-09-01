@@ -1,5 +1,4 @@
 ---
-ref: doc
 title: Documentation
 description: Galette oAuth2 server
 ---

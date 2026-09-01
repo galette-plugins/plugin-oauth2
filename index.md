@@ -1,5 +1,4 @@
 ---
-ref: home
 title: Galette oAuth2
 description: Galette oAuth2 server
 ---

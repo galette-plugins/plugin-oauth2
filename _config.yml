@@ -10,9 +10,11 @@ plugin:
   archive: galette-plugin-oauth2
   min_galette: "1.3.0"
   nightly_url: https://github.com/galette-plugins/plugin-oauth2/releases/download/dev/galette-plugin-oauth2-dev.tar.bz2
+# No `lang` here: the theme takes it from the first path segment, and a `lang` in
+# the defaults would override that for every page, translated ones included.
 defaults:
   - scope: {path: ""}
-    values: {layout: default, lang: en}
+    values: {layout: default}
 
 # Without this, README.md would be copied into the published site. It used to be
 # the index page; index.md is now, which is what gives the theme a `ref: home`
