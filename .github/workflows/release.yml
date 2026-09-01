@@ -30,16 +30,17 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      # Not fetch-depth: 0 nor fetch-tags: true, they would bring in every tag,
-      # lightweight ones included, which bin/release cannot read.
+      # The default branch, not the tag: bin/release archives the tag's tree
+      # (git archive <tag>) but the tooling that does it has to be the current
+      # one, exactly as when a maintainer runs it from their own checkout.
+      # Not fetch-depth: 0 nor fetch-tags: true either, they would bring in
+      # every tag, lightweight ones included, which bin/release cannot read.
       - name: Checkout
         uses: actions/checkout@v7
         with:
-          ref: ${{ inputs.version || github.ref_name }}
+          ref: ${{ github.event.repository.default_branch }}
           fetch-depth: 1
 
-      # On a tag push, checkout writes refs/tags/<tag> pointing straight at the
-      # commit: a lightweight tag, even though the remote one is annotated.
       - name: Fetch the annotated tag
         env:
           TAG: ${{ inputs.version || github.ref_name }}
