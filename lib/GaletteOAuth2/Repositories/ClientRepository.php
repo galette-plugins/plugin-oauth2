@@ -48,7 +48,7 @@ final class ClientRepository implements ClientRepositoryInterface
         return $this->config->get($client_id) !== '';
     }
 
-    public function getClientEntity($client_id): ClientEntityInterface
+    public function getClientEntity(string $client_id): ClientEntityInterface
     {
         $client = new ClientEntity();
         $client->setIdentifier($this->config->get("{$client_id}.id", $client_id));
@@ -73,7 +73,7 @@ final class ClientRepository implements ClientRepositoryInterface
         return $client;
     }
 
-    public function validateClient($clientIdentifier, $clientSecret, $grantType)
+    public function validateClient(string $clientIdentifier, ?string $clientSecret, ?string $grantType): bool
     {
         if (!preg_match('/galette_/', $clientIdentifier)) {
             Debug::log("validateClient({$clientIdentifier}) denied");
