@@ -111,7 +111,7 @@ final class AuthorizationController extends AbstractPluginController
 
             $user = new UserEntity();
             //FIXME: for both isLoggedIn and user_id, we can rely on login object stored in session
-            $user->setIdentifier($this->session->user_id);
+            $user->setIdentifier((string)$this->session->user_id);
             $authRequest->setUser($user);
 
             $server_title = $this->config->get('global.title', 'Galette');
@@ -175,7 +175,7 @@ final class AuthorizationController extends AbstractPluginController
             $authRequest = $server->validateAuthorizationRequest($request);
             $user = new UserEntity();
             //FIXME: for both isLoggedIn and user_id, we can rely on login object stored in session
-            $user->setIdentifier($this->session->user_id);
+            $user->setIdentifier((string)$this->session->user_id);
             $authRequest->setUser($user);
 
             // Once the user has approved or denied the client update the status

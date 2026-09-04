@@ -27,17 +27,17 @@ final class AuthCodeRepository implements AuthCodeRepositoryInterface
         // Some logic to persist the auth code to a database
     }
 
-    public function revokeAuthCode($codeId): void
+    public function revokeAuthCode(string $codeId): void
     {
         // Some logic to revoke the auth code in a database
     }
 
-    public function isAuthCodeRevoked($codeId)
+    public function isAuthCodeRevoked(string $codeId): bool
     {
         return false; // The auth code has not been revoked
     }
 
-    public function getNewAuthCode()
+    public function getNewAuthCode(): AuthCodeEntityInterface
     {
         return new AuthCodeEntity();
     }

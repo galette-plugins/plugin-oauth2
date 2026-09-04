@@ -13,6 +13,7 @@ namespace GaletteOAuth2\Repositories;
 use Analog\Analog;
 use GaletteOAuth2\Entities\ScopeEntity;
 use League\OAuth2\Server\Entities\ClientEntityInterface;
+use League\OAuth2\Server\Entities\ScopeEntityInterface;
 use League\OAuth2\Server\Repositories\ScopeRepositoryInterface;
 
 use function array_key_exists;
@@ -55,7 +56,7 @@ final class ScopeRepository implements ScopeRepositoryInterface
         ];
     }
 
-    public function getScopeEntityByIdentifier($scopeIdentifier)
+    public function getScopeEntityByIdentifier(string $scopeIdentifier): ?ScopeEntityInterface
     {
         $scopes = static::knownScopes();
         if (array_key_exists($scopeIdentifier, $scopes) === false) {
@@ -77,10 +78,11 @@ final class ScopeRepository implements ScopeRepositoryInterface
      */
     public function finalizeScopes(
         array $scopes,
-        $grantType,
+        string $grantType,
         ClientEntityInterface $clientEntity,
-        $userIdentifier = null
-    ) {
+        ?string $userIdentifier = null,
+        ?string $authCodeId = null
+    ): array {
         /*TODO : ?
          [JC] 2024-06-12: does not seems required; or maybe I misunderstood something. Anyway; that works without it.
                 // Example of programmatically modifying the final scope of the access token
