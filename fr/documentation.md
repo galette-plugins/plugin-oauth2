@@ -5,7 +5,7 @@ description: Galette oAuth2 serveur
 
 ## Configuration
 
-To automatically download dependencies packages:
+Pour télécharger automatiquement dépendances :
 ```
 cd plugin-oauth2
 composer install
@@ -24,10 +24,10 @@ vendor/bin/generate-defuse-key
 copy-paste the hexadecimal string result in plugin-oauth2/config/encryption-key.php
 ```
 
-### Configure a ClientEntity
+### Configurez un ClientEntity
 
-Rename `config/config.yml.dist` to `config/config.yml` and edit according to
-your third party application settings:
+Renommez `config/config.yml.dist` en `config/config.yml` et modifiez pour
+correspondre à votre application tierce :
 
 ```
 global:
@@ -45,29 +45,29 @@ galette_xxxxx:
 
 ```
 
-The corresponding Flarum configuration:
+La configuration correspondante de Flarum :
 
 ![Exemple de configuration Flarum](examples/flarum.png)
 
-The corresponding NextCloud configuration:
+La configuration NextCloud correspondante :
 
-![Nextcloud configuration example](examples/nextcloud.png)
+![Exemple de configuration Nextcloud](examples/nextcloud.png)
 
 #### Options disponibles :
-* teamonly : only staff members can login
-* uptodate : only uptodate members can login
+* teamonly : seuls membres du bureau peuvent se connecter
+* uptodate : seuls les adhérents à jour peuvent se connecter
 
-## Usage
+## Utilisation
 
-### Nextcloud - how add groups for a specific member
-Edit a member : In `info_adh` field you can add a line with
-`#GROUPS:group1;group2#`
+### Nextcloud - comment ajouter des groupes pour un adhérent donné
+Modifier un adhérent : dans le champ `info_adh`, vous pouvez ajouter une ligne
+avec `#GROUPS:group1;group2#`
 
-Example :
+Exemple :
 ```
 #GROUPS:accouting;home#
 ```
 
-## More information about OAuth2 Server
+## Plus d'informations sur le serveur OAuth2
 * https://oauth2.thephpleague.com/
 * https://github.com/thephpleague/oauth2-server/
