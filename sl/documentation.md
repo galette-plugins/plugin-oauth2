@@ -1,19 +1,19 @@
 ---
-title: Documentation
-description: Galette oAuth2 server
+title: Dokumentacija
+description: Strežnik Galette oAuth2
 ---
 
-## Setup
+## Nastavitev
 
-To automatically download dependencies packages:
+Če želite samodejno prenesti pakete odvisnosti:
 ```
 cd plugin-oauth2
 composer install
 ```
 
-## Configuration
+## Konfiguracija
 
-### Prepare public/private keys
+### Pripravite javne/zasebne ključe
 
 ```
 cd plugin-oauth2/config
@@ -24,10 +24,10 @@ vendor/bin/generate-defuse-key
 copy-paste the hexadecimal string result in plugin-oauth2/config/encryption-key.php
 ```
 
-### Configure a ClientEntity
+### Konfigurirajte ClientEntity
 
-Rename `config/config.yml.dist` to `config/config.yml` and edit according to
-your third party application settings:
+Preimenujte `config/config.yml.dist` v `config/config.yml` in uredite glede na
+nastavitve aplikacije tretje osebe:
 
 ```
 global:
@@ -45,29 +45,29 @@ galette_xxxxx:
 
 ```
 
-The corresponding Flarum configuration:
+Ustrezna konfiguracija Flarum:
 
-![Flarum configuration example](examples/flarum.png)
+![Primer konfiguracije Flarum](examples/flarum.png)
 
-The corresponding NextCloud configuration:
+Ustrezna konfiguracija NextCloud:
 
-![Nextcloud configuration example](examples/nextcloud.png)
+![Primer konfiguracije Nextcloud](examples/nextcloud.png)
 
-#### Available options :
-* teamonly : only staff members can login
-* uptodate : only uptodate members can login
+#### Razpoložljive možnosti:
+* teamonly : prijavijo se lahko samo člani osebja
+* uptodate : prijavijo se lahko le člani uptodate
 
-## Usage
+## Uporaba
 
-### Nextcloud - how add groups for a specific member
-Edit a member : In `info_adh` field you can add a line with
+### Nextcloud - kako dodati skupine za določenega člana
+Urejanje člana: v polje `info_adh` lahko dodate vrstico z
 `#GROUPS:group1;group2#`
 
-Example :
+Primer:
 ```
 #GROUPS:accouting;home#
 ```
 
-## More information about OAuth2 Server
+## Več informacij o strežniku OAuth2
 * https://oauth2.thephpleague.com/
 * https://github.com/thephpleague/oauth2-server/
