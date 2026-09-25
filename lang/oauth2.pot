@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-31 22:00+0200\n"
+"POT-Creation-Date: 2026-09-25 04:17+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -44,7 +44,7 @@ msgid "An error occurred"
 msgstr ""
 
 #: ../lib/GaletteOAuth2/Controllers/LoginController.php:216
-#: ../tempcache/oauth2_error.html.twig:67
+#: ../templates/default/oauth2_error.html.twig:15
 msgid "OAuth2 error"
 msgstr ""
 
@@ -81,57 +81,57 @@ msgstr ""
 msgid "Sorry, you can't login because your are not an up-to-date member."
 msgstr ""
 
-#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:32
+#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:33
 msgid ""
 "Access to your member basic information: name, login, email, language, "
 "company name)"
 msgstr ""
 
-#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:35
+#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:36
 msgid ""
 "Access to more precise personal data: birth date, job, gender, birth place, "
 "GnuPG ID"
 msgstr ""
 
-#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:38
+#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:39
 msgid "Access to your localization data: zipcode, town, region, country"
 msgstr ""
 
-#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:41
+#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:42
 msgid ""
 "Access to your precise localisation data: full address, coordinates (from "
 "maps plugin)"
 msgstr ""
 
-#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:44
+#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:45
 msgid "Access to your phone numbers"
 msgstr ""
 
-#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:47
+#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:48
 msgid "Access to your social networks data"
 msgstr ""
 
-#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:50
+#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:51
 msgid "Access to the groups you belong to"
 msgstr ""
 
-#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:53
+#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:54
 msgid "Access to your due date"
 msgstr ""
 
-#: ../tempcache/oauth2_authorize.html.twig:85
+#: ../templates/default/oauth2_authorize.html.twig:17
 msgid "Default scope is mandatory and cannot be unselected"
 msgstr ""
 
-#: ../tempcache/oauth2_authorize.html.twig:87
+#: ../templates/default/oauth2_authorize.html.twig:17
 #, php-format
 msgid "Give acces to '%1$s' scope"
 msgstr ""
 
-#: ../tempcache/oauth2_authorize.html.twig:119
+#: ../templates/default/oauth2_authorize.html.twig:29
 msgid "Cancel"
 msgstr ""
 
-#: ../tempcache/oauth2_authorize.html.twig:127
+#: ../templates/default/oauth2_authorize.html.twig:34
 msgid "Allow"
 msgstr ""
