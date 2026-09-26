@@ -15,7 +15,6 @@ declare(strict_types=1);
  * @author Johan Cwiklinski <johan@x-tnd.be>
  */
 
-use Defuse\Crypto\Key;
 use Galette\Core\Preferences;
 use GaletteOAuth2\Repositories\AccessTokenRepository;
 use GaletteOAuth2\Repositories\AuthCodeRepository;
@@ -23,6 +22,7 @@ use GaletteOAuth2\Repositories\ClientRepository;
 use GaletteOAuth2\Repositories\RefreshTokenRepository;
 use GaletteOAuth2\Repositories\ScopeRepository;
 use GaletteOAuth2\Tools\Config;
+use GaletteOAuth2\Tools\EncryptionKey;
 use League\OAuth2\Server\AuthorizationServer;
 use League\OAuth2\Server\Grant\AuthCodeGrant;
 use League\OAuth2\Server\Grant\RefreshTokenGrant;
@@ -82,15 +82,6 @@ $container->set(
 $container->set(
     AuthorizationServer::class,
     function (ContainerInterface $container) {
-        $encryptionKey = $container->get(Config::class)->get('global.encryption_key', 'NONE');
-        if ($encryptionKey === 'NONE' && file_exists(OAUTH2_CONFIGPATH . '/encryption-key.php')) {
-            include OAUTH2_CONFIGPATH . '/encryption-key.php';
-        }
-
-        if (empty($encryptionKey) || $encryptionKey === 'NONE') {
-            throw new RuntimeException('Encryption key not found!');
-        }
-
         // Setup the authorization server
         $server = new AuthorizationServer(
         // instance of ClientRepositoryInterface
@@ -102,7 +93,7 @@ $container->set(
             // path to private key
             'file://' . OAUTH2_CONFIGPATH . '/private.key',
             // encryption key
-            Key::loadFromAsciiSafeString($encryptionKey),
+            EncryptionKey::load($container->get(Config::class), OAUTH2_CONFIGPATH),
         );
 
         $refreshTokenRepository = new RefreshTokenRepository();
