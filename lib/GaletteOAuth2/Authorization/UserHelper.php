@@ -413,16 +413,6 @@ final class UserHelper
         return $scopes;
     }
 
-    // Nextcloud data:
-    // \DBG = Hybridauth\User\Profile::__set_state(array(
-    // 'identifier' => 3992, 'webSiteURL' => NULL, 'profileURL' => NULL,
-    // 'photoURL' => NULL,
-    // 'displayName' => ' TEST', 'description' => NULL, 'firstName' => NULL, 'lastName' => NULL, 'gender' => NULL,
-    // 'language' => NULL,
-    // 'age' => NULL, 'birthDay' => NULL, 'birthMonth' => NULL, 'birthYear' => NULL,
-    // 'email' => 'uuuu@ik.me', 'emailVerified' => NULL, 'phone' => NULL,
-    // 'address' => NULL, 'country' => NULL, 'region' => NULL, 'city' => NULL, 'zip' => NULL
-
     /**
      * Strips accented characters, lower string
      */

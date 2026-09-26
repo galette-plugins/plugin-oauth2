@@ -33,7 +33,6 @@ use Slim\Flash\Messages;
 
 $container = $app->getContainer();
 
-//$app->add($session);
 $container->set(
     'oauth_session',
     function (ContainerInterface $container) {

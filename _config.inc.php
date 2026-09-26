@@ -15,7 +15,6 @@ declare(strict_types=1);
  * @author Johan Cwiklinski <johan@x-tnd.be>
  */
 
-define('OAUTH2_LOG', true);
 if (!defined('OAUTH2_DEBUGSESSION')) {
     define('OAUTH2_DEBUGSESSION', false);
 }

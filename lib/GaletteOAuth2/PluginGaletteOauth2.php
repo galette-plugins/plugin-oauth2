@@ -11,6 +11,7 @@ declare(strict_types=1);
 namespace GaletteOAuth2;
 
 use Galette\Core\GalettePlugin;
+use Galette\Core\Plugins\InstallableInterface;
 
 /**
  * Galette OAuth2 plugin main class
@@ -18,14 +19,15 @@ use Galette\Core\GalettePlugin;
  * @author Johan Cwiklinski <johan@x-tnd.be>
  */
 
-class PluginGaletteOauth2 extends GalettePlugin
+class PluginGaletteOauth2 extends GalettePlugin implements InstallableInterface
 {
     /**
      * Is the plugin fully installed (including database, extra configuration, etc.)?
+     *
+     * There is no database; configuration files are checked when they are used.
      */
     public function isInstalled(): bool
     {
-        //FIXME: check for plugin install requirements (if files are generated and OK, etc.)
         return true;
     }
 }

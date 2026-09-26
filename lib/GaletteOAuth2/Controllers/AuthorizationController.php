@@ -197,7 +197,6 @@ final class AuthorizationController extends AbstractPluginController
     {
         Debug::logRequest('authorization/token()', $request);
         $server = $this->container->get(AuthorizationServer::class);
-        $params = (array)$request->getParsedBody(); //POST
 
         try {
             // Try to respond to the access token request
