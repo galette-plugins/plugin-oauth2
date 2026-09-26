@@ -108,7 +108,7 @@ final class UserHelper
      * @param Container       $container Container instance
      * @param int             $id        User ID
      * @param string          $acl       Requested authorization
-     * @param string[]|string $scopes    Scopes
+     * @param string[]        $scopes    Scopes
      * @param bool            $legacy    Legacy mode for data
      *
      * @return array<string, mixed>
@@ -117,7 +117,7 @@ final class UserHelper
      * @throws \DI\NotFoundException
      * @throws \Throwable
      */
-    public static function getUserData(Container $container, int $id, string $acl, array|string $scopes, bool $legacy = false): array
+    public static function getUserData(Container $container, int $id, string $acl, array $scopes, bool $legacy = false): array
     {
         /** @var Db $zdb */
         $zdb = $container->get(Db::class);
@@ -329,6 +329,7 @@ final class UserHelper
                 $group = str_replace('__', '_', $group);
                 $group = self::stripAccents($group);
             }
+            unset($group);
         }
 
         return $groups;
@@ -344,7 +345,12 @@ final class UserHelper
         $acl = self::AUTH_TEAMONLY;
         $conf_acls = $config->get($client_id . '.authorize');
 
-        if (!in_array($conf_acls, self::getKnownAuthorizations())) {
+        if ($conf_acls === '') {
+            //not set: use default
+            return $acl;
+        }
+
+        if (!in_array($conf_acls, self::getKnownAuthorizations(), true)) {
             Analog::log(
                 sprintf(
                     'Invalid authorization "%1$s" for client "%2$s"',
@@ -400,8 +406,8 @@ final class UserHelper
             }
         }
 
-        $scopes = array_unique($scopes);
         $scopes = array_map('strtolower', $scopes);
+        $scopes = array_values(array_unique($scopes));
         Debug::log('Scopes: ' . implode(' ', $scopes));
 
         return $scopes;
@@ -424,7 +430,7 @@ final class UserHelper
     {
         return mb_strtolower(
             transliterator_transliterate(
-                "Any-Latin; Latin-ASCII; [^a-zA-Z0-9\.\ -_] Remove;",
+                "Any-Latin; Latin-ASCII; [^a-zA-Z0-9\.\ \-_] Remove;",
                 $str
             )
         );

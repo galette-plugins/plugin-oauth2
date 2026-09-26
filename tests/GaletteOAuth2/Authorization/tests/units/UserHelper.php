@@ -47,6 +47,10 @@ class UserHelper extends GaletteTestCase
 
         $str = "çéè-ßØ";
         $this->assertSame('cee-sso', \GaletteOAuth2\Authorization\UserHelper::stripAccents($str));
+
+        //only letters, digits, dots, spaces, dashes and underscores are kept
+        $str = 'Jean_Pierre (test)!';
+        $this->assertSame('jean_pierre test', \GaletteOAuth2\Authorization\UserHelper::stripAccents($str));
     }
 
     /**
@@ -467,15 +471,12 @@ class UserHelper extends GaletteTestCase
     {
         $config = new \GaletteOAuth2\Tools\Config(OAUTH2_CONFIGPATH . '/config.yml');
 
-        //always defaults to \GaletteOAuth2\Authorization\UserHelper::AUTH_TEAMONLY
+        //always defaults to \GaletteOAuth2\Authorization\UserHelper::AUTH_TEAMONLY, silently when not set
         $this->assertSame(
             \GaletteOAuth2\Authorization\UserHelper::AUTH_TEAMONLY,
             \GaletteOAuth2\Authorization\UserHelper::getAuthorization($config, 'any')
         );
-        $this->expectLogEntry(
-            \Analog::ERROR,
-            'Invalid authorization "" for client "any"'
-        );
+        $this->expectNoLogEntry();
 
         $client_id = 'galette_test';
         $config->set($client_id . '.authorize', 'unknown');
@@ -524,6 +525,12 @@ class UserHelper extends GaletteTestCase
         $this->assertSame(
             ['member'],
             \GaletteOAuth2\Authorization\UserHelper::mergeScopes($config, 'any', [], true)
+        );
+
+        //case does not matter
+        $this->assertSame(
+            ['member', 'member:phones'],
+            \GaletteOAuth2\Authorization\UserHelper::mergeScopes($config, 'any', ['Member', 'member:PHONES', 'member:phones'], true)
         );
 
         $this->assertSame(
