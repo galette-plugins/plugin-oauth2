@@ -12,6 +12,15 @@ cd plugin-oauth2
 composer install
 ```
 
+# Updating from version 3.0.x
+
+Some settings are now mandatory, clients that do not follow them are refused (the reason is written in Galette logs):
+- each client must declare its `redirect_uri`: the callback URL of the client application, exactly as the application sends it. Use a list if the application uses several URLs.
+- each client must have its own `password`; the `global` password is no longer used, and the `abc123` example password is refused.
+- only the "authorization code" and "refresh token" grants are available.
+- scopes from the `scopes` entry are checked by default on the authorization screen; they are no longer given if the member unchecks them.
+- members already logged in to the authorization screen will have to log in again.
+
 # Updating to version 3.0.0
 
 Before updating to version 3.0.0, please take care of the following:
@@ -43,18 +52,23 @@ Rename `config/config.yml.dist` to `config/config.yml` and edit according to you
 
 ```
 global:
-    password: abc123
+    title: 'Galette'
 
 galette_flarum:
+    password: 'a-long-random-secret'
     title: 'Forum Flarum'
+    redirect_uri: 'http://192.168.1.99/flarum/public/auth/passport'
     redirect_logout: 'http://192.168.1.99/flarum/public'
 galette_nc:
+    password: 'another-long-random-secret'
     title: 'Nextcloud'
+    redirect_uri: 'http://192.168.1.99/nextcloud/apps/sociallogin/custom_oauth2/galette'
     redirect_logout: 'http://192.168.1.99/nextcloud'
     scopes:
         - member:groups
-galette_xxxxx:
 ```
+
+`password` and `redirect_uri` are mandatory for each client. `redirect_uri` can be a list of URLs.
 
 The corresponding Flarum configuration:
 
