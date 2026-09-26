@@ -123,7 +123,7 @@ class LoginController extends GaletteRoutingTestCase
         ]);
         $test_response = $this->app->handle($request);
         $this->assertSame(['Location' => [$this->routeparser->urlFor(OAUTH2_PREFIX . '_login')]], $test_response->getHeaders());
-        $this->assertSame(301, $test_response->getStatusCode());
+        $this->assertSame(302, $test_response->getStatusCode());
         $this->expectLogEntry(
             Analog::WARNING,
             'No entry found for login `jdoe`'
@@ -136,7 +136,7 @@ class LoginController extends GaletteRoutingTestCase
         ]);
         $test_response = $this->app->handle($request);
         $this->assertSame(['Location' => [$this->routeparser->urlFor(OAUTH2_PREFIX . '_login')]], $test_response->getHeaders());
-        $this->assertSame(301, $test_response->getStatusCode());
+        $this->assertSame(302, $test_response->getStatusCode());
         $this->expectLogEntry(
             Analog::WARNING,
             'OAuth login attempt from superadmin account'
@@ -297,5 +297,23 @@ class LoginController extends GaletteRoutingTestCase
 
         $this->assertSame(302, $test_response->getStatusCode());
         $this->assertSame($this->routeparser->urlFor('slash'), $test_response->getHeaderLine('Location'));
+    }
+
+    /**
+     * Test login with missing credentials
+     *
+     * @return void
+     */
+    public function testDoLoginWithoutCredentials(): void
+    {
+        $request = $this->createRequest(
+            route_name: OAUTH2_PREFIX . '_doLogin',
+            method: 'POST'
+        );
+        $request = $request->withParsedBody([]);
+        $test_response = $this->app->handle($request);
+
+        $this->assertSame(['Location' => [$this->routeparser->urlFor(OAUTH2_PREFIX . '_login')]], $test_response->getHeaders());
+        $this->assertSame(302, $test_response->getStatusCode());
     }
 }

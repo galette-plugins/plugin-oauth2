@@ -112,12 +112,13 @@ final class LoginController extends AbstractPluginController
         //FIXME: for both isLoggedIn and user_id, we can rely on login object stored in session
         $this->session->isLoggedIn = 'no';
         unset($this->session->client_id);
-        $this->session->user_id = $uid = UserHelper::login($this->container, $params['login'], $params['password']);
-        Debug::log("UserHelper::login({$params['login']}) return '{$uid}'");
+        $nick = (string)($params['login'] ?? '');
+        $this->session->user_id = $uid = UserHelper::login($this->container, $nick, (string)($params['password'] ?? ''));
+        Debug::log("UserHelper::login({$nick}) return '{$uid}'");
 
         if (false === $uid) {
             return $response
-                ->withStatus(301)
+                ->withStatus(302)
                 ->withHeader(
                     'Location',
                     $this->routeparser->urlFor(OAUTH2_PREFIX . '_login')
@@ -147,7 +148,7 @@ final class LoginController extends AbstractPluginController
                 $e->getMessage()
             );
             return $response
-                ->withStatus(301)
+                ->withStatus(302)
                 ->withHeader(
                     'Location',
                     $this->routeparser->urlFor(OAUTH2_PREFIX . '_login')

@@ -34,7 +34,7 @@ final class UserHelper
     public const AUTH_UPTODATE = 'uptodate';
     public const AUTH_ACTIVE = 'active';
 
-    public static function login(Container $container, $nick, $password): int|false
+    public static function login(Container $container, string $nick, string $password): int|false
     {
         $preferences = $container->get(Preferences::class);
         /** @var Login $login */
