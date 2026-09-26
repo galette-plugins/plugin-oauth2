@@ -38,11 +38,13 @@ class GaletteOAuth2 extends GaletteTestCase
 
 
     /**
-     * Test stripAccents
+     * Run the whole authorization code flow
      *
-     * @return void
+     * @param string[] $checked_scopes Scopes checked on the consent screen
+     *
+     * @return array<string, mixed> Resource owner data
      */
-    public function testFlow(): void
+    private function runFlow(array $checked_scopes): array
     {
         $member_one = $this->getMemberOne();
         $data = $this->dataAdherentOne();
@@ -98,7 +100,8 @@ class GaletteOAuth2 extends GaletteTestCase
 
         $response = $guzzle->request('POST', $authorizationUrl, [
             'form_params' => [
-                'approve' => true
+                'approve' => true,
+                'scopes' => $checked_scopes
             ]
         ]);
 
@@ -134,7 +137,34 @@ class GaletteOAuth2 extends GaletteTestCase
         $this->assertSame($member_one->id, $resourceOwner->getId());
         $this->assertSame($data['login_adh'], $resourceOwner->getUsername());
         $this->assertSame($data['email_adh'], $resourceOwner->getEmail());
+
+        return $resourceOwner_array;
+    }
+
+    /**
+     * Test authorization code flow, all scopes checked
+     *
+     * @return void
+     */
+    public function testFlow(): void
+    {
+        $resourceOwner_array = $this->runFlow(['member', 'member:localization', 'member:due_date']);
+
+        $this->assertArrayHasKey('address', $resourceOwner_array);
         //due date scope is requested from configuration file
         $this->assertArrayHasKey('due_date', $resourceOwner_array);
+    }
+
+    /**
+     * Test scopes unchecked on the consent screen are not given
+     *
+     * @return void
+     */
+    public function testFlowWithUncheckedScope(): void
+    {
+        $resourceOwner_array = $this->runFlow(['member', 'member:localization', 'member:unknown']);
+
+        $this->assertArrayHasKey('address', $resourceOwner_array);
+        $this->assertArrayNotHasKey('due_date', $resourceOwner_array);
     }
 }

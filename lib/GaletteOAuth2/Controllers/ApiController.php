@@ -71,8 +71,9 @@ final class ApiController extends AbstractPluginController
                 $this->container,
                 $oauth_user_id,
                 UserHelper::getAuthorization($this->config, $client_id),
+                //only scopes the user has consented to, stored in the token
                 UserHelper::mergeScopes(
-                    $this->config,
+                    null,
                     $client_id,
                     $rep->getAttribute('oauth_scopes')
                 ),

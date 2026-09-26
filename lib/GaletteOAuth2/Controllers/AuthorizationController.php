@@ -161,7 +161,10 @@ final class AuthorizationController extends AbstractPluginController
                 $req_scopes = [];
                 $srepo = new ScopeRepository();
                 foreach ($scopes as $scope) {
-                    $req_scopes[] = $srepo->getScopeEntityByIdentifier($scope);
+                    $scope_entity = $srepo->getScopeEntityByIdentifier($scope);
+                    if ($scope_entity !== null) {
+                        $req_scopes[] = $scope_entity;
+                    }
                 }
                 $authRequest->setScopes($req_scopes);
             } else {
