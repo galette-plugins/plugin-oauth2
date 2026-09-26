@@ -165,15 +165,8 @@ final class AuthorizationController extends AbstractPluginController
                 }
                 $authRequest->setScopes($req_scopes);
             } else {
-                $authRequest->setAuthorizationApproved(true);
-                $authRequest->setScopes([]);
-
-                throw OAuthServerException::accessDenied(
-                    sprintf(
-                        _T('Default scope (%s) has not been authorized.', 'oauth2'),
-                        'member'
-                    )
-                );
+                //refused: client will be redirected with an access_denied error
+                $authRequest->setAuthorizationApproved(false);
             }
 
             // Return the HTTP redirect response

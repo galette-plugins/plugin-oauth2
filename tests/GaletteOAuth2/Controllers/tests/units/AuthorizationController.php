@@ -158,6 +158,32 @@ class AuthorizationController extends GaletteRoutingTestCase
     }
 
     /**
+     * Test refusing authorization goes back to the client with an error
+     *
+     * @return void
+     */
+    public function testDoAuthorizeRefused(): void
+    {
+        $this->logUserIn();
+
+        $request = $this->createRequest(
+            route_name: OAUTH2_PREFIX . '_doAuthorize',
+            method: 'POST',
+            query_params: $this->getAuthorizeParams('http://flarum.localhost/auth/passport')
+        );
+        $request = $request->withParsedBody(['refuse' => '']);
+        $test_response = $this->app->handle($request);
+
+        $this->assertSame(302, $test_response->getStatusCode());
+        $location = $test_response->getHeaderLine('Location');
+        $this->assertStringStartsWith('http://flarum.localhost/auth/passport?', $location);
+        parse_str((string)parse_url($location, PHP_URL_QUERY), $args);
+        $this->assertSame('access_denied', $args['error']);
+        $this->assertSame('7d627422092a7a5ac413ac597312b9b4', $args['state']);
+        $this->assertArrayNotHasKey('code', $args);
+    }
+
+    /**
      * Test a login checked for a client cannot be used for another one
      *
      * @return void
