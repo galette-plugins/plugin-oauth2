@@ -72,12 +72,14 @@ final class Authentication
         }
 
         $loggedIn = $this->session->isLoggedIn ?? '';
+        //login rights have been checked for one client only
+        $loggedClient = $this->session->client_id ?? null;
 
-        if ('yes' !== $loggedIn) {
+        if ('yes' !== $loggedIn || $loggedClient !== $client_id) {
             $url = $this->routeparser->urlFor(
                 OAUTH2_PREFIX . '_login',
                 [],
-                ['redirect_url' => $_SERVER['REQUEST_URI']],
+                ['redirect_url' => $request->getUri()->getPath() . '?' . $request->getUri()->getQuery()],
             );
             Debug::log("Redirect to {$url}");
 

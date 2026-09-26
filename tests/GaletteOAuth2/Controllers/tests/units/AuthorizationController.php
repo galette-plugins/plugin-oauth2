@@ -45,6 +45,7 @@ class AuthorizationController extends GaletteRoutingTestCase
         unset(
             $this->session->isLoggedIn,
             $this->session->user_id,
+            $this->session->client_id,
             $this->session->request_args
         );
         parent::tearDown();
@@ -53,12 +54,15 @@ class AuthorizationController extends GaletteRoutingTestCase
     /**
      * Mark user as logged in the OAuth session
      *
+     * @param string $client_id Client the login has been checked for
+     *
      * @return void
      */
-    private function logUserIn(): void
+    private function logUserIn(string $client_id = 'galette_flarum'): void
     {
         $this->session->isLoggedIn = 'yes';
         $this->session->user_id = 1;
+        $this->session->client_id = $client_id;
     }
 
     /**
@@ -98,6 +102,42 @@ class AuthorizationController extends GaletteRoutingTestCase
         $this->assertStringContainsString(
             'Forum Flarum is requesting access to the following details',
             (string)$test_response->getBody()
+        );
+    }
+
+    /**
+     * Test a login checked for a client cannot be used for another one
+     *
+     * @return void
+     */
+    public function testAuthorizeRequiresLoginForSameClient(): void
+    {
+        $this->logUserIn('galette_nc');
+
+        $request = $this->createRequest(
+            route_name: OAUTH2_PREFIX . '_authorize',
+            query_params: $this->getAuthorizeParams('http://flarum.localhost/auth/passport')
+        );
+        $test_response = $this->app->handle($request);
+
+        $this->assertSame(302, $test_response->getStatusCode());
+        $this->assertStringContainsString(
+            OAUTH2_PREFIX . '/login',
+            $test_response->getHeaderLine('Location')
+        );
+
+        $request = $this->createRequest(
+            route_name: OAUTH2_PREFIX . '_doAuthorize',
+            method: 'POST',
+            query_params: $this->getAuthorizeParams('http://flarum.localhost/auth/passport')
+        );
+        $request = $request->withParsedBody(['approve' => '', 'scopes' => ['member']]);
+        $test_response = $this->app->handle($request);
+
+        $this->assertSame(302, $test_response->getStatusCode());
+        $this->assertStringContainsString(
+            OAUTH2_PREFIX . '/login',
+            $test_response->getHeaderLine('Location')
         );
     }
 

@@ -111,6 +111,7 @@ final class LoginController extends AbstractPluginController
         //Try login
         //FIXME: for both isLoggedIn and user_id, we can rely on login object stored in session
         $this->session->isLoggedIn = 'no';
+        unset($this->session->client_id);
         $this->session->user_id = $uid = UserHelper::login($this->container, $params['login'], $params['password']);
         Debug::log("UserHelper::login({$params['login']}) return '{$uid}'");
 
@@ -155,6 +156,7 @@ final class LoginController extends AbstractPluginController
 
         //FIXME: for both isLoggedIn and user_id, we can rely on login object stored in session
         $this->session->isLoggedIn = 'yes';
+        $this->session->client_id = $client_id;
 
         // User is logged in, redirect them to authorize
         $url_params = [
@@ -183,6 +185,7 @@ final class LoginController extends AbstractPluginController
         unset(
             $this->session->user_id,
             $this->session->isLoggedIn,
+            $this->session->client_id,
             $this->session->request_args
         );
         session_destroy();
