@@ -26,6 +26,11 @@ use function array_key_exists;
  */
 final class ScopeRepository implements ScopeRepositoryInterface
 {
+    /**
+     * Known scopes, with their description
+     *
+     * @return array<string, array{description: string}>
+     */
     public static function knownScopes(): array
     {
         return [

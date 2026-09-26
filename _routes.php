@@ -20,6 +20,11 @@ use GaletteOAuth2\Controllers\AuthorizationController;
 use GaletteOAuth2\Controllers\LoginController;
 use GaletteOAuth2\Middleware\Authentication;
 
+/**
+ * @var \Slim\Routing\RouteCollectorProxy<\DI\Container> $app
+ * @var array<string, mixed> $module
+ */
+
 //Include specific classes (league/oauth2_server and tools)
 require_once __DIR__ . '/vendor/autoload.php';
 

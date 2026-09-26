@@ -30,7 +30,7 @@ final class Debug
         'code_verifier',
     ];
 
-    public static function printVar($expression, bool $return = true)
+    public static function printVar(mixed $expression): string
     {
         $export = print_r($expression, true);
         $patterns = [
@@ -39,12 +39,8 @@ final class Debug
             "/=>[ ]?\n[ ]+\\[/" => '=> [',
             "/([ ]*)(\\'[^\\']+\\') => ([\\[\\'])/" => '$1$2 => $3',
         ];
-        $export = preg_replace(array_keys($patterns), array_values($patterns), $export);
 
-        if ($return) {
-            return $export;
-        }
-        echo $export;
+        return preg_replace(array_keys($patterns), array_values($patterns), $export);
     }
 
     public static function log(string $txt): void

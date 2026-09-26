@@ -21,6 +21,9 @@ final class Config extends \Noodlehaus\Config
     /** @var string[]|string */
     private array|string $path;
 
+    /**
+     * @param string[]|string $values Configuration file(s)
+     */
     public function __construct(array|string $values)
     {
         $this->path = $values;

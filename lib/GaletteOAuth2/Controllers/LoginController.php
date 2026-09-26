@@ -227,6 +227,11 @@ final class LoginController extends AbstractPluginController
         return $response;
     }
 
+    /**
+     * Prepare login form variables, null if client is invalid
+     *
+     * @return ?array<string, string>
+     */
     private function prepareVarsForm(): ?array
     {
         $client_id = $this->session->request_args['client_id'] ?? null;

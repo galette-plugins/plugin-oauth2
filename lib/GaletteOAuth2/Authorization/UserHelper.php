@@ -286,6 +286,8 @@ final class UserHelper
      *
      * @param Adherent $member Member
      * @param bool     $legacy Legacy mode for data
+     *
+     * @return string[]
      */
     protected static function getUserGroups(Adherent $member, bool $legacy = false): array
     {
@@ -369,10 +371,12 @@ final class UserHelper
     /**
      * Merge requested and configured scopes
      *
-     * @param Config $config Config instance
+     * @param ?Config         $config           Config instance
+     * @param string          $client_id        Client app identifier
+     * @param string[]|string $requested_scopes Requested scopes from query string
+     * @param bool            $with_default     Add default scope
      *
-     * @param string       $client_id        Client app identifier
-     * @param array|string $requested_scopes Requested scopes from query string
+     * @return string[]
      */
     public static function mergeScopes(
         ?Config $config,

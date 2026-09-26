@@ -110,7 +110,6 @@ class GaletteOAuth2 extends GaletteTestCase
         $redirected_uri = $headersRedirect[0];
         parse_str(parse_url($redirected_uri, PHP_URL_QUERY), $url_arguments);
 
-        $this->assertIsArray($url_arguments);
         $this->assertArrayHasKey('code', $url_arguments);
         $this->assertArrayHasKey('state', $url_arguments);
 

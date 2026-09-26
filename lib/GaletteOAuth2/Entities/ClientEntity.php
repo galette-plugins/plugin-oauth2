@@ -25,12 +25,15 @@ final class ClientEntity implements ClientEntityInterface
     use EntityTrait;
     use ClientTrait;
 
-    public function setName($name): void
+    public function setName(string $name): void
     {
         $this->name = $name;
     }
 
-    public function setRedirectUri($uri): void
+    /**
+     * @param string|string[] $uri Redirect URI(s)
+     */
+    public function setRedirectUri(string|array $uri): void
     {
         $this->redirectUri = $uri;
     }

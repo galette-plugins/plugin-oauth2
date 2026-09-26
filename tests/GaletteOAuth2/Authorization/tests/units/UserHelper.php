@@ -8,6 +8,7 @@
 
 namespace GaletteOauth2\Authorization\tests\units;
 
+use Analog\Analog;
 use Galette\Tests\GaletteTestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
 
@@ -313,7 +314,7 @@ class UserHelper extends GaletteTestCase
     /**
      * Data provider for not found members
      *
-     * @return array
+     * @return array<array<int>>
      */
     public static function memberNotFoundProvider(): array
     {
@@ -326,10 +327,12 @@ class UserHelper extends GaletteTestCase
     /**
      * Test with a not found member
      *
+     * @param int $member_id Member ID
+     *
      * @return void
      */
     #[DataProvider('memberNotFoundProvider')]
-    public function testMemberNotFound($member_id)
+    public function testMemberNotFound(int $member_id): void
     {
         global $container;
 
@@ -346,7 +349,7 @@ class UserHelper extends GaletteTestCase
             $this->assertEquals("User not found.", $e->getMessage());
         }
         $this->assertTrue($exception_thrown);
-        $this->expectLogEntry(\Analog::ERROR, 'No member #' . $member_id);
+        $this->expectLogEntry(Analog::ERROR, 'No member #' . $member_id);
     }
 
     /**
@@ -485,7 +488,7 @@ class UserHelper extends GaletteTestCase
             \GaletteOAuth2\Authorization\UserHelper::getAuthorization($config, 'galette_test')
         );
         $this->expectLogEntry(
-            \Analog::ERROR,
+            Analog::ERROR,
             'Invalid authorization "unknown" for client "galette_test"'
         );
 

@@ -15,6 +15,7 @@ declare(strict_types=1);
  * @author Johan Cwiklinski <johan@x-tnd.be>
  */
 
+use Analog\Analog;
 use Galette\Core\Preferences;
 use GaletteOAuth2\Repositories\AccessTokenRepository;
 use GaletteOAuth2\Repositories\AuthCodeRepository;
@@ -31,6 +32,7 @@ use Psr\Container\ContainerInterface;
 use RKA\SessionMiddleware;
 use Slim\Flash\Messages;
 
+/** @var \Slim\Routing\RouteCollectorProxy<\DI\Container> $app */
 $container = $app->getContainer();
 
 $container->set(

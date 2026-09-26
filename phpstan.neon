@@ -1,9 +1,14 @@
 parameters:
     parallel:
         maximumNumberOfProcesses: 2
-    level: 5
+    level: 6
     paths:
         - lib/
+        - tests/
+        - _config.inc.php
+        - _define.php
+        - _dependencies.php
+        - _routes.php
     scanFiles:
         - _config.inc.php
         - ../../includes/sys_config/paths.inc.php
