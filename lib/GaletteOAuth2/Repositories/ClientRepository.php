@@ -26,6 +26,8 @@ use League\OAuth2\Server\Repositories\ClientRepositoryInterface;
  */
 final class ClientRepository implements ClientRepositoryInterface
 {
+    private const string EXAMPLE_PASSWORD = 'abc123';
+
     private Container $container;
     private Config $config;
 
@@ -40,7 +42,7 @@ final class ClientRepository implements ClientRepositoryInterface
      */
     public function clientExists(?string $client_id): bool
     {
-        if (empty($client_id)) {
+        if (empty($client_id) || $client_id === 'global') {
             return false;
         }
         if ($this->config->get($client_id) === '') {
@@ -101,22 +103,35 @@ final class ClientRepository implements ClientRepositoryInterface
 
     public function validateClient(string $clientIdentifier, ?string $clientSecret, ?string $grantType): bool
     {
-        if (!preg_match('/galette_/', $clientIdentifier)) {
+        if (!preg_match('/galette_/', $clientIdentifier) || !$this->clientExists($clientIdentifier)) {
             Debug::log("validateClient({$clientIdentifier}) denied");
 
             return false;
         }
 
         $password = $this->config->get($clientIdentifier . '.password');
-        if (!$password) {
-            $password = $this->config->get('global.password');
-        }
-        $pwd = password_hash($password, PASSWORD_BCRYPT);
-
-        if (password_verify($clientSecret, $pwd) === false) {
+        if (!is_string($password) || $password === '') {
+            Analog::log(
+                sprintf(
+                    'OAuth2: no password configured for client "%1$s", add "password" to its entry in config.yml',
+                    $clientIdentifier
+                ),
+                Analog::ERROR
+            );
             return false;
         }
 
-        return true;
+        if ($password === self::EXAMPLE_PASSWORD) {
+            Analog::log(
+                sprintf(
+                    'OAuth2: client "%1$s" still uses the example password, set a strong one in config.yml',
+                    $clientIdentifier
+                ),
+                Analog::ERROR
+            );
+            return false;
+        }
+
+        return hash_equals($password, (string)$clientSecret);
     }
 }

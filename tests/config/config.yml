@@ -1,11 +1,15 @@
 global:
+    # no longer used as a fallback for clients without their own password
     password: abc123
+    redirect_uri: 'http://localhost/global'
 galette_flarum:
+    password: flarum-secret-for-tests
     title: 'Forum Flarum'
     redirect_logout: 'http://flarum.localhost'
     redirect_uri: 'http://flarum.localhost/auth/passport'
     authorize: uptodate
 galette_nc:
+    password: nc-secret-for-tests
     title: 'Nextcloud'
     redirect_logout: 'http://localhost/nextcloud'
     redirect_uri: 'http://localhost/nextcloud/apps/sociallogin/custom_oauth2/galette'
@@ -16,7 +20,7 @@ galette_nc:
         - member:phones
         - member:groups
 galette_cli:
-    password: abc123
+    password: cli-secret-for-tests
     title: CLI for testing
     redirect_logout: 'http://localhost'
     # 127.0.0.1 is a loopback address: any port is accepted
@@ -29,6 +33,13 @@ galette_cli:
     scopes:
         - member:due_date
 galette_noredirect:
-    password: abc123
+    password: noredirect-secret-for-tests
     title: Client without redirect URI
     authorize: teamonly
+galette_nopassword:
+    title: Client without password
+    redirect_uri: 'http://localhost/nopassword'
+galette_defaultpassword:
+    password: abc123
+    title: Client with default password
+    redirect_uri: 'http://localhost/defaultpassword'

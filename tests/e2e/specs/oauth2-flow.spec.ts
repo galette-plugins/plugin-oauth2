@@ -162,7 +162,7 @@ test.describe('OAuth2 Plugin', () => {
           code: authorizationCode!,
           redirect_uri: redirectUri,
           client_id: clientId,
-          client_secret: 'abc123',
+          client_secret: 'cli-secret-for-tests',
         },
       });
 

@@ -63,6 +63,7 @@ class ClientRepository extends GaletteTestCase
             'unknown client' => ['unknown_client'],
             'galette_unknown' => ['galette_unknown'],
             'random string' => ['some_random_string'],
+            'reserved global entry' => ['global'],
         ];
     }
 
@@ -153,6 +154,56 @@ class ClientRepository extends GaletteTestCase
         $this->expectLogEntry(
             Analog::ERROR,
             'OAuth2: no redirect_uri configured for client "galette_noredirect"'
+        );
+    }
+
+    /**
+     * Test client secret validation
+     *
+     * @return void
+     */
+    public function testValidateClient(): void
+    {
+        $clientRepository = new \GaletteOAuth2\Repositories\ClientRepository($this->container);
+
+        $this->assertTrue($clientRepository->validateClient('galette_cli', 'cli-secret-for-tests', 'authorization_code'));
+        $this->assertFalse($clientRepository->validateClient('galette_cli', 'wrong-secret', 'authorization_code'));
+        $this->assertFalse($clientRepository->validateClient('galette_cli', '', 'authorization_code'));
+        $this->assertFalse($clientRepository->validateClient('galette_cli', null, 'authorization_code'));
+        //secret of another client
+        $this->assertFalse($clientRepository->validateClient('galette_cli', 'flarum-secret-for-tests', 'authorization_code'));
+        $this->assertFalse($clientRepository->validateClient('unknown_client', 'cli-secret-for-tests', 'authorization_code'));
+    }
+
+    /**
+     * Test client without its own password is refused, even with the global one
+     *
+     * @return void
+     */
+    public function testValidateClientWithoutPassword(): void
+    {
+        $clientRepository = new \GaletteOAuth2\Repositories\ClientRepository($this->container);
+
+        $this->assertFalse($clientRepository->validateClient('galette_nopassword', 'abc123', 'authorization_code'));
+        $this->expectLogEntry(
+            Analog::ERROR,
+            'OAuth2: no password configured for client "galette_nopassword"'
+        );
+    }
+
+    /**
+     * Test client with the default example password is refused
+     *
+     * @return void
+     */
+    public function testValidateClientWithDefaultPassword(): void
+    {
+        $clientRepository = new \GaletteOAuth2\Repositories\ClientRepository($this->container);
+
+        $this->assertFalse($clientRepository->validateClient('galette_defaultpassword', 'abc123', 'authorization_code'));
+        $this->expectLogEntry(
+            Analog::ERROR,
+            'OAuth2: client "galette_defaultpassword" still uses the example password'
         );
     }
 }

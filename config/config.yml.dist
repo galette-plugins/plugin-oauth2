@@ -1,13 +1,14 @@
 global:
     title: 'Galette'
-    password: abc123
     encryption_key: 'your-encryption-key-here' # Replace with a secure random string
 galette_flarum:
+    password: '' # required: a long random secret, shared with the client application
     title: 'Forum Flarum'
     redirect_logout: 'http://192.168.1.99/flarum/public'
     redirect_uri: 'http://192.168.1.99/flarum/public/auth/passport'
     authorize: teamonly
 galette_nc:
+    password: '' # required: one secret per client
     title: 'Le cloud de votre association'
     redirect_logout: 'http://192.168.1.99/nextcloud'
     redirect_uri: 'http://192.168.1.99/nextcloud/apps/sociallogin/custom_oauth2/galette'
