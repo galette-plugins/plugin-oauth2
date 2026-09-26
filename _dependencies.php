@@ -22,7 +22,6 @@ use GaletteOAuth2\Repositories\AuthCodeRepository;
 use GaletteOAuth2\Repositories\ClientRepository;
 use GaletteOAuth2\Repositories\RefreshTokenRepository;
 use GaletteOAuth2\Repositories\ScopeRepository;
-use GaletteOAuth2\Repositories\UserRepository;
 use GaletteOAuth2\Tools\Config;
 use League\OAuth2\Server\AuthorizationServer;
 use League\OAuth2\Server\Grant\AuthCodeGrant;
@@ -114,8 +113,7 @@ $container->set(
             new DateInterval('PT10M'),
         );
 
-        // Enable the password grant on the server
-        // with a token TTL of 1 hour
+        // Enable the authorization code grant on the server
         $server->enableGrantType(
             $grant,
             // access tokens will expire after 1 hour
@@ -131,27 +129,6 @@ $container->set(
             $rt_grant,
             // new access tokens will expire after an hour
             new DateInterval('PT1H'),
-        );
-
-        //--
-        $userRepository = new UserRepository($container); // instance of UserRepositoryInterface
-        $grant = new \League\OAuth2\Server\Grant\PasswordGrant(
-            $userRepository,
-            $refreshTokenRepository,
-        );
-
-        $grant->setRefreshTokenTTL(new \DateInterval('P1M')); // refresh tokens will expire after 1 month
-
-        // Enable the password grant on the server
-        $server->enableGrantType(
-            $grant,
-            new \DateInterval('PT1H'), // access tokens will expire after 1 hour
-        );
-
-        // Enable the client credentials grant on the server
-        $server->enableGrantType(
-            new \League\OAuth2\Server\Grant\ClientCredentialsGrant(),
-            new \DateInterval('PT1H'), // access tokens will expire after 1 hour
         );
 
         return $server;

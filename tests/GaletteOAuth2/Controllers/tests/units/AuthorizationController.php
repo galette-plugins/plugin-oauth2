@@ -9,6 +9,7 @@
 namespace GaletteOAuth2\Controllers\tests\units;
 
 use Galette\Tests\GaletteRoutingTestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
  * Authorization controller tests
@@ -165,5 +166,55 @@ class AuthorizationController extends GaletteRoutingTestCase
 
         $this->assertSame(401, $test_response->getStatusCode());
         $this->assertFalse($test_response->hasHeader('Location'));
+    }
+
+    /**
+     * Grant types that must not be accepted
+     *
+     * @return array<string, array<array<string, string>>>
+     */
+    public static function disabledGrantsProvider(): array
+    {
+        return [
+            'password' => [
+                [
+                    'grant_type' => 'password',
+                    'username' => 'admin',
+                    'password' => 'admin',
+                ]
+            ],
+            'client credentials' => [
+                ['grant_type' => 'client_credentials']
+            ],
+        ];
+    }
+
+    /**
+     * Test only authorization code and refresh token grants are available
+     *
+     * @param array<string, string> $params Token request parameters
+     *
+     * @return void
+     */
+    #[DataProvider('disabledGrantsProvider')]
+    public function testTokenRefusesDisabledGrants(array $params): void
+    {
+        $request = $this->createRequest(
+            route_name: OAUTH2_PREFIX . '_token',
+            method: 'POST',
+            content_type: 'application/x-www-form-urlencoded'
+        );
+        $request = $request->withParsedBody(
+            $params + [
+                'client_id' => 'galette_cli',
+                'client_secret' => 'cli-secret-for-tests',
+                'scope' => 'member',
+            ]
+        );
+        $test_response = $this->app->handle($request);
+
+        $this->assertSame(400, $test_response->getStatusCode());
+        $body = json_decode((string)$test_response->getBody(), true);
+        $this->assertSame('unsupported_grant_type', $body['error']);
     }
 }
