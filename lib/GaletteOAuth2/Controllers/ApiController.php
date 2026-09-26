@@ -18,7 +18,9 @@ use GaletteOAuth2\Authorization\UserAuthorizationException;
 use GaletteOAuth2\Authorization\UserHelper;
 use GaletteOAuth2\Tools\Config;
 use GaletteOAuth2\Tools\Debug;
+use League\OAuth2\Server\Exception\OAuthServerException;
 use League\OAuth2\Server\ResourceServer;
+use Psr\Http\Message\ResponseInterface;
 use RKA\Session;
 use Slim\Psr7\Request;
 use Slim\Psr7\Response;
@@ -55,12 +57,16 @@ final class ApiController extends AbstractPluginController
         parent::__construct($container);
     }
 
-    public function user(Request $request, Response $response): Response
+    public function user(Request $request, Response $response): Response|ResponseInterface
     {
         Debug::logRequest('api/user()', $request);
 
         $server = $this->container->get(ResourceServer::class);
-        $rep = $server->validateAuthenticatedRequest($request);
+        try {
+            $rep = $server->validateAuthenticatedRequest($request);
+        } catch (OAuthServerException $exception) {
+            return $exception->generateHttpResponse($response);
+        }
 
         $oauth_user_id = (int)$rep->getAttribute('oauth_user_id'); //SESSION is empty, use decrypted data
         $client_id = $rep->getAttribute('oauth_client_id');
@@ -85,13 +91,11 @@ final class ApiController extends AbstractPluginController
                 'api/user() error : ' . $e->getMessage(),
                 Analog::ERROR
             );
-            $response->getBody()->write(json_encode(['message' => $e->getMessage()]));
-            return $response->withStatus(401);
+            return $this->withJson($response, ['message' => $e->getMessage()], 401);
         }
 
-        $response->getBody()->write(json_encode($data));
         Debug::log('api/user() exit.');
 
-        return $response->withStatus(200);
+        return $this->withJson($response, $data);
     }
 }
