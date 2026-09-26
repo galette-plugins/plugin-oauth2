@@ -5,10 +5,12 @@ global:
 galette_flarum:
     title: 'Forum Flarum'
     redirect_logout: 'http://192.168.1.99/flarum/public'
+    redirect_uri: 'http://192.168.1.99/flarum/public/auth/passport'
     authorize: teamonly
 galette_nc:
     title: 'Le cloud de votre association'
     redirect_logout: 'http://192.168.1.99/nextcloud'
+    redirect_uri: 'http://192.168.1.99/nextcloud/apps/sociallogin/custom_oauth2/galette'
     authorize: teamonly
     scopes:
         - member

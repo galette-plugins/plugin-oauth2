@@ -8,6 +8,7 @@
 
 namespace GaletteOAuth2\Repositories\tests\units;
 
+use Analog\Analog;
 use Galette\Tests\GaletteTestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
 
@@ -94,6 +95,64 @@ class ClientRepository extends GaletteTestCase
         $this->assertFalse(
             $clientRepository->clientExists($client_id),
             "Client '$client_id' should not exist in configuration"
+        );
+    }
+
+    /**
+     * Test the redirect URI always comes from the configuration
+     *
+     * @return void
+     */
+    public function testGetClientEntityUsesConfiguredRedirectUri(): void
+    {
+        //values that used to be trusted: session and cache file
+        $this->session->galette_flarum = new \stdClass();
+        $this->session->galette_flarum->redirect_uri = 'https://attacker.example/cb';
+        $cache_file = GALETTE_CACHE_DIR . '/' . OAUTH2_PREFIX . '_galette_nc.redirect_uri.txt';
+        file_put_contents($cache_file, 'https://attacker.example/cb');
+
+        try {
+            $clientRepository = new \GaletteOAuth2\Repositories\ClientRepository($this->container);
+
+            $client = $clientRepository->getClientEntity('galette_flarum');
+            $this->assertNotNull($client);
+            $this->assertSame(['http://flarum.localhost/auth/passport'], $client->getRedirectUri());
+
+            $client = $clientRepository->getClientEntity('galette_nc');
+            $this->assertNotNull($client);
+            $this->assertSame(
+                ['http://localhost/nextcloud/apps/sociallogin/custom_oauth2/galette'],
+                $client->getRedirectUri()
+            );
+
+            $client = $clientRepository->getClientEntity('galette_cli');
+            $this->assertNotNull($client);
+            $this->assertCount(4, $client->getRedirectUri());
+        } finally {
+            unset($this->session->galette_flarum);
+            unlink($cache_file);
+        }
+    }
+
+    /**
+     * Test a client without configured redirect URI is refused
+     *
+     * @return void
+     */
+    public function testClientWithoutRedirectUriIsRefused(): void
+    {
+        $clientRepository = new \GaletteOAuth2\Repositories\ClientRepository($this->container);
+
+        $this->assertFalse($clientRepository->clientExists('galette_noredirect'));
+        $this->expectLogEntry(
+            Analog::ERROR,
+            'OAuth2: no redirect_uri configured for client "galette_noredirect"'
+        );
+
+        $this->assertNull($clientRepository->getClientEntity('galette_noredirect'));
+        $this->expectLogEntry(
+            Analog::ERROR,
+            'OAuth2: no redirect_uri configured for client "galette_noredirect"'
         );
     }
 }

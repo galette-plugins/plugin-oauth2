@@ -3,10 +3,12 @@ global:
 galette_flarum:
     title: 'Forum Flarum'
     redirect_logout: 'http://flarum.localhost'
+    redirect_uri: 'http://flarum.localhost/auth/passport'
     authorize: uptodate
 galette_nc:
     title: 'Nextcloud'
     redirect_logout: 'http://localhost/nextcloud'
+    redirect_uri: 'http://localhost/nextcloud/apps/sociallogin/custom_oauth2/galette'
     authorize: teamonly
     scopes:
         - member
@@ -17,6 +19,16 @@ galette_cli:
     password: abc123
     title: CLI for testing
     redirect_logout: 'http://localhost'
+    # 127.0.0.1 is a loopback address: any port is accepted
+    redirect_uri:
+        - 'http://localhost:8888'
+        - 'http://127.0.0.1/callback'
+        - 'http://127.0.0.1/oauth2-test-callback'
+        - 'http://127.0.0.1/plugins/oauth2/test-callback'
     authorize: teamonly
     scopes:
         - member:due_date
+galette_noredirect:
+    password: abc123
+    title: Client without redirect URI
+    authorize: teamonly

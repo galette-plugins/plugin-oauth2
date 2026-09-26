@@ -75,36 +75,6 @@ final class AuthorizationController extends AbstractPluginController
             $queryParams = $request->getQueryParams();
             $client_id = $queryParams['client_id'];
 
-            //Save redirect_uri (it's not possible with Sessions)
-            //FIXME [JC]: I really do not like the idea of using a file on disk;
-            // this may also cause severe issues in case of concurrent logins
-            if (isset($queryParams['redirect_uri'])) {
-                $key = $client_id . '.redirect_uri';
-                if (!isset($this->session->$client_id)) {
-                    $this->session->$client_id = new \stdClass();
-                }
-                $this->session->$client_id->redirect_uri = $queryParams['redirect_uri'];
-                $v = $queryParams['redirect_uri'];
-
-                if ($this->config->get($key, '') === '') {
-                    $filename = OAUTH2_PREFIX . '_' . $key . '.txt';
-                    Debug::log("Auto add redirect_uri to cache $filename: $v");
-
-                    $this->config->set($key, $v);
-                    $stream = fopen(GALETTE_CACHE_DIR . '/' . $filename, 'w+');
-                    fwrite(
-                        $stream,
-                        $v
-                    );
-                    fclose($stream);
-
-                    Analog::log(
-                        'Auto add redirect_uri ok.',
-                        Analog::DEBUG
-                    );
-                }
-            }
-
             // Validate the HTTP request and return an AuthorizationRequest object.
             // The auth request object can be serialized into a user's session
             $authRequest = $server->validateAuthorizationRequest($request);
