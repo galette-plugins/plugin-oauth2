@@ -21,12 +21,12 @@ use GaletteOAuth2\Controllers\LoginController;
 use GaletteOAuth2\Middleware\Authentication;
 
 //Include specific classes (league/oauth2_server and tools)
-require_once 'vendor/autoload.php';
+require_once __DIR__ . '/vendor/autoload.php';
 
 //Constants and classes from plugin
 require_once $module['root'] . '/_config.inc.php';
 
-require '_dependencies.php';
+require __DIR__ . '/_dependencies.php';
 
 //login is always called by a http_redirect
 $app->get(

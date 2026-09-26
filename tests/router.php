@@ -21,7 +21,7 @@ if (
     $db = 'pgsql';
 }
 
-$basepath = '../../tests/';
+$basepath = __DIR__ . '/../../../../tests/';
 define('GALETTE_CONFIG_PATH', $basepath . 'config/' . $db . '/');
 define('OAUTH2_CONFIGPATH', __DIR__ . '/config');
 return false;

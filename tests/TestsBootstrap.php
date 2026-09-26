@@ -13,14 +13,10 @@
  */
 
 define('GALETTE_PLUGINS_PATH', __DIR__ . '/../../');
-$basepath = '../../../galette/';
+$basepath = __DIR__ . '/../../../'; // phpcs:ignore SlevomatCodingStandard.Variables.UnusedVariable.UnusedVariable -- used from Core testBootstrap
 
 define('OAUTH2_CONFIGPATH', __DIR__ . '/config');
 
 include_once __DIR__ . '/../vendor/autoload.php';
-include_once '../../../tests/TestsBootstrap.php';
-include_once __DIR__ . '/../_dependencies.php';
-$module = [
-    'root' => __DIR__ . '/..'
-];
-include_once __DIR__ . '/../_routes.php';
+include_once __DIR__ . '/../../../../tests/TestsBootstrap.php';
+require_once __DIR__ . '/../_config.inc.php';
