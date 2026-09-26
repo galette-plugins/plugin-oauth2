@@ -182,6 +182,9 @@ final class LoginController extends AbstractPluginController
         Debug::logRequest('logout()', $request);
         UserHelper::logout($this->container);
 
+        //read client before cleaning session
+        $client_id = $this->session->client_id ?? $this->session->request_args['client_id'] ?? null;
+
         unset(
             $this->session->user_id,
             $this->session->isLoggedIn,
@@ -191,7 +194,7 @@ final class LoginController extends AbstractPluginController
         session_destroy();
 
         $redirect_logout = $this->routeparser->urlFor('slash');
-        if ($client_id = $this->session->request_args['client_id'] ?? null) {
+        if ($client_id !== null) {
             $redirect_logout = $this->config->get("{$client_id}.redirect_logout", $redirect_logout);
             Debug::log("logout():url_logout for client:'{$client_id}' = '{$redirect_logout}'");
         }

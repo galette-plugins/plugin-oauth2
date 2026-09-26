@@ -263,4 +263,39 @@ class LoginController extends GaletteRoutingTestCase
         $body = (string)$test_response->getBody();
         $this->assertStringContainsString('OAuth2 error', $body);
     }
+
+    /**
+     * Test logout redirects to the client logout URL
+     *
+     * @return void
+     */
+    public function testLogoutRedirectsToClient(): void
+    {
+        $this->session->isLoggedIn = 'yes';
+        $this->session->user_id = 1;
+        $this->session->client_id = 'galette_flarum';
+        $this->session->request_args = ['client_id' => 'galette_flarum'];
+
+        $request = $this->createRequest(route_name: OAUTH2_PREFIX . '_logout');
+        $test_response = $this->app->handle($request);
+
+        $this->assertSame(302, $test_response->getStatusCode());
+        $this->assertSame('http://flarum.localhost', $test_response->getHeaderLine('Location'));
+        $this->assertFalse(isset($this->session->isLoggedIn));
+        $this->assertFalse(isset($this->session->client_id));
+    }
+
+    /**
+     * Test logout without known client redirects to Galette
+     *
+     * @return void
+     */
+    public function testLogoutWithoutClient(): void
+    {
+        $request = $this->createRequest(route_name: OAUTH2_PREFIX . '_logout');
+        $test_response = $this->app->handle($request);
+
+        $this->assertSame(302, $test_response->getStatusCode());
+        $this->assertSame($this->routeparser->urlFor('slash'), $test_response->getHeaderLine('Location'));
+    }
 }
