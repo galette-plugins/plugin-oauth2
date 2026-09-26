@@ -106,6 +106,58 @@ class AuthorizationController extends GaletteRoutingTestCase
     }
 
     /**
+     * Test authorization for an unknown client shows an error
+     *
+     * @return void
+     */
+    public function testAuthorizeUnknownClient(): void
+    {
+        $this->logUserIn();
+
+        $params = $this->getAuthorizeParams('http://flarum.localhost/auth/passport');
+        $params['client_id'] = 'galette_unknown';
+        $request = $this->createRequest(
+            route_name: OAUTH2_PREFIX . '_authorize',
+            query_params: $params
+        );
+        $test_response = $this->app->handle($request);
+
+        $this->assertSame(302, $test_response->getStatusCode());
+        $this->assertStringContainsString(
+            OAUTH2_PREFIX . '/error',
+            $test_response->getHeaderLine('Location')
+        );
+        $this->expectLogEntry(
+            \Analog\Analog::WARNING,
+            'OAuth2: Invalid or missing client_id "galette_unknown" in authorization request'
+        );
+    }
+
+    /**
+     * Test authorization asks to log in, then comes back to the same request
+     *
+     * @return void
+     */
+    public function testAuthorizeRequiresLogin(): void
+    {
+        $params = $this->getAuthorizeParams('http://flarum.localhost/auth/passport');
+        $request = $this->createRequest(
+            route_name: OAUTH2_PREFIX . '_authorize',
+            query_params: $params
+        );
+        $test_response = $this->app->handle($request);
+
+        $this->assertSame(302, $test_response->getStatusCode());
+        $location = $test_response->getHeaderLine('Location');
+        $this->assertStringStartsWith($this->routeparser->urlFor(OAUTH2_PREFIX . '_login') . '?', $location);
+        parse_str((string)parse_url($location, PHP_URL_QUERY), $args);
+        $this->assertSame(
+            $this->routeparser->urlFor(OAUTH2_PREFIX . '_authorize', [], $params),
+            $args['redirect_url']
+        );
+    }
+
+    /**
      * Test a login checked for a client cannot be used for another one
      *
      * @return void
