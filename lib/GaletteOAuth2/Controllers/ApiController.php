@@ -89,8 +89,6 @@ final class ApiController extends AbstractPluginController
             return $response->withStatus(401);
         }
 
-        Debug::log('api/user() return data = ' . Debug::printVar($data));
-
         $response->getBody()->write(json_encode($data));
         Debug::log('api/user() exit.');
 

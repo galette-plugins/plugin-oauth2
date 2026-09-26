@@ -96,8 +96,6 @@ final class ClientRepository implements ClientRepositoryInterface
         $client->setRedirectUri($this->getRedirectUris($client_id));
         $client->setConfidential();
 
-        Debug::log('getClientEntity() ' . Debug::printVar($client));
-
         return $client;
     }
 

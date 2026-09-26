@@ -21,6 +21,15 @@ use Slim\Psr7\Request;
  */
 final class Debug
 {
+    private const array HIDDEN_PARAMS = [
+        'password',
+        'client_secret',
+        'code',
+        'refresh_token',
+        'access_token',
+        'code_verifier',
+    ];
+
     public static function printVar($expression, bool $return = true)
     {
         $export = print_r($expression, true);
@@ -46,21 +55,35 @@ final class Debug
         );
     }
 
+    /**
+     * Hide secrets from parameters before they are logged
+     *
+     * @param array<string, mixed> $params Request parameters
+     *
+     * @return array<string, mixed>
+     */
+    public static function hideSecrets(array $params): array
+    {
+        foreach (self::HIDDEN_PARAMS as $name) {
+            if (isset($params[$name])) {
+                $params[$name] = 'HIDDEN';
+            }
+        }
+        return $params;
+    }
+
     public static function logRequest(string $fct, Request $request): void
     {
         $msg = sprintf(
             "%s - URI: %s",
             $fct,
-            $request->getUri()
+            $request->getUri()->getPath()
         );
         if (count($qp = $request->getQueryParams()) > 0) {
-            $msg .= "\nGET dump: " . self::printVar($qp);
+            $msg .= "\nGET dump: " . self::printVar(self::hideSecrets($qp));
         }
         if (count($post = (array)$request->getParsedBody()) > 0) {
-            if (isset($post['password'])) {
-                $post['password'] = 'HIDDEN';
-            }
-            $msg .= "\nPOST dump: " . self::printVar($post);
+            $msg .= "\nPOST dump: " . self::printVar(self::hideSecrets($post));
         }
         $msg .= "\n";
         Analog::log(

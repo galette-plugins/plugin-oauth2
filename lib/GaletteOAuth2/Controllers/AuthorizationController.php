@@ -117,10 +117,7 @@ final class AuthorizationController extends AbstractPluginController
         } catch (OAuthServerException $exception) {
             return $exception->generateHttpResponse($response);
         } catch (Exception $exception) {
-            $body = $response->getBody();
-            $body->write($exception->getMessage());
-
-            return $response->withStatus(500)->withBody($body);
+            return $this->errorResponse($response, $exception);
         }
     }
 
@@ -190,10 +187,7 @@ final class AuthorizationController extends AbstractPluginController
         } catch (OAuthServerException $exception) {
             return $exception->generateHttpResponse($response);
         } catch (Exception $exception) {
-            $body = $response->getBody();
-            $body->write($exception->getMessage());
-
-            return $response->withStatus(500)->withBody($body);
+            return $this->errorResponse($response, $exception);
         } finally {
             $this->login->logout();
         }
@@ -216,15 +210,22 @@ final class AuthorizationController extends AbstractPluginController
             // All instances of OAuthServerException can be converted to a PSR-7 response
             return $exception->generateHttpResponse($response);
         } catch (Exception $exception) {
-            Debug::log(
-                'authorization/Exception: '
-                . $exception->getMessage() . '<br>' . $exception->getTraceAsString()
-            );
             // Catch unexpected exceptions
-            $body = $response->getBody();
-            $body->write($exception->getMessage());
-
-            return $response->withStatus(500)->withBody($body);
+            return $this->errorResponse($response, $exception);
         }
+    }
+
+    /**
+     * Log an unexpected error, without disclosing its details
+     */
+    private function errorResponse(Response $response, Exception $exception): ResponseInterface
+    {
+        Analog::log(
+            'OAuth2 error: ' . $exception->getMessage() . "\n" . $exception->getTraceAsString(),
+            Analog::ERROR
+        );
+        $response->getBody()->write(_T('An error occurred', 'oauth2'));
+
+        return $response->withStatus(500);
     }
 }
