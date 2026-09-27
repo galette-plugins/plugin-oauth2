@@ -4,7 +4,7 @@ Most of the time, oAuth2 client capacities on third party websites are available
 
 # Setup
 
-This project uses `league/oauth2-server`, `defuse/php-encryption` and `hassankhan/config` packages; `symfony/yaml` is provided by Galette.
+This project uses `league/oauth2-server` and `defuse/php-encryption` packages; `symfony/yaml` is provided by Galette.
 
 To automatically download these packages:
 ```

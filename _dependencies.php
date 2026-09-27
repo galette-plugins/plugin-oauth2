@@ -57,27 +57,7 @@ $container->set(
 
 $container->set(
     Config::class,
-    static function (ContainerInterface $container) {
-        $conf = new GaletteOAuth2\Tools\Config(OAUTH2_CONFIGPATH . '/config.yml');
-
-        do {
-            $key = $conf->key();
-            $current = $conf->current();
-            if (isset($current['options'])) {
-                Analog::log(
-                    '"options" is deprecated, please use "authorize" instead for ' . $key,
-                    Analog::WARNING
-                );
-
-                if (!isset($current['authorize'])) {
-                    $conf->set($key . '.authorize', $current['options']);
-                }
-                $conf->remove($key . '.options');
-            }
-        } while ($conf->next());
-
-        return $conf;
-    },
+    static fn() => Config::fromFile(OAUTH2_CONFIGPATH . '/config.yml')
 );
 
 $container->set(

@@ -66,7 +66,7 @@ class EncryptionKey extends TestCase
             );
         }
 
-        return new Config($this->config_path . '/config.yml');
+        return Config::fromFile($this->config_path . '/config.yml');
     }
 
     /**

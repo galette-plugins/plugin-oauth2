@@ -347,7 +347,7 @@ final class UserHelper
         $acl = self::AUTH_TEAMONLY;
         $conf_acls = $config->get($client_id . '.authorize');
 
-        if ($conf_acls === '') {
+        if ($conf_acls === null) {
             //not set: use default
             return $acl;
         }

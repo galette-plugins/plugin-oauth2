@@ -472,7 +472,7 @@ class UserHelper extends GaletteTestCase
      */
     public function testGetAuthorizations(): void
     {
-        $config = new \GaletteOAuth2\Tools\Config(OAUTH2_CONFIGPATH . '/config.yml');
+        $config = \GaletteOAuth2\Tools\Config::fromFile(OAUTH2_CONFIGPATH . '/config.yml');
 
         //always defaults to \GaletteOAuth2\Authorization\UserHelper::AUTH_TEAMONLY, silently when not set
         $this->assertSame(
@@ -482,10 +482,10 @@ class UserHelper extends GaletteTestCase
         $this->expectNoLogEntry();
 
         $client_id = 'galette_test';
-        $config->set($client_id . '.authorize', 'unknown');
+        $test_config = new \GaletteOAuth2\Tools\Config([$client_id => ['authorize' => 'unknown']]);
         $this->assertSame(
             \GaletteOAuth2\Authorization\UserHelper::AUTH_TEAMONLY,
-            \GaletteOAuth2\Authorization\UserHelper::getAuthorization($config, 'galette_test')
+            \GaletteOAuth2\Authorization\UserHelper::getAuthorization($test_config, 'galette_test')
         );
         $this->expectLogEntry(
             Analog::ERROR,
@@ -503,10 +503,10 @@ class UserHelper extends GaletteTestCase
         );
 
         foreach (\GaletteOAuth2\Authorization\UserHelper::getKnownAuthorizations() as $authorization) {
-            $config->set($client_id . '.authorize', $authorization);
+            $test_config = new \GaletteOAuth2\Tools\Config([$client_id => ['authorize' => $authorization]]);
             $this->assertSame(
                 $authorization,
-                \GaletteOAuth2\Authorization\UserHelper::getAuthorization($config, 'galette_test')
+                \GaletteOAuth2\Authorization\UserHelper::getAuthorization($test_config, 'galette_test')
             );
         }
     }
@@ -518,7 +518,7 @@ class UserHelper extends GaletteTestCase
      */
     public function testMergeScopes(): void
     {
-        $config = new \GaletteOAuth2\Tools\Config(OAUTH2_CONFIGPATH . '/config.yml');
+        $config = \GaletteOAuth2\Tools\Config::fromFile(OAUTH2_CONFIGPATH . '/config.yml');
 
         $this->assertSame(
             [],
@@ -612,14 +612,14 @@ class UserHelper extends GaletteTestCase
         );
 
         $client_id = 'galette_test';
-        $config->set($client_id . '.scopes', 'member:phones;member:localization:precise');
+        $test_config = new \GaletteOAuth2\Tools\Config([$client_id => ['scopes' => 'member:phones;member:localization:precise']]);
         $this->assertSame(
             [
                 'member:phones',
                 'member:localization:precise'
             ],
             \GaletteOAuth2\Authorization\UserHelper::mergeScopes(
-                $config,
+                $test_config,
                 'galette_test',
                 []
             )

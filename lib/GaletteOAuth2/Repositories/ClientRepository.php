@@ -45,7 +45,7 @@ final class ClientRepository implements ClientRepositoryInterface
         if (empty($client_id) || $client_id === 'global') {
             return false;
         }
-        if ($this->config->get($client_id) === '') {
+        if (!is_array($this->config->get($client_id))) {
             return false;
         }
         if (count($this->getRedirectUris($client_id)) === 0) {
