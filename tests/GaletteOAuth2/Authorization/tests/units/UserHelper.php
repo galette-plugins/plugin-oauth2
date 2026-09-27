@@ -61,14 +61,11 @@ class UserHelper extends GaletteTestCase
      */
     public function testGetUserData(): void
     {
-        global $container;
-
         $member_one  = $this->getMemberOne();
         $this->getAdminMember($member_one); //set admin
 
         //test for default scope - legacy data mode
-        $user_data = \GaletteOAuth2\Authorization\UserHelper::getUserData(
-            $container,
+        $user_data = $this->container->get(\GaletteOAuth2\Authorization\UserHelper::class)->getUserData(
             $member_one->id,
             '',
             ['member'],
@@ -96,8 +93,7 @@ class UserHelper extends GaletteTestCase
         );
 
         //test for default scope
-        $user_data = \GaletteOAuth2\Authorization\UserHelper::getUserData(
-            $container,
+        $user_data = $this->container->get(\GaletteOAuth2\Authorization\UserHelper::class)->getUserData(
             $member_one->id,
             '',
             ['member']
@@ -124,8 +120,7 @@ class UserHelper extends GaletteTestCase
         );
 
         //test personal scope
-        $user_data = \GaletteOAuth2\Authorization\UserHelper::getUserData(
-            $container,
+        $user_data = $this->container->get(\GaletteOAuth2\Authorization\UserHelper::class)->getUserData(
             $member_one->id,
             '',
             ['member', 'member:personal']
@@ -143,8 +138,7 @@ class UserHelper extends GaletteTestCase
         );
 
         //test phones scope
-        $user_data = \GaletteOAuth2\Authorization\UserHelper::getUserData(
-            $container,
+        $user_data = $this->container->get(\GaletteOAuth2\Authorization\UserHelper::class)->getUserData(
             $member_one->id,
             '',
             ['member', 'member:phones']
@@ -156,8 +150,7 @@ class UserHelper extends GaletteTestCase
         );
 
         //test groups scope
-        $user_data = \GaletteOAuth2\Authorization\UserHelper::getUserData(
-            $container,
+        $user_data = $this->container->get(\GaletteOAuth2\Authorization\UserHelper::class)->getUserData(
             $member_one->id,
             '',
             ['member', 'member:groups']
@@ -173,8 +166,7 @@ class UserHelper extends GaletteTestCase
             $user_data
         );
 
-        $user_data = \GaletteOAuth2\Authorization\UserHelper::getUserData(
-            $container,
+        $user_data = $this->container->get(\GaletteOAuth2\Authorization\UserHelper::class)->getUserData(
             $member_one->id,
             \GaletteOAuth2\Authorization\UserHelper::AUTH_TEAMONLY,
             ['member', 'member:groups']
@@ -191,8 +183,7 @@ class UserHelper extends GaletteTestCase
         );
 
         //test due date scope
-        $user_data = \GaletteOAuth2\Authorization\UserHelper::getUserData(
-            $container,
+        $user_data = $this->container->get(\GaletteOAuth2\Authorization\UserHelper::class)->getUserData(
             $member_one->id,
             '',
             ['member', 'member:due_date']
@@ -204,8 +195,7 @@ class UserHelper extends GaletteTestCase
         );
 
         //test localization scope
-        $user_data = \GaletteOAuth2\Authorization\UserHelper::getUserData(
-            $container,
+        $user_data = $this->container->get(\GaletteOAuth2\Authorization\UserHelper::class)->getUserData(
             $member_one->id,
             '',
             ['member', 'member:localization']
@@ -224,8 +214,7 @@ class UserHelper extends GaletteTestCase
         );
 
         //test precise localization scope
-        $user_data = \GaletteOAuth2\Authorization\UserHelper::getUserData(
-            $container,
+        $user_data = $this->container->get(\GaletteOAuth2\Authorization\UserHelper::class)->getUserData(
             $member_one->id,
             '',
             ['member', 'member:localization:precise']
@@ -241,8 +230,7 @@ class UserHelper extends GaletteTestCase
         );
 
         //test socials scope - no socials
-        $user_data = \GaletteOAuth2\Authorization\UserHelper::getUserData(
-            $container,
+        $user_data = $this->container->get(\GaletteOAuth2\Authorization\UserHelper::class)->getUserData(
             $member_one->id,
             '',
             ['member', 'member:socials']
@@ -264,8 +252,7 @@ class UserHelper extends GaletteTestCase
         );
 
         //get again, with socials
-        $user_data = \GaletteOAuth2\Authorization\UserHelper::getUserData(
-            $container,
+        $user_data = $this->container->get(\GaletteOAuth2\Authorization\UserHelper::class)->getUserData(
             $member_one->id,
             '',
             ['member', 'member:socials']
@@ -283,8 +270,7 @@ class UserHelper extends GaletteTestCase
 
         //no scope => error
         $this->expectExceptionMessage('Default scope (member) has not been authorized.');
-        \GaletteOAuth2\Authorization\UserHelper::getUserData(
-            $container,
+        $this->container->get(\GaletteOAuth2\Authorization\UserHelper::class)->getUserData(
             $member_one->id,
             '',
             []
@@ -298,13 +284,10 @@ class UserHelper extends GaletteTestCase
      */
     public function testRequireAdmin()
     {
-        global $container;
-
         $adh1  = $this->getMemberOne();
 
         $this->expectExceptionMessage("Sorry, you can't login because your are not a team member.");
-        \GaletteOAuth2\Authorization\UserHelper::getUserData(
-            $container,
+        $this->container->get(\GaletteOAuth2\Authorization\UserHelper::class)->getUserData(
             $adh1->id,
             \GaletteOAuth2\Authorization\UserHelper::AUTH_TEAMONLY,
             ['member']
@@ -334,12 +317,9 @@ class UserHelper extends GaletteTestCase
     #[DataProvider('memberNotFoundProvider')]
     public function testMemberNotFound(int $member_id): void
     {
-        global $container;
-
         $exception_thrown = false;
         try {
-            \GaletteOAuth2\Authorization\UserHelper::getUserData(
-                $container,
+            $this->container->get(\GaletteOAuth2\Authorization\UserHelper::class)->getUserData(
                 $member_id,
                 \GaletteOAuth2\Authorization\UserHelper::AUTH_TEAMONLY,
                 ['member']
@@ -359,8 +339,6 @@ class UserHelper extends GaletteTestCase
      */
     public function testMemberInactive()
     {
-        global $container;
-
         $this->logSuperAdmin();
         $adh = new \Galette\Entity\Adherent($this->zdb);
         $adh->setDependencies(
@@ -382,8 +360,7 @@ class UserHelper extends GaletteTestCase
         $this->login->logout();
 
         $this->expectExceptionMessage("Sorry, you can't login because you are not an active member.");
-        \GaletteOAuth2\Authorization\UserHelper::getUserData(
-            $container,
+        $this->container->get(\GaletteOAuth2\Authorization\UserHelper::class)->getUserData(
             $adh->id,
             \GaletteOAuth2\Authorization\UserHelper::AUTH_TEAMONLY,
             ['member']
@@ -397,8 +374,6 @@ class UserHelper extends GaletteTestCase
      */
     public function testMemberNoMail()
     {
-        global $container;
-
         $this->logSuperAdmin();
         $adh = new \Galette\Entity\Adherent($this->zdb);
         $adh->setDependencies(
@@ -420,8 +395,7 @@ class UserHelper extends GaletteTestCase
         $this->login->logout();
 
         $this->expectExceptionMessage("Sorry, you can't login. Please, add an email address to your account.");
-        \GaletteOAuth2\Authorization\UserHelper::getUserData(
-            $container,
+        $this->container->get(\GaletteOAuth2\Authorization\UserHelper::class)->getUserData(
             $adh->id,
             \GaletteOAuth2\Authorization\UserHelper::AUTH_TEAMONLY,
             ['member']
@@ -435,8 +409,6 @@ class UserHelper extends GaletteTestCase
      */
     public function testMemberNotUp2Date(): void
     {
-        global $container;
-
         $this->logSuperAdmin();
         $adh = new \Galette\Entity\Adherent($this->zdb);
         $adh->setDependencies(
@@ -457,8 +429,7 @@ class UserHelper extends GaletteTestCase
         $this->login->logout();
 
         $this->expectExceptionMessage("Sorry, you can't login because your are not an up-to-date member.");
-        \GaletteOAuth2\Authorization\UserHelper::getUserData(
-            $container,
+        $this->container->get(\GaletteOAuth2\Authorization\UserHelper::class)->getUserData(
             $adh->id,
             \GaletteOAuth2\Authorization\UserHelper::AUTH_UPTODATE,
             ['member']

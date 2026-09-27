@@ -12,7 +12,6 @@ namespace GaletteOAuth2\Controllers;
 
 use Analog\Analog;
 use DI\Attribute\Inject;
-use DI\Container;
 use Galette\Controllers\AbstractPluginController;
 use GaletteOAuth2\Authorization\UserAuthorizationException;
 use GaletteOAuth2\Authorization\UserHelper;
@@ -38,32 +37,21 @@ final class ApiController extends AbstractPluginController
      */
     #[Inject("Plugin Galette OAuth2")]
     protected array $module_info;
-    protected Container $container;
+    #[Inject]
     protected Config $config;
     #[Inject("oauth_session")]
     protected Session $session;
-
-    /**
-     * Default constructor
-     *
-     * @param Container $container COntainer instance
-     * @throws \DI\DependencyException
-     * @throws \DI\NotFoundException
-     */
-    public function __construct(Container $container)
-    {
-        $this->container = $container;
-        $this->config = $container->get(Config::class);
-        parent::__construct($container);
-    }
+    #[Inject]
+    protected ResourceServer $server;
+    #[Inject]
+    protected UserHelper $userHelper;
 
     public function user(Request $request, Response $response): Response|ResponseInterface
     {
         Debug::logRequest('api/user()', $request);
 
-        $server = $this->container->get(ResourceServer::class);
         try {
-            $rep = $server->validateAuthenticatedRequest($request);
+            $rep = $this->server->validateAuthenticatedRequest($request);
         } catch (OAuthServerException $exception) {
             return $exception->generateHttpResponse($response);
         }
@@ -73,8 +61,7 @@ final class ApiController extends AbstractPluginController
         Debug::log("api/user() load user #{$oauth_user_id}");
 
         try {
-            $data = UserHelper::getUserData(
-                $this->container,
+            $data = $this->userHelper->getUserData(
                 $oauth_user_id,
                 UserHelper::getAuthorization($this->config, $client_id),
                 //only scopes the user has consented to, stored in the token
@@ -86,7 +73,7 @@ final class ApiController extends AbstractPluginController
                 (bool)$this->config->get($client_id . '.legacy_data', false)
             );
         } catch (UserAuthorizationException $e) {
-            UserHelper::logout($this->container);
+            $this->userHelper->logout();
             Analog::log(
                 'api/user() error : ' . $e->getMessage(),
                 Analog::ERROR

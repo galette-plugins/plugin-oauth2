@@ -12,14 +12,13 @@ namespace GaletteOAuth2\Controllers;
 
 use Analog\Analog;
 use DI\Attribute\Inject;
-use DI\Container;
 use Exception;
 use Galette\Controllers\AbstractPluginController;
 use GaletteOAuth2\Authorization\UserHelper;
 use GaletteOAuth2\Entities\UserEntity;
 use GaletteOAuth2\Repositories\ScopeRepository;
-use GaletteOAuth2\Tools\Config as Config;
-use GaletteOAuth2\Tools\Debug as Debug;
+use GaletteOAuth2\Tools\Config;
+use GaletteOAuth2\Tools\Debug;
 use League\OAuth2\Server\AuthorizationServer;
 use League\OAuth2\Server\Exception\OAuthServerException;
 use Psr\Http\Message\ResponseInterface;
@@ -40,36 +39,22 @@ final class AuthorizationController extends AbstractPluginController
      */
     #[Inject("Plugin Galette OAuth2")]
     protected array $module_info;
-    protected Container $container;
+    #[Inject]
     protected Config $config;
     #[Inject("oauth_session")]
     protected Session $session;
-
-    /**
-     * Default constructor
-     *
-     * @param Container $container Container instance
-     * @throws \DI\DependencyException
-     * @throws \DI\NotFoundException
-     */
-    public function __construct(Container $container)
-    {
-        $this->container = $container;
-        $this->config = $this->container->get(Config::class);
-        parent::__construct($container);
-    }
+    #[Inject]
+    protected AuthorizationServer $server;
+    #[Inject]
+    protected ScopeRepository $scopeRepository;
 
     /**
      * Display authorization form
-     *
-     * @throws \DI\DependencyException
-     * @throws \DI\NotFoundException
      */
     public function authorize(Request $request, Response $response): Response|ResponseInterface
     {
         Debug::logRequest('authorization/authorize()', $request);
 
-        $server = $this->container->get(AuthorizationServer::class);
 
         try {
             $queryParams = $request->getQueryParams();
@@ -77,7 +62,7 @@ final class AuthorizationController extends AbstractPluginController
 
             // Validate the HTTP request and return an AuthorizationRequest object.
             // The auth request object can be serialized into a user's session
-            $authRequest = $server->validateAuthorizationRequest($request);
+            $authRequest = $this->server->validateAuthorizationRequest($request);
 
             $user = new UserEntity();
             //FIXME: for both isLoggedIn and user_id, we can rely on login object stored in session
@@ -123,15 +108,11 @@ final class AuthorizationController extends AbstractPluginController
 
     /**
      * Proceed authorization
-     *
-     * @throws \DI\DependencyException
-     * @throws \DI\NotFoundException
      */
     public function doAuthorize(Request $request, Response $response): Response|ResponseInterface
     {
         Debug::logRequest('authorization/doAuthorize()', $request);
 
-        $server = $this->container->get(AuthorizationServer::class);
 
         try {
             $params = (array)$request->getParsedBody();
@@ -139,7 +120,7 @@ final class AuthorizationController extends AbstractPluginController
 
             // Validate the HTTP request and return an AuthorizationRequest object.
             // The auth request object can be serialized into a user's session
-            $authRequest = $server->validateAuthorizationRequest($request);
+            $authRequest = $this->server->validateAuthorizationRequest($request);
             $user = new UserEntity();
             //FIXME: for both isLoggedIn and user_id, we can rely on login object stored in session
             $user->setIdentifier((string)$this->session->user_id);
@@ -156,9 +137,8 @@ final class AuthorizationController extends AbstractPluginController
                     true
                 );
                 $req_scopes = [];
-                $srepo = new ScopeRepository();
                 foreach ($scopes as $scope) {
-                    $scope_entity = $srepo->getScopeEntityByIdentifier($scope);
+                    $scope_entity = $this->scopeRepository->getScopeEntityByIdentifier($scope);
                     if ($scope_entity !== null) {
                         $req_scopes[] = $scope_entity;
                     }
@@ -170,7 +150,7 @@ final class AuthorizationController extends AbstractPluginController
             }
 
             // Return the HTTP redirect response
-            $r = $server->completeAuthorizationRequest($authRequest, $response);
+            $r = $this->server->completeAuthorizationRequest($authRequest, $response);
             Analog::log(
                 'authorization/doAuthorize() exit ok',
                 Analog::DEBUG
@@ -189,11 +169,10 @@ final class AuthorizationController extends AbstractPluginController
     public function token(Request $request, Response $response): Response|ResponseInterface
     {
         Debug::logRequest('authorization/token()', $request);
-        $server = $this->container->get(AuthorizationServer::class);
 
         try {
             // Try to respond to the access token request
-            $r = $server->respondToAccessTokenRequest($request, $response);
+            $r = $this->server->respondToAccessTokenRequest($request, $response);
             Debug::log('authorization/token() exit ok');
 
             return $r;

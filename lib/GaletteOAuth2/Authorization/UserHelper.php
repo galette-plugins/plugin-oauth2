@@ -11,7 +11,7 @@ declare(strict_types=1);
 namespace GaletteOAuth2\Authorization;
 
 use Analog\Analog;
-use DI\Container;
+use DI\Attribute\Inject;
 use Galette\Core\Db;
 use Galette\Core\History;
 use Galette\Core\Login;
@@ -20,6 +20,7 @@ use Galette\Entity\Adherent;
 use Galette\Entity\Social;
 use GaletteOAuth2\Tools\Config;
 use GaletteOAuth2\Tools\Debug;
+use RKA\Session;
 use Slim\Flash\Messages;
 
 /**
@@ -34,28 +35,37 @@ final class UserHelper
     public const AUTH_UPTODATE = 'uptodate';
     public const AUTH_ACTIVE = 'active';
 
-    public static function login(Container $container, string $nick, string $password): int|false
-    {
-        $preferences = $container->get(Preferences::class);
-        /** @var Login $login */
-        $login = $container->get(Login::class);
-        $history = $container->get(History::class);
-        $session = $container->get('oauth_session');
-        $flash = $container->get(Messages::class);
+    public function __construct(
+        private readonly Db $zdb,
+        private readonly Login $login,
+        private readonly History $history,
+        private readonly Preferences $preferences,
+        private readonly Messages $flash,
+        #[Inject('oauth_session')]
+        private readonly Session $session
+    ) {
+    }
 
+    /**
+     * Log in a member
+     *
+     * @return int|false Member ID, false on failure
+     */
+    public function login(string $nick, string $password): int|false
+    {
         if (trim($nick) === '' || trim($password) === '') {
             return false;
         }
 
-        if ($nick === $preferences->pref_admin_login) {
+        if ($nick === $this->preferences->pref_admin_login) {
             $pw_superadmin = password_verify(
                 $password,
-                $preferences->pref_admin_pass,
+                $this->preferences->pref_admin_pass,
             );
 
             if (!$pw_superadmin) {
                 $pw_superadmin = (
-                    md5($password) === $preferences->pref_admin_pass
+                    md5($password) === $this->preferences->pref_admin_pass
                 );
             }
 
@@ -64,25 +74,25 @@ final class UserHelper
                     'OAuth login attempt from superadmin account',
                     Analog::WARNING
                 );
-                $flash->addMessage(
+                $this->flash->addMessage(
                     'error_detected',
                     _T('Cannot OAuth login from superadmin account!', 'oauth2')
                 );
                 return false;
             }
         } else {
-            $login->logIn($nick, $password);
+            $this->login->logIn($nick, $password);
         }
 
-        if ($login->isLogged()) {
-            $session->login = $login;
-            $history->add(_T('Login'));
+        if ($this->login->isLogged()) {
+            $this->session->login = $this->login;
+            $this->history->add(_T('Login'));
 
-            return $login->id;
+            return $this->login->id;
         }
-        $history->add(_T('Authentication failed'), $nick);
+        $this->history->add(_T('Authentication failed'), $nick);
 
-        $flash->addMessage(
+        $this->flash->addMessage(
             'error_detected',
             _T('Check your login / email or password.', 'oauth2')
         );
@@ -90,39 +100,31 @@ final class UserHelper
         return false;
     }
 
-    public static function logout(Container $container): void
+    /**
+     * Log out current member
+     */
+    public function logout(): void
     {
-        /** @var Login $login */
-        $login = $container->get(Login::class);
-        $history = $container->get(History::class);
-        $session = $container->get('oauth_session');
-
-        $login->logout();
-        $session->login = $login;
-        $history->add(_T('Logout'));
+        $this->login->logout();
+        $this->session->login = $this->login;
+        $this->history->add(_T('Logout'));
     }
 
     /**
      * Get user data
      *
-     * @param Container       $container Container instance
-     * @param int             $id        User ID
-     * @param string          $acl       Requested authorization
-     * @param string[]        $scopes    Scopes
-     * @param bool            $legacy    Legacy mode for data
+     * @param int      $id     User ID
+     * @param string   $acl    Requested authorization
+     * @param string[] $scopes Scopes
+     * @param bool     $legacy Legacy mode for data
      *
      * @return array<string, mixed>
      * @throws UserAuthorizationException
-     * @throws \DI\DependencyException
-     * @throws \DI\NotFoundException
      * @throws \Throwable
      */
-    public static function getUserData(Container $container, int $id, string $acl, array $scopes, bool $legacy = false): array
+    public function getUserData(int $id, string $acl, array $scopes, bool $legacy = false): array
     {
-        /** @var Db $zdb */
-        $zdb = $container->get(Db::class);
-
-        $member = new Adherent($zdb);
+        $member = new Adherent($this->zdb);
         if (!$member->load($id)) {
             throw new UserAuthorizationException(_T('User not found.', 'oauth2'));
         }

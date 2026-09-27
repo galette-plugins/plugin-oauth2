@@ -12,7 +12,6 @@ namespace GaletteOAuth2\Controllers;
 
 use Analog\Analog;
 use DI\Attribute\Inject;
-use DI\Container;
 use Galette\Controllers\AbstractPluginController;
 use GaletteOAuth2\Authorization\UserAuthorizationException;
 use GaletteOAuth2\Authorization\UserHelper;
@@ -37,11 +36,11 @@ final class LoginController extends AbstractPluginController
     #[Inject("Plugin Galette OAuth2")]
     protected array $module_info;
     #[Inject]
-    protected Container $container;
-    #[Inject]
     protected Config $config;
     #[Inject]
     protected ClientRepository $clientRepository;
+    #[Inject]
+    protected UserHelper $userHelper;
     #[Inject("oauth_session")]
     protected Session $session;
 
@@ -115,7 +114,7 @@ final class LoginController extends AbstractPluginController
         $this->session->isLoggedIn = 'no';
         unset($this->session->client_id);
         $nick = (string)($params['login'] ?? '');
-        $this->session->user_id = $uid = UserHelper::login($this->container, $nick, (string)($params['password'] ?? ''));
+        $this->session->user_id = $uid = $this->userHelper->login($nick, (string)($params['password'] ?? ''));
         Debug::log("UserHelper::login({$nick}) return '{$uid}'");
 
         if (false === $uid) {
@@ -129,8 +128,7 @@ final class LoginController extends AbstractPluginController
 
         try {
             $client_id = $this->session->request_args['client_id'];
-            UserHelper::getUserData(
-                $this->container,
+            $this->userHelper->getUserData(
                 $uid,
                 UserHelper::getAuthorization($this->config, $client_id),
                 UserHelper::mergeScopes(
@@ -142,7 +140,7 @@ final class LoginController extends AbstractPluginController
                 (bool)$this->config->get($client_id . '.legacy_data', false)
             );
         } catch (UserAuthorizationException $e) {
-            UserHelper::logout($this->container);
+            $this->userHelper->logout();
             Debug::log('login() check rights error ' . $e->getMessage());
 
             $this->flash->addMessage(
@@ -183,7 +181,7 @@ final class LoginController extends AbstractPluginController
     public function logout(Request $request, Response $response): Response
     {
         Debug::logRequest('logout()', $request);
-        UserHelper::logout($this->container);
+        $this->userHelper->logout();
 
         //read client before cleaning session
         $client_id = $this->session->client_id ?? $this->session->request_args['client_id'] ?? null;
