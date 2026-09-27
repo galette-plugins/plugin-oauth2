@@ -53,7 +53,7 @@ final class Authentication
                 sprintf(
                     'OAuth2: Invalid or missing client_id "%s" in authorization request from IP %s',
                     $client_id ?? 'null',
-                    $_SERVER['REMOTE_ADDR'] ?? 'unknown'
+                    $request->getServerParams()['REMOTE_ADDR'] ?? 'unknown'
                 ),
                 Analog::WARNING
             );

@@ -70,7 +70,7 @@ final class LoginController extends AbstractPluginController
         }
 
         // Validate client_id before displaying login form
-        $vars = $this->prepareVarsForm();
+        $vars = $this->prepareVarsForm($request);
         if ($vars === null) {
             return $response
                 ->withStatus(302)
@@ -230,9 +230,11 @@ final class LoginController extends AbstractPluginController
     /**
      * Prepare login form variables, null if client is invalid
      *
+     * @param Request $request Received request
+     *
      * @return ?array<string, string>
      */
-    private function prepareVarsForm(): ?array
+    private function prepareVarsForm(Request $request): ?array
     {
         $client_id = $this->session->request_args['client_id'] ?? null;
 
@@ -241,7 +243,7 @@ final class LoginController extends AbstractPluginController
             Analog::log(
                 sprintf(
                     'OAuth2: Missing client_id in request from IP %s',
-                    $_SERVER['REMOTE_ADDR'] ?? 'unknown'
+                    $request->getServerParams()['REMOTE_ADDR'] ?? 'unknown'
                 ),
                 Analog::WARNING
             );
@@ -254,7 +256,7 @@ final class LoginController extends AbstractPluginController
                 sprintf(
                     'OAuth2: Invalid client_id "%s" in request from IP %s',
                     $client_id,
-                    $_SERVER['REMOTE_ADDR'] ?? 'unknown'
+                    $request->getServerParams()['REMOTE_ADDR'] ?? 'unknown'
                 ),
                 Analog::WARNING
             );
