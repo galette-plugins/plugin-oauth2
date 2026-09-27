@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-31 22:00+0200\n"
+"POT-Creation-Date: 2026-09-27 18:15+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
@@ -17,121 +17,113 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 
-#: ../lib/GaletteOAuth2/Controllers/AuthorizationController.php:119
-#: ../lib/GaletteOAuth2/Controllers/LoginController.php:255
+#: ../lib/GaletteOAuth2/Controllers/AuthorizationController.php:74
+#: ../lib/GaletteOAuth2/Controllers/LoginController.php:270
 #, php-format
 msgid "Sign in with %s"
 msgstr ""
 
-#: ../lib/GaletteOAuth2/Controllers/AuthorizationController.php:124
+#: ../lib/GaletteOAuth2/Controllers/AuthorizationController.php:79
 #, php-format
 msgid "%s is requesting access to the following details"
 msgstr ""
 
-#: ../lib/GaletteOAuth2/Controllers/AuthorizationController.php:203
-#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:162
-#, php-format
-msgid "Default scope (%s) has not been authorized."
-msgstr ""
-
-#: ../lib/GaletteOAuth2/Controllers/LoginController.php:81
-#: ../lib/GaletteOAuth2/Middleware/Authentication.php:69
-msgid "Unknown client application"
-msgstr ""
-
-#: ../lib/GaletteOAuth2/Controllers/LoginController.php:210
+#: ../lib/GaletteOAuth2/Controllers/AuthorizationController.php:200
+#: ../lib/GaletteOAuth2/Controllers/LoginController.php:219
 msgid "An error occurred"
 msgstr ""
 
-#: ../lib/GaletteOAuth2/Controllers/LoginController.php:216
-#: ../tempcache/oauth2_error.html.twig:67
+#: ../lib/GaletteOAuth2/Controllers/LoginController.php:82
+#: ../lib/GaletteOAuth2/Middleware/Authentication.php:65
+msgid "Unknown client application"
+msgstr ""
+
+#: ../lib/GaletteOAuth2/Controllers/LoginController.php:225
+#: ../templates/default/oauth2_error.html.twig:15
 msgid "OAuth2 error"
 msgstr ""
 
-#: ../lib/GaletteOAuth2/Controllers/LoginController.php:260
+#: ../lib/GaletteOAuth2/Controllers/LoginController.php:275
 #, php-format
 msgid "Sign in to %s"
 msgstr ""
 
-#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:69
+#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:79
 msgid "Cannot OAuth login from superadmin account!"
 msgstr ""
 
-#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:87
+#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:97
 msgid "Check your login / email or password."
 msgstr ""
 
-#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:127
+#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:129
 msgid "User not found."
 msgstr ""
 
-#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:132
+#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:134
 msgid "Sorry, you can't login because you are not an active member."
 msgstr ""
 
-#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:137
+#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:139
 msgid "Sorry, you can't login. Please, add an email address to your account."
 msgstr ""
 
-#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:143
+#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:145
 msgid "Sorry, you can't login because you are not a team member."
 msgstr ""
 
-#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:151
+#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:153
 msgid "Sorry, you can't login because you are not an up-to-date member."
 msgstr ""
 
-#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:32
-msgid ""
-"Access to your member basic information: name, login, email, language, "
-"company name)"
+#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:164
+#, php-format
+msgid "Default scope (%s) has not been authorized."
 msgstr ""
 
-#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:35
+#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:38
+msgid ""
+"Access to your member basic information: name, login, email, language, status"
+msgstr ""
+
+#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:41
 msgid ""
 "Access to more precise personal data: birth date, job, gender, birth place, "
 "GnuPG ID"
 msgstr ""
 
-#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:38
+#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:44
 msgid "Access to your localization data: zipcode, town, region, country"
 msgstr ""
 
-#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:41
-msgid ""
-"Access to your precise localisation data: full address, coordinates (from "
-"maps plugin)"
-msgstr ""
-
-#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:44
-msgid "Access to your phone numbers"
-msgstr ""
-
 #: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:47
-msgid "Access to your social networks data"
+msgid "Access to your precise localization data: full address"
 msgstr ""
 
 #: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:50
-msgid "Access to the groups you belong to"
+msgid "Access to your phone numbers"
 msgstr ""
 
 #: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:53
+msgid "Access to your social networks data"
+msgstr ""
+
+#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:56
+msgid "Access to the groups you belong to"
+msgstr ""
+
+#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:59
 msgid "Access to your due date"
 msgstr ""
 
-#: ../tempcache/oauth2_authorize.html.twig:85
+#: ../templates/default/oauth2_authorize.html.twig:22
 msgid "Default scope is mandatory and cannot be unselected"
 msgstr ""
 
-#: ../tempcache/oauth2_authorize.html.twig:87
-#, php-format
-msgid "Give acces to '%1$s' scope"
-msgstr ""
-
-#: ../tempcache/oauth2_authorize.html.twig:119
+#: ../templates/default/oauth2_authorize.html.twig:36
 msgid "Cancel"
 msgstr ""
 
-#: ../tempcache/oauth2_authorize.html.twig:127
+#: ../templates/default/oauth2_authorize.html.twig:41
 msgid "Allow"
 msgstr ""
