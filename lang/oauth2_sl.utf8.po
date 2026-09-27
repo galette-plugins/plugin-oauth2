@@ -6,8 +6,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"Report-Msgid-Bugs-To: translations@galette.eu\n"
-"POT-Creation-Date: 2026-08-31 22:00+0200\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-27 18:15+0200\n"
 "PO-Revision-Date: 2026-09-15 07:51+0000\n"
 "Last-Translator: Jože Felicijan <joze@felicijan.com>\n"
 "Language-Team: Slovenian <https://hosted.weblate.org/projects/galette/plugin-"
@@ -20,80 +20,83 @@ msgstr ""
 "n%100==4 ? 2 : 3;\n"
 "X-Generator: Weblate 2026.10.dev0\n"
 
-#: ../lib/GaletteOAuth2/Controllers/AuthorizationController.php:119
-#: ../lib/GaletteOAuth2/Controllers/LoginController.php:255
+#: ../lib/GaletteOAuth2/Controllers/AuthorizationController.php:74
+#: ../lib/GaletteOAuth2/Controllers/LoginController.php:270
 #, php-format
 msgid "Sign in with %s"
 msgstr "Prijavite se z %s"
 
-#: ../lib/GaletteOAuth2/Controllers/AuthorizationController.php:124
+#: ../lib/GaletteOAuth2/Controllers/AuthorizationController.php:79
 #, php-format
 msgid "%s is requesting access to the following details"
 msgstr "%s zahteva dostop do naslednjih podrobnosti"
 
-#: ../lib/GaletteOAuth2/Controllers/AuthorizationController.php:203
-#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:162
-#, php-format
-msgid "Default scope (%s) has not been authorized."
-msgstr "Privzeti obseg (%s) ni bil odobren."
-
-#: ../lib/GaletteOAuth2/Controllers/LoginController.php:81
-#: ../lib/GaletteOAuth2/Middleware/Authentication.php:69
-msgid "Unknown client application"
-msgstr "Neznana odjemalska aplikacija"
-
-#: ../lib/GaletteOAuth2/Controllers/LoginController.php:210
+#: ../lib/GaletteOAuth2/Controllers/AuthorizationController.php:200
+#: ../lib/GaletteOAuth2/Controllers/LoginController.php:219
 msgid "An error occurred"
 msgstr "Prišlo je do napake"
 
-#: ../lib/GaletteOAuth2/Controllers/LoginController.php:216
-#: ../tempcache/oauth2_error.html.twig:67
+#: ../lib/GaletteOAuth2/Controllers/LoginController.php:82
+#: ../lib/GaletteOAuth2/Middleware/Authentication.php:65
+msgid "Unknown client application"
+msgstr "Neznana odjemalska aplikacija"
+
+#: ../lib/GaletteOAuth2/Controllers/LoginController.php:225
+#: ../templates/default/oauth2_error.html.twig:15
 msgid "OAuth2 error"
 msgstr "Napaka OAuth2"
 
-#: ../lib/GaletteOAuth2/Controllers/LoginController.php:260
+#: ../lib/GaletteOAuth2/Controllers/LoginController.php:275
 #, php-format
 msgid "Sign in to %s"
 msgstr "Prijavite se %s"
 
-#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:69
+#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:79
 msgid "Cannot OAuth login from superadmin account!"
 msgstr "Ne morem se prijaviti OAuth iz računa superskrbnika!"
 
-#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:87
+#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:97
 msgid "Check your login / email or password."
 msgstr "Preverite svojo prijavo/e-pošto ali geslo."
 
-#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:127
+#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:129
 msgid "User not found."
 msgstr "Uporabnik ni bil najden."
 
-#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:132
+#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:134
 msgid "Sorry, you can't login because you are not an active member."
 msgstr "Žal se ne morete prijaviti, ker niste aktivni član."
 
-#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:137
+#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:139
 msgid "Sorry, you can't login. Please, add an email address to your account."
 msgstr ""
 "Žal se ne morete prijaviti. Prosimo, dodajte e-poštni naslov v svoj račun."
 
-#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:143
+#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:145
 msgid "Sorry, you can't login because you are not a team member."
 msgstr "Žal se ne morete prijaviti, ker niste član ekipe."
 
-#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:151
+#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:153
 msgid "Sorry, you can't login because you are not an up-to-date member."
 msgstr "Žal se ne morete prijaviti, ker niste posodobljeni član."
 
-#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:32
+#: ../lib/GaletteOAuth2/Authorization/UserHelper.php:164
+#, php-format
+msgid "Default scope (%s) has not been authorized."
+msgstr "Privzeti obseg (%s) ni bil odobren."
+
+#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:38
+#, fuzzy
+#| msgid ""
+#| "Access to your member basic information: name, login, email, language, "
+#| "company name)"
 msgid ""
-"Access to your member basic information: name, login, email, language, "
-"company name)"
+"Access to your member basic information: name, login, email, language, status"
 msgstr ""
 "Dostop do osnovnih podatkov o vašem članu: ime, prijava, e-pošta, jezik, ime "
 "podjetja)"
 
-#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:35
+#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:41
 msgid ""
 "Access to more precise personal data: birth date, job, gender, birth place, "
 "GnuPG ID"
@@ -101,49 +104,50 @@ msgstr ""
 "Dostop do natančnejših osebnih podatkov: rojstni datum, služba, spol, "
 "rojstni kraj, GnuPG ID"
 
-#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:38
+#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:44
 msgid "Access to your localization data: zipcode, town, region, country"
 msgstr ""
 "Dostop do vaših lokalizacijskih podatkov: poštna številka, mesto, regija, "
 "država"
 
-#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:41
-msgid ""
-"Access to your precise localisation data: full address, coordinates (from "
-"maps plugin)"
+#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:47
+#, fuzzy
+#| msgid ""
+#| "Access to your precise localisation data: full address, coordinates (from "
+#| "maps plugin)"
+msgid "Access to your precise localization data: full address"
 msgstr ""
 "Dostop do vaših natančnih lokalizacijskih podatkov: polni naslov, koordinate "
 "(iz vtičnika za zemljevide)"
 
-#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:44
+#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:50
 msgid "Access to your phone numbers"
 msgstr "Dostop do vaših telefonskih številk"
 
-#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:47
+#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:53
 msgid "Access to your social networks data"
 msgstr "Dostop do vaših podatkov na družbenih omrežjih"
 
-#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:50
+#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:56
 msgid "Access to the groups you belong to"
 msgstr "Dostop do skupin, ki jim pripadate"
 
-#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:53
+#: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:59
 msgid "Access to your due date"
 msgstr "Dostop do vašega datuma poroda"
 
-#: ../tempcache/oauth2_authorize.html.twig:85
+#: ../templates/default/oauth2_authorize.html.twig:22
 msgid "Default scope is mandatory and cannot be unselected"
 msgstr "Privzeti obseg je obvezen in ga ni mogoče preklicati"
 
-#: ../tempcache/oauth2_authorize.html.twig:87
-#, php-format
-msgid "Give acces to '%1$s' scope"
-msgstr "Omogočite dostop do obsega »%1$s«"
-
-#: ../tempcache/oauth2_authorize.html.twig:119
+#: ../templates/default/oauth2_authorize.html.twig:36
 msgid "Cancel"
 msgstr "Prekliči"
 
-#: ../tempcache/oauth2_authorize.html.twig:127
+#: ../templates/default/oauth2_authorize.html.twig:41
 msgid "Allow"
 msgstr "Dovoli"
+
+#, php-format
+#~ msgid "Give acces to '%1$s' scope"
+#~ msgstr "Omogočite dostop do obsega »%1$s«"
