@@ -316,4 +316,43 @@ class LoginController extends GaletteRoutingTestCase
         $this->assertSame(['Location' => [$this->routeparser->urlFor(OAUTH2_PREFIX . '_login')]], $test_response->getHeaders());
         $this->assertSame(302, $test_response->getStatusCode());
     }
+
+    /**
+     * Test successful login binds the client and renews session identifier
+     *
+     * @return void
+     */
+    public function testDoLoginSuccess(): void
+    {
+        $member = $this->getAdminMember($this->getMemberOne());
+        $data = $this->dataAdherentOne();
+        $this->session->request_args = [
+            'response_type' => 'code',
+            'client_id' => 'galette_cli',
+            'redirect_uri' => 'http://localhost:8888',
+            'scope' => 'member',
+            'state' => 'login-state',
+        ];
+        $sid = session_id();
+
+        $request = $this->createRequest(
+            route_name: OAUTH2_PREFIX . '_doLogin',
+            method: 'POST'
+        );
+        $request = $request->withParsedBody([
+            'login' => $data['login_adh'],
+            'password' => $data['mdp_adh'],
+        ]);
+        $test_response = $this->app->handle($request);
+
+        $this->assertSame(302, $test_response->getStatusCode());
+        $this->assertStringStartsWith(
+            $this->routeparser->urlFor(OAUTH2_PREFIX . '_authorize') . '?',
+            $test_response->getHeaderLine('Location')
+        );
+        $this->assertSame('yes', $this->session->isLoggedIn);
+        $this->assertSame($member->id, $this->session->user_id);
+        $this->assertSame('galette_cli', $this->session->client_id);
+        $this->assertNotSame($sid, session_id());
+    }
 }

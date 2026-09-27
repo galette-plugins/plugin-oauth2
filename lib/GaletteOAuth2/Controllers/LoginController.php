@@ -155,6 +155,8 @@ final class LoginController extends AbstractPluginController
                 );
         }
 
+        //new session identifier once logged in
+        Session::regenerate();
         //FIXME: for both isLoggedIn and user_id, we can rely on login object stored in session
         $this->session->isLoggedIn = 'yes';
         $this->session->client_id = $client_id;

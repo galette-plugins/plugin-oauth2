@@ -45,9 +45,13 @@ $container->set(
             'lifetime'  => (int)$container->get(Preferences::class)->getConfigValue('pref_session_timeout')
         ]);
 
-        $galette_sid = session_id();
+        //close Galette session; OAuth one has its own cookie, so its identifier can be renewed on login
         session_write_close();
-        session_id('galette-oauth-' . $galette_sid);
+        $sid = $_COOKIE[$session_name] ?? '';
+        if (!is_string($sid) || !preg_match('/^[a-zA-Z0-9,-]{22,256}$/', $sid)) {
+            $sid = session_create_id('galette-oauth-');
+        }
+        session_id($sid);
         $session->start();
 
         $container->get(Messages::class)->__construct($_SESSION);
