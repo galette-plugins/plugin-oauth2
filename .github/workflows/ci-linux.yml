@@ -170,6 +170,11 @@ jobs:
         with:
           path: galette-core/galette/plugins/plugin-oauth2
 
+      - name: Compile translations
+        run: |
+          cd galette-core
+          bin/console galette:compile-locales plugin-oauth2
+
       - name: Install plugin dependencies
         run: |
           cd galette-core/galette/plugins/plugin-oauth2
@@ -277,6 +282,11 @@ jobs:
         uses: actions/checkout@v7
         with:
           path: galette-core/galette/plugins/plugin-oauth2
+
+      - name: Compile translations
+        run: |
+          cd galette-core
+          bin/console galette:compile-locales plugin-oauth2
 
       - name: Install plugin dependencies
         run: |
