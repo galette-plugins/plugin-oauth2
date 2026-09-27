@@ -106,6 +106,29 @@ class AuthorizationController extends GaletteRoutingTestCase
     }
 
     /**
+     * Test authorization form only offers known scopes
+     *
+     * @return void
+     */
+    public function testAuthorizeWithUnknownConfiguredScope(): void
+    {
+        $this->logUserIn('galette_typo');
+
+        $params = $this->getAuthorizeParams('http://localhost/typo');
+        $params['client_id'] = 'galette_typo';
+        $request = $this->createRequest(
+            route_name: OAUTH2_PREFIX . '_authorize',
+            query_params: $params
+        );
+        $test_response = $this->app->handle($request);
+
+        $this->expectOK($test_response);
+        $body = (string)$test_response->getBody();
+        $this->assertStringContainsString('value="member:phones"', $body);
+        $this->assertStringNotContainsString('value="member:phone"', $body);
+    }
+
+    /**
      * Test authorization for an unknown client shows an error
      *
      * @return void

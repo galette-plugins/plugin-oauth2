@@ -85,6 +85,8 @@ final class AuthorizationController extends AbstractPluginController
                 $queryParams['scope'] ?? [],
                 true
             );
+            //unknown scopes, from a configuration typo for example, cannot be granted
+            $scopes = array_values(array_intersect($scopes, array_keys(ScopeRepository::knownScopes())));
 
             $this->view->render(
                 $response,

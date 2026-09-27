@@ -43,3 +43,11 @@ galette_defaultpassword:
     password: abc123
     title: Client with default password
     redirect_uri: 'http://localhost/defaultpassword'
+galette_typo:
+    password: typo-secret-for-tests
+    title: Client with a scope typo
+    redirect_uri: 'http://localhost/typo'
+    authorize: teamonly
+    scopes:
+        - member:phones
+        - member:phone
