@@ -142,7 +142,7 @@ final class UserHelper
         if ($acl === self::AUTH_TEAMONLY) {
             if (!$member->isAdmin() && !$member->isStaff() && !$member->isGroupManager(null)) {
                 throw new UserAuthorizationException(
-                    _T("Sorry, you can't login because your are not a team member.", 'oauth2')
+                    _T("Sorry, you can't login because you are not a team member.", 'oauth2')
                 );
             }
         }
@@ -150,7 +150,7 @@ final class UserHelper
         if ($acl === self::AUTH_UPTODATE) {
             if (!$member->isUp2Date()) {
                 throw new UserAuthorizationException(
-                    _T("Sorry, you can't login because your are not an up-to-date member.", 'oauth2')
+                    _T("Sorry, you can't login because you are not an up-to-date member.", 'oauth2')
                 );
             }
         }

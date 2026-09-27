@@ -83,7 +83,7 @@ class LoginController extends GaletteRoutingTestCase
         $test_response = $this->app->handle($request);
         $this->expectOK($test_response);
         $body = (string)$test_response->getBody();
-        $this->assertStringContainsString('Sign in Forum Flarum', $body);
+        $this->assertStringContainsString('Sign in to Forum Flarum', $body);
     }
 
     /**

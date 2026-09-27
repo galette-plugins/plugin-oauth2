@@ -280,12 +280,12 @@ class AuthorizationCodeFlow extends GaletteRoutingTestCase
         $this->assertSame('application/json', $test_response->getHeaderLine('Content-Type'));
         $body = json_decode((string)$test_response->getBody(), true);
         $this->assertSame(
-            "Sorry, you can't login because your are not a team member.",
+            "Sorry, you can't login because you are not a team member.",
             $body['message']
         );
         $this->expectLogEntry(
             \Analog\Analog::ERROR,
-            "api/user() error : Sorry, you can't login because your are not a team member."
+            "api/user() error : Sorry, you can't login because you are not a team member."
         );
     }
 }

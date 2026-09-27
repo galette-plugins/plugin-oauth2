@@ -25,7 +25,7 @@ msgstr "Se connecter avec %s"
 
 #: ../lib/GaletteOAuth2/Controllers/LoginController.php:205
 #, php-format
-msgid "Sign in %s"
+msgid "Sign in to %s"
 msgstr "Connecter %s"
 
 #: ../lib/GaletteOAuth2/Controllers/AuthorizationController.php:137
@@ -60,11 +60,11 @@ msgstr ""
 "courriel valide à votre compte."
 
 #: ../lib/GaletteOAuth2/Authorization/UserHelper.php:140
-msgid "Sorry, you can't login because your are not a team member."
+msgid "Sorry, you can't login because you are not a team member."
 msgstr "Désolé, vous n'êtes pas membre de l'équipe."
 
 #: ../lib/GaletteOAuth2/Authorization/UserHelper.php:148
-msgid "Sorry, you can't login because your are not an up-to-date member."
+msgid "Sorry, you can't login because you are not an up-to-date member."
 msgstr ""
 "Désolé, vous ne pouvez pas vous connecter car vous n'êtes pas à jour de "
 "votre cotisation."

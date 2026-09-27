@@ -286,7 +286,7 @@ class UserHelper extends GaletteTestCase
     {
         $adh1  = $this->getMemberOne();
 
-        $this->expectExceptionMessage("Sorry, you can't login because your are not a team member.");
+        $this->expectExceptionMessage("Sorry, you can't login because you are not a team member.");
         $this->container->get(\GaletteOAuth2\Authorization\UserHelper::class)->getUserData(
             $adh1->id,
             \GaletteOAuth2\Authorization\UserHelper::AUTH_TEAMONLY,
@@ -428,7 +428,7 @@ class UserHelper extends GaletteTestCase
         $this->assertTrue($store);
         $this->login->logout();
 
-        $this->expectExceptionMessage("Sorry, you can't login because your are not an up-to-date member.");
+        $this->expectExceptionMessage("Sorry, you can't login because you are not an up-to-date member.");
         $this->container->get(\GaletteOAuth2\Authorization\UserHelper::class)->getUserData(
             $adh->id,
             \GaletteOAuth2\Authorization\UserHelper::AUTH_UPTODATE,

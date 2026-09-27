@@ -54,7 +54,7 @@ msgstr ""
 
 #: ../lib/GaletteOAuth2/Controllers/LoginController.php:260
 #, php-format
-msgid "Sign in %s"
+msgid "Sign in to %s"
 msgstr ""
 
 #: ../lib/GaletteOAuth2/Authorization/UserHelper.php:69
@@ -78,11 +78,11 @@ msgid "Sorry, you can't login. Please, add an email address to your account."
 msgstr ""
 
 #: ../lib/GaletteOAuth2/Authorization/UserHelper.php:143
-msgid "Sorry, you can't login because your are not a team member."
+msgid "Sorry, you can't login because you are not a team member."
 msgstr ""
 
 #: ../lib/GaletteOAuth2/Authorization/UserHelper.php:151
-msgid "Sorry, you can't login because your are not an up-to-date member."
+msgid "Sorry, you can't login because you are not an up-to-date member."
 msgstr ""
 
 #: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:32

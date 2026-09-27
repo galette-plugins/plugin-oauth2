@@ -272,7 +272,7 @@ final class LoginController extends AbstractPluginController
         );
         $application = $this->config->get("{$client_id}.title", '');
         $page_title = sprintf(
-            _T('Sign in %s', 'oauth2'),
+            _T('Sign in to %s', 'oauth2'),
             $application
         );
 
