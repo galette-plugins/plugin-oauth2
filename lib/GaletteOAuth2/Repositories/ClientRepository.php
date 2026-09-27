@@ -11,7 +11,6 @@ declare(strict_types=1);
 namespace GaletteOAuth2\Repositories;
 
 use Analog\Analog;
-use Psr\Container\ContainerInterface;
 use GaletteOAuth2\Entities\ClientEntity;
 use GaletteOAuth2\Tools\Config;
 use GaletteOAuth2\Tools\Debug;
@@ -28,13 +27,8 @@ final class ClientRepository implements ClientRepositoryInterface
 {
     private const string EXAMPLE_PASSWORD = 'abc123';
 
-    private ContainerInterface $container;
-    private Config $config;
-
-    public function __construct(ContainerInterface $container)
+    public function __construct(private readonly Config $config)
     {
-        $this->container = $container;
-        $this->config = $this->container->get(Config::class);
     }
 
     /**

@@ -65,22 +65,18 @@ $container->set(
     function (ContainerInterface $container) {
         // Setup the authorization server
         $server = new AuthorizationServer(
-        // instance of ClientRepositoryInterface
-            new ClientRepository($container),
-            // instance of AccessTokenRepositoryInterface
-            new AccessTokenRepository(),
-            // instance of ScopeRepositoryInterface
-            new ScopeRepository(),
+            $container->get(ClientRepository::class),
+            $container->get(AccessTokenRepository::class),
+            $container->get(ScopeRepository::class),
             // path to private key
             'file://' . OAUTH2_CONFIGPATH . '/private.key',
             // encryption key
             EncryptionKey::load($container->get(Config::class), OAUTH2_CONFIGPATH),
         );
 
-        $refreshTokenRepository = new RefreshTokenRepository();
+        $refreshTokenRepository = $container->get(RefreshTokenRepository::class);
         $grant = new AuthCodeGrant(
-            new AuthCodeRepository(),
-            // instance of RefreshTokenRepositoryInterface
+            $container->get(AuthCodeRepository::class),
             $refreshTokenRepository,
             new DateInterval('PT10M'),
         );
@@ -113,7 +109,7 @@ $container->set(
         $publicKeyPath = 'file://' . OAUTH2_CONFIGPATH . '/public.key';
 
         return new ResourceServer(
-            new AccessTokenRepository(),
+            $container->get(AccessTokenRepository::class),
             $publicKeyPath,
         );
     },

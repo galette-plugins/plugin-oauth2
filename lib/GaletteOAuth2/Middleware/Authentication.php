@@ -11,12 +11,12 @@ declare(strict_types=1);
 namespace GaletteOAuth2\Middleware;
 
 use Analog\Analog;
+use DI\Attribute\Inject;
 use GaletteOAuth2\Repositories\ClientRepository;
 use GaletteOAuth2\Tools\Debug;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Server\RequestHandlerInterface as RequestHandler;
-use DI\Container;
 use RKA\Session;
 use Slim\Routing\RouteParser;
 
@@ -28,15 +28,12 @@ use Slim\Routing\RouteParser;
  */
 final class Authentication
 {
-    private Container $container;
-    private RouteParser $routeparser;
-    private Session $session;
-
-    public function __construct(Container $container)
-    {
-        $this->container = $container;
-        $this->routeparser = $container->get(RouteParser::class);
-        $this->session = $container->get('oauth_session');
+    public function __construct(
+        private readonly ClientRepository $clientRepository,
+        private readonly RouteParser $routeparser,
+        #[Inject('oauth_session')]
+        private readonly Session $session
+    ) {
     }
 
     /**
@@ -51,8 +48,7 @@ final class Authentication
         $queryParams = $request->getQueryParams();
         $client_id = $queryParams['client_id'] ?? null;
 
-        $clientRepository = new ClientRepository($this->container);
-        if (!$clientRepository->clientExists($client_id)) {
+        if (!$this->clientRepository->clientExists($client_id)) {
             Analog::log(
                 sprintf(
                     'OAuth2: Invalid or missing client_id "%s" in authorization request from IP %s',

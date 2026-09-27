@@ -76,7 +76,7 @@ class ClientRepository extends GaletteTestCase
     #[DataProvider('validClientIdsProvider')]
     public function testClientExistsWithValidClients(string $client_id): void
     {
-        $clientRepository = new \GaletteOAuth2\Repositories\ClientRepository($this->container);
+        $clientRepository = $this->container->get(\GaletteOAuth2\Repositories\ClientRepository::class);
         $this->assertTrue(
             $clientRepository->clientExists($client_id),
             "Client '$client_id' should exist in configuration"
@@ -92,7 +92,7 @@ class ClientRepository extends GaletteTestCase
     #[DataProvider('invalidClientIdsProvider')]
     public function testClientExistsWithInvalidClients(?string $client_id): void
     {
-        $clientRepository = new \GaletteOAuth2\Repositories\ClientRepository($this->container);
+        $clientRepository = $this->container->get(\GaletteOAuth2\Repositories\ClientRepository::class);
         $this->assertFalse(
             $clientRepository->clientExists($client_id),
             "Client '$client_id' should not exist in configuration"
@@ -113,7 +113,7 @@ class ClientRepository extends GaletteTestCase
         file_put_contents($cache_file, 'https://attacker.example/cb');
 
         try {
-            $clientRepository = new \GaletteOAuth2\Repositories\ClientRepository($this->container);
+            $clientRepository = $this->container->get(\GaletteOAuth2\Repositories\ClientRepository::class);
 
             $client = $clientRepository->getClientEntity('galette_flarum');
             $this->assertNotNull($client);
@@ -142,7 +142,7 @@ class ClientRepository extends GaletteTestCase
      */
     public function testClientWithoutRedirectUriIsRefused(): void
     {
-        $clientRepository = new \GaletteOAuth2\Repositories\ClientRepository($this->container);
+        $clientRepository = $this->container->get(\GaletteOAuth2\Repositories\ClientRepository::class);
 
         $this->assertFalse($clientRepository->clientExists('galette_noredirect'));
         $this->expectLogEntry(
@@ -164,7 +164,7 @@ class ClientRepository extends GaletteTestCase
      */
     public function testValidateClient(): void
     {
-        $clientRepository = new \GaletteOAuth2\Repositories\ClientRepository($this->container);
+        $clientRepository = $this->container->get(\GaletteOAuth2\Repositories\ClientRepository::class);
 
         $this->assertTrue($clientRepository->validateClient('galette_cli', 'cli-secret-for-tests', 'authorization_code'));
         $this->assertFalse($clientRepository->validateClient('galette_cli', 'wrong-secret', 'authorization_code'));
@@ -182,7 +182,7 @@ class ClientRepository extends GaletteTestCase
      */
     public function testValidateClientWithoutPassword(): void
     {
-        $clientRepository = new \GaletteOAuth2\Repositories\ClientRepository($this->container);
+        $clientRepository = $this->container->get(\GaletteOAuth2\Repositories\ClientRepository::class);
 
         $this->assertFalse($clientRepository->validateClient('galette_nopassword', 'abc123', 'authorization_code'));
         $this->expectLogEntry(
@@ -198,7 +198,7 @@ class ClientRepository extends GaletteTestCase
      */
     public function testValidateClientWithDefaultPassword(): void
     {
-        $clientRepository = new \GaletteOAuth2\Repositories\ClientRepository($this->container);
+        $clientRepository = $this->container->get(\GaletteOAuth2\Repositories\ClientRepository::class);
 
         $this->assertFalse($clientRepository->validateClient('galette_defaultpassword', 'abc123', 'authorization_code'));
         $this->expectLogEntry(

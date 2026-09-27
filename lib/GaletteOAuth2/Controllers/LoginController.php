@@ -40,6 +40,8 @@ final class LoginController extends AbstractPluginController
     protected Container $container;
     #[Inject]
     protected Config $config;
+    #[Inject]
+    protected ClientRepository $clientRepository;
     #[Inject("oauth_session")]
     protected Session $session;
 
@@ -249,8 +251,7 @@ final class LoginController extends AbstractPluginController
         }
 
         // Check if client exists in configuration
-        $clientRepository = new ClientRepository($this->container);
-        if (!$clientRepository->clientExists($client_id)) {
+        if (!$this->clientRepository->clientExists($client_id)) {
             Analog::log(
                 sprintf(
                     'OAuth2: Invalid client_id "%s" in request from IP %s',
