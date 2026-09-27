@@ -99,10 +99,22 @@ class AuthorizationController extends GaletteRoutingTestCase
         $test_response = $this->app->handle($request);
 
         $this->expectOK($test_response);
+        $body = (string)$test_response->getBody();
         $this->assertStringContainsString(
             'Forum Flarum is requesting access to the following details',
-            (string)$test_response->getBody()
+            $body
         );
+        $this->assertStringContainsString(
+            '<legend class="visually-hidden">Forum Flarum is requesting access to the following details</legend>',
+            $body
+        );
+        //default scope cannot be unchecked, and is explained
+        $this->assertStringContainsString(
+            '<input type="checkbox" id="scope_member" checked="checked" disabled="disabled" aria-describedby="scope_member_help"/>',
+            $body
+        );
+        $this->assertStringContainsString('id="scope_member_help"', $body);
+        $this->assertStringNotContainsString('name="scopes[]" value="member"', $body);
     }
 
     /**

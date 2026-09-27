@@ -9,32 +9,38 @@
 {% set ext_auth = true %}
 {% block content %}
     <form action="{{ url_for('oauth2_doAuthorize') }}?{{ querystring }}" method="post" class="ui form">
-            <div class="ui segment">
+        <fieldset>
+            <legend class="visually-hidden">{{ page_title }}</legend>
     {% for requested_scope in requested_scopes %}
-                <div class="field">
-                    <div
-                        class="ui toggle checkbox emotive tooltip{% if requested_scope == 'member' %} disabled{% endif %}"
-                        title="{% if requested_scope == 'member' %}{{ _T('Default scope is mandatory and cannot be unselected', 'oauth2') }}{% else %}{{ _T("Give acces to '%1$s' scope", "oauth2")|format(requested_scope) }}{% endif %}">
-                        <input type="checkbox" id="scope_{{ requested_scope }}" name="scopes[]" value="{{ requested_scope }}" checked="checked"/>
-                        <label for="scope_{{ requested_scope }}">{{ known_scopes[requested_scope]['description'] }}</label>
-                    </div>
+            <div class="field">
+        {% if requested_scope == 'member' %}
+                {# default scope is always given, server side #}
+                <div class="ui toggle checkbox disabled">
+                    <input type="checkbox" id="scope_member" checked="checked" disabled="disabled" aria-describedby="scope_member_help"/>
+                    <label for="scope_member">{{ known_scopes['member']['description'] }}</label>
                 </div>
-    {% endfor %}
-                <br/>
-
-
-                <div class="ui two column grid">
-                    <div class="column center aligned">
-                        <button type="submit" name="refuse" class="ui fluid large button">
-                            {{ _T("Cancel", "oauth2") }}
-                        </button>
-                    </div>
-                    <div class="column center aligned">
-                        <button type="submit" name="approve" class="ui primary fluid large button">
-                            {{ _T("Allow", "oauth2") }}
-                        </button>
-                    </div>
+                <p id="scope_member_help" class="ui small text">{{ _T('Default scope is mandatory and cannot be unselected', 'oauth2') }}</p>
+        {% else %}
+                <div class="ui toggle checkbox">
+                    <input type="checkbox" id="scope_{{ requested_scope }}" name="scopes[]" value="{{ requested_scope }}" checked="checked"/>
+                    <label for="scope_{{ requested_scope }}">{{ known_scopes[requested_scope]['description'] }}</label>
                 </div>
+        {% endif %}
             </div>
+    {% endfor %}
+        </fieldset>
+
+        <div class="ui two column grid">
+            <div class="column center aligned">
+                <button type="submit" name="refuse" class="ui fluid large button">
+                    {{ _T("Cancel", "oauth2") }}
+                </button>
+            </div>
+            <div class="column center aligned">
+                <button type="submit" name="approve" class="ui primary fluid large button">
+                    {{ _T("Allow", "oauth2") }}
+                </button>
+            </div>
+        </div>
     </form>
 {% endblock %}
