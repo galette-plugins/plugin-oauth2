@@ -6,9 +6,9 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"Report-Msgid-Bugs-To: \n"
+"Report-Msgid-Bugs-To: translations@galette.eu\n"
 "POT-Creation-Date: 2026-09-27 18:15+0200\n"
-"PO-Revision-Date: 2026-09-15 07:51+0000\n"
+"PO-Revision-Date: 2026-09-28 08:57+0000\n"
 "Last-Translator: Jože Felicijan <joze@felicijan.com>\n"
 "Language-Team: Slovenian <https://hosted.weblate.org/projects/galette/plugin-"
 "oauth2/sl/>\n"
@@ -86,15 +86,11 @@ msgid "Default scope (%s) has not been authorized."
 msgstr "Privzeti obseg (%s) ni bil odobren."
 
 #: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:38
-#, fuzzy
-#| msgid ""
-#| "Access to your member basic information: name, login, email, language, "
-#| "company name)"
 msgid ""
 "Access to your member basic information: name, login, email, language, status"
 msgstr ""
-"Dostop do osnovnih podatkov o vašem članu: ime, prijava, e-pošta, jezik, ime "
-"podjetja)"
+"Dostop do osnovnih podatkov o članu: ime, prijavno ime, e-pošta, jezik, "
+"status"
 
 #: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:41
 msgid ""
@@ -111,14 +107,8 @@ msgstr ""
 "država"
 
 #: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:47
-#, fuzzy
-#| msgid ""
-#| "Access to your precise localisation data: full address, coordinates (from "
-#| "maps plugin)"
 msgid "Access to your precise localization data: full address"
-msgstr ""
-"Dostop do vaših natančnih lokalizacijskih podatkov: polni naslov, koordinate "
-"(iz vtičnika za zemljevide)"
+msgstr "Dostop do vaših natančnih podatkov o lokaciji: popoln naslov"
 
 #: ../lib/GaletteOAuth2/Repositories/ScopeRepository.php:50
 msgid "Access to your phone numbers"
