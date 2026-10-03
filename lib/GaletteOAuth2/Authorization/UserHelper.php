@@ -1,22 +1,9 @@
 <?php
 
 /**
- * Copyright © 2021-2025 The Galette Team
- *
- * This file is part of Galette OAuth2 plugin (https://galette-community.github.io/plugin-oauth2/).
- *
- * Galette is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Galette is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Galette OAuth2 plugin. If not, see <http://www.gnu.org/licenses/>.
+ * This file is part of Galette OAuth2 plugin (https://galette-plugins.github.io/plugin-oauth2/).
+ * SPDX-FileCopyrightText: Copyright © 2021-2026 The Galette Team
+ * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 declare(strict_types=1);
@@ -24,7 +11,7 @@ declare(strict_types=1);
 namespace GaletteOAuth2\Authorization;
 
 use Analog\Analog;
-use DI\Container;
+use DI\Attribute\Inject;
 use Galette\Core\Db;
 use Galette\Core\History;
 use Galette\Core\Login;
@@ -33,6 +20,7 @@ use Galette\Entity\Adherent;
 use Galette\Entity\Social;
 use GaletteOAuth2\Tools\Config;
 use GaletteOAuth2\Tools\Debug;
+use RKA\Session;
 use Slim\Flash\Messages;
 
 /**
@@ -47,28 +35,37 @@ final class UserHelper
     public const AUTH_UPTODATE = 'uptodate';
     public const AUTH_ACTIVE = 'active';
 
-    public static function login(Container $container, $nick, $password): int|false
-    {
-        $preferences = $container->get(Preferences::class);
-        /** @var Login $login */
-        $login = $container->get(Login::class);
-        $history = $container->get(History::class);
-        $session = $container->get('oauth_session');
-        $flash = $container->get(Messages::class);
+    public function __construct(
+        private readonly Db $zdb,
+        private readonly Login $login,
+        private readonly History $history,
+        private readonly Preferences $preferences,
+        private readonly Messages $flash,
+        #[Inject('oauth_session')]
+        private readonly Session $session
+    ) {
+    }
 
+    /**
+     * Log in a member
+     *
+     * @return int|false Member ID, false on failure
+     */
+    public function login(string $nick, string $password): int|false
+    {
         if (trim($nick) === '' || trim($password) === '') {
             return false;
         }
 
-        if ($nick === $preferences->pref_admin_login) {
+        if ($nick === $this->preferences->pref_admin_login) {
             $pw_superadmin = password_verify(
                 $password,
-                $preferences->pref_admin_pass,
+                $this->preferences->pref_admin_pass,
             );
 
             if (!$pw_superadmin) {
                 $pw_superadmin = (
-                    md5($password) === $preferences->pref_admin_pass
+                    md5($password) === $this->preferences->pref_admin_pass
                 );
             }
 
@@ -77,60 +74,57 @@ final class UserHelper
                     'OAuth login attempt from superadmin account',
                     Analog::WARNING
                 );
-                $flash->addMessage(
+                $this->flash->addMessage(
                     'error_detected',
                     _T('Cannot OAuth login from superadmin account!', 'oauth2')
                 );
                 return false;
             }
         } else {
-            $login->logIn($nick, $password);
+            $this->login->logIn($nick, $password);
         }
 
-        if ($login->isLogged()) {
-            $session->login = $login;
-            $history->add(_T('Login'));
+        if ($this->login->isLogged()) {
+            $this->session->login = $this->login;
+            $this->history->add(_T('Login'));
 
-            return $login->id;
+            return $this->login->id;
         }
-        $history->add(_T('Authentication failed'), $nick);
+        $this->history->add(_T('Authentication failed'), $nick);
+
+        $this->flash->addMessage(
+            'error_detected',
+            _T('Check your login / email or password.', 'oauth2')
+        );
 
         return false;
     }
 
-    public static function logout(Container $container): void
+    /**
+     * Log out current member
+     */
+    public function logout(): void
     {
-        /** @var Login $login */
-        $login = $container->get(Login::class);
-        $history = $container->get(History::class);
-        $session = $container->get('oauth_session');
-
-        $login->logout();
-        $session->login = $login;
-        $history->add(_T('Logout'));
+        $this->login->logout();
+        $this->session->login = $this->login;
+        $this->history->add(_T('Logout'));
     }
 
     /**
      * Get user data
      *
-     * @param Container       $container Container instance
-     * @param int             $id        User ID
-     * @param string          $acl       Requested authorization
-     * @param string[]|string $scopes    Scopes
-     * @param bool            $legacy    Legacy mode for data
+     * @param int      $id     User ID
+     * @param string   $acl    Requested authorization
+     * @param string[] $scopes Scopes
+     * @param bool     $legacy Legacy mode for data
      *
      * @return array<string, mixed>
      * @throws UserAuthorizationException
-     * @throws \DI\DependencyException
-     * @throws \DI\NotFoundException
      * @throws \Throwable
      */
-    public static function getUserData(Container $container, int $id, string $acl, array|string $scopes, bool $legacy = false): array
+    public function getUserData(int $id, string $acl, array $scopes, bool $legacy = false): array
     {
-        /** @var Db $zdb */
-        $zdb = $container->get(Db::class);
-
-        $member = new Adherent($zdb);
+        $member = new Adherent($this->zdb);
         if (!$member->load($id)) {
             throw new UserAuthorizationException(_T('User not found.', 'oauth2'));
         }
@@ -148,7 +142,7 @@ final class UserHelper
         if ($acl === self::AUTH_TEAMONLY) {
             if (!$member->isAdmin() && !$member->isStaff() && !$member->isGroupManager(null)) {
                 throw new UserAuthorizationException(
-                    _T("Sorry, you can't login because your are not a team member.", 'oauth2')
+                    _T("Sorry, you can't login because you are not a team member.", 'oauth2')
                 );
             }
         }
@@ -156,7 +150,7 @@ final class UserHelper
         if ($acl === self::AUTH_UPTODATE) {
             if (!$member->isUp2Date()) {
                 throw new UserAuthorizationException(
-                    _T("Sorry, you can't login because your are not an up-to-date member.", 'oauth2')
+                    _T("Sorry, you can't login because you are not an up-to-date member.", 'oauth2')
                 );
             }
         }
@@ -295,7 +289,7 @@ final class UserHelper
      * @param Adherent $member Member
      * @param bool     $legacy Legacy mode for data
      *
-     * @return array
+     * @return string[]
      */
     protected static function getUserGroups(Adherent $member, bool $legacy = false): array
     {
@@ -339,6 +333,7 @@ final class UserHelper
                 $group = str_replace('__', '_', $group);
                 $group = self::stripAccents($group);
             }
+            unset($group);
         }
 
         return $groups;
@@ -348,16 +343,18 @@ final class UserHelper
      * Get required authorizations
      *
      * @param Config $config Config instance
-     * @param string $client_id
-     *
-     * @return string
      */
     public static function getAuthorization(Config $config, string $client_id): string
     {
         $acl = self::AUTH_TEAMONLY;
         $conf_acls = $config->get($client_id . '.authorize');
 
-        if (!in_array($conf_acls, self::getKnownAuthorizations())) {
+        if ($conf_acls === null) {
+            //not set: use default
+            return $acl;
+        }
+
+        if (!in_array($conf_acls, self::getKnownAuthorizations(), true)) {
             Analog::log(
                 sprintf(
                     'Invalid authorization "%1$s" for client "%2$s"',
@@ -376,12 +373,12 @@ final class UserHelper
     /**
      * Merge requested and configured scopes
      *
-     * @param Config $config Config instance
+     * @param ?Config         $config           Config instance
+     * @param string          $client_id        Client app identifier
+     * @param string[]|string $requested_scopes Requested scopes from query string
+     * @param bool            $with_default     Add default scope
      *
-     * @param string       $client_id        Client app identifier
-     * @param array|string $requested_scopes Requested scopes from query string
-     *
-     * @return array
+     * @return string[]
      */
     public static function mergeScopes(
         ?Config $config,
@@ -415,34 +412,21 @@ final class UserHelper
             }
         }
 
-        $scopes = array_unique($scopes);
         $scopes = array_map('strtolower', $scopes);
+        $scopes = array_values(array_unique($scopes));
         Debug::log('Scopes: ' . implode(' ', $scopes));
 
         return $scopes;
     }
 
-    // Nextcloud data:
-    // \DBG = Hybridauth\User\Profile::__set_state(array(
-    // 'identifier' => 3992, 'webSiteURL' => NULL, 'profileURL' => NULL,
-    // 'photoURL' => NULL,
-    // 'displayName' => ' TEST', 'description' => NULL, 'firstName' => NULL, 'lastName' => NULL, 'gender' => NULL,
-    // 'language' => NULL,
-    // 'age' => NULL, 'birthDay' => NULL, 'birthMonth' => NULL, 'birthYear' => NULL,
-    // 'email' => 'uuuu@ik.me', 'emailVerified' => NULL, 'phone' => NULL,
-    // 'address' => NULL, 'country' => NULL, 'region' => NULL, 'city' => NULL, 'zip' => NULL
-
     /**
      * Strips accented characters, lower string
-     *
-     * @param string $str
-     * @return string
      */
     public static function stripAccents(string $str): string
     {
         return mb_strtolower(
             transliterator_transliterate(
-                "Any-Latin; Latin-ASCII; [^a-zA-Z0-9\.\ -_] Remove;",
+                "Any-Latin; Latin-ASCII; [^a-zA-Z0-9\.\ \-_] Remove;",
                 $str
             )
         );

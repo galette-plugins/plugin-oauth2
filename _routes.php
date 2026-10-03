@@ -1,22 +1,9 @@
 <?php
 
 /**
- * Copyright © 2021-2025 The Galette Team
- *
- * This file is part of Galette OAuth2 plugin (https://galette-community.github.io/plugin-oauth2/).
- *
- * Galette is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Galette is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Galette OAuth2 plugin. If not, see <http://www.gnu.org/licenses/>.
+ * This file is part of Galette OAuth2 plugin (https://galette-plugins.github.io/plugin-oauth2/).
+ * SPDX-FileCopyrightText: Copyright © 2021-2026 The Galette Team
+ * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 declare(strict_types=1);
@@ -33,13 +20,18 @@ use GaletteOAuth2\Controllers\AuthorizationController;
 use GaletteOAuth2\Controllers\LoginController;
 use GaletteOAuth2\Middleware\Authentication;
 
+/**
+ * @var \Slim\Routing\RouteCollectorProxy<\DI\Container> $app
+ * @var array<string, mixed> $module
+ */
+
 //Include specific classes (league/oauth2_server and tools)
-require_once 'vendor/autoload.php';
+require_once __DIR__ . '/vendor/autoload.php';
 
 //Constants and classes from plugin
 require_once $module['root'] . '/_config.inc.php';
 
-require '_dependencies.php';
+require __DIR__ . '/_dependencies.php';
 
 //login is always called by a http_redirect
 $app->get(
@@ -57,6 +49,11 @@ $app->map(
     '/logout',
     [LoginController::class, 'logout']
 )->setName(OAUTH2_PREFIX . '_logout');
+
+$app->get(
+    '/error',
+    [LoginController::class, 'error']
+)->setName(OAUTH2_PREFIX . '_error');
 
 $app->get(
     '/authorize',
@@ -77,3 +74,18 @@ $app->get(
     '/user',
     [ApiController::class, 'user']
 )->setName(OAUTH2_PREFIX . '_user');
+
+// Test callback route for E2E tests (only in test environment)
+if (getenv('GALETTE_TESTS') !== false || defined('GALETTE_TESTS')) {
+    $app->get(
+        '/test-callback',
+        function ($request, $response) {
+            $params = $request->getQueryParams();
+            $html = '<!DOCTYPE html><html lang="en"><body><h1>OAuth2 Test Callback</h1>';
+            $html .= '<pre>' . htmlspecialchars(print_r($params, true)) . '</pre>';
+            $html .= '</body></html>';
+            $response->getBody()->write($html);
+            return $response->withHeader('Content-Type', 'text/html');
+        }
+    )->setName(OAUTH2_PREFIX . '_test_callback');
+}

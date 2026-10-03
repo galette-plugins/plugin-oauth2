@@ -1,0 +1,33 @@
+version: 2
+updates:
+  # Keep GitHub Actions up-to-date
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups: #all in one PR
+      github-actions-all:
+        patterns:
+          - "*"
+
+  # Keep Composer dependencies up-to-date
+  - package-ecosystem: "composer"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      # Group development dependencies
+      dev-dependencies:
+        dependency-type: "development"
+      # Group minor and patches
+      composer-minor-patch:
+        dependency-type: "production"
+        update-types:
+          - "minor"
+          - "patch"
+      # Group major
+      composer-major:
+        dependency-type: "production"
+        update-types:
+          - "major"
+

@@ -1,22 +1,9 @@
 <?php
 
 /**
- * Copyright © 2021-2025 The Galette Team
- *
- * This file is part of Galette OAuth2 plugin (https://galette-community.github.io/plugin-oauth2/).
- *
- * Galette is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Galette is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Galette OAuth2 plugin. If not, see <http://www.gnu.org/licenses/>.
+ * This file is part of Galette OAuth2 plugin (https://galette-plugins.github.io/plugin-oauth2/).
+ * SPDX-FileCopyrightText: Copyright © 2021-2026 The Galette Team
+ * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 declare(strict_types=1);
@@ -25,14 +12,13 @@ namespace GaletteOAuth2\Controllers;
 
 use Analog\Analog;
 use DI\Attribute\Inject;
-use DI\Container;
 use Exception;
 use Galette\Controllers\AbstractPluginController;
 use GaletteOAuth2\Authorization\UserHelper;
 use GaletteOAuth2\Entities\UserEntity;
 use GaletteOAuth2\Repositories\ScopeRepository;
-use GaletteOAuth2\Tools\Config as Config;
-use GaletteOAuth2\Tools\Debug as Debug;
+use GaletteOAuth2\Tools\Config;
+use GaletteOAuth2\Tools\Debug;
 use League\OAuth2\Server\AuthorizationServer;
 use League\OAuth2\Server\Exception\OAuthServerException;
 use Psr\Http\Message\ResponseInterface;
@@ -53,81 +39,34 @@ final class AuthorizationController extends AbstractPluginController
      */
     #[Inject("Plugin Galette OAuth2")]
     protected array $module_info;
-    protected Container $container;
+    #[Inject]
     protected Config $config;
     #[Inject("oauth_session")]
     protected Session $session;
-
-    /**
-     * Default constructor
-     *
-     * @param Container $container Container instance
-     * @throws \DI\DependencyException
-     * @throws \DI\NotFoundException
-     */
-    public function __construct(Container $container)
-    {
-        $this->container = $container;
-        $this->config = $this->container->get(Config::class);
-        parent::__construct($container);
-    }
+    #[Inject]
+    protected AuthorizationServer $server;
+    #[Inject]
+    protected ScopeRepository $scopeRepository;
 
     /**
      * Display authorization form
-     *
-     * @param Request $request
-     * @param Response $response
-     * @return Response|ResponseInterface
-     * @throws \DI\DependencyException
-     * @throws \DI\NotFoundException
      */
     public function authorize(Request $request, Response $response): Response|ResponseInterface
     {
         Debug::logRequest('authorization/authorize()', $request);
 
-        $server = $this->container->get(AuthorizationServer::class);
 
         try {
             $queryParams = $request->getQueryParams();
             $client_id = $queryParams['client_id'];
 
-            //Save redirect_uri (it's not possible with Sessions)
-            //FIXME [JC]: I really do not like the idea of using a file on disk;
-            // this may also cause severe issues in case of concurrent logins
-            if (isset($queryParams['redirect_uri'])) {
-                $key = $client_id . '.redirect_uri';
-                if (!isset($this->session->$client_id)) {
-                    $this->session->$client_id = new \stdClass();
-                }
-                $this->session->$client_id->redirect_uri = $queryParams['redirect_uri'];
-                $v = $queryParams['redirect_uri'];
-
-                if ($this->config->get($key, '') === '') {
-                    $filename = OAUTH2_PREFIX . '_' . $key . '.txt';
-                    Debug::log("Auto add redirect_uri to cache $filename: $v");
-
-                    $this->config->set($key, $v);
-                    $stream = fopen(GALETTE_CACHE_DIR . '/' . $filename, 'w+');
-                    fwrite(
-                        $stream,
-                        $v
-                    );
-                    fclose($stream);
-
-                    Analog::log(
-                        'Auto add redirect_uri ok.',
-                        Analog::DEBUG
-                    );
-                }
-            }
-
             // Validate the HTTP request and return an AuthorizationRequest object.
             // The auth request object can be serialized into a user's session
-            $authRequest = $server->validateAuthorizationRequest($request);
+            $authRequest = $this->server->validateAuthorizationRequest($request);
 
             $user = new UserEntity();
             //FIXME: for both isLoggedIn and user_id, we can rely on login object stored in session
-            $user->setIdentifier($this->session->user_id);
+            $user->setIdentifier((string)$this->session->user_id);
             $authRequest->setUser($user);
 
             $server_title = $this->config->get('global.title', 'Galette');
@@ -146,6 +85,8 @@ final class AuthorizationController extends AbstractPluginController
                 $queryParams['scope'] ?? [],
                 true
             );
+            //unknown scopes, from a configuration typo for example, cannot be granted
+            $scopes = array_values(array_intersect($scopes, array_keys(ScopeRepository::knownScopes())));
 
             $this->view->render(
                 $response,
@@ -163,27 +104,17 @@ final class AuthorizationController extends AbstractPluginController
         } catch (OAuthServerException $exception) {
             return $exception->generateHttpResponse($response);
         } catch (Exception $exception) {
-            $body = $response->getBody();
-            $body->write($exception->getMessage());
-
-            return $response->withStatus(500)->withBody($body);
+            return $this->errorResponse($response, $exception);
         }
     }
 
     /**
      * Proceed authorization
-     *
-     * @param Request $request
-     * @param Response $response
-     * @return Response|ResponseInterface
-     * @throws \DI\DependencyException
-     * @throws \DI\NotFoundException
      */
     public function doAuthorize(Request $request, Response $response): Response|ResponseInterface
     {
         Debug::logRequest('authorization/doAuthorize()', $request);
 
-        $server = $this->container->get(AuthorizationServer::class);
 
         try {
             $params = (array)$request->getParsedBody();
@@ -191,10 +122,10 @@ final class AuthorizationController extends AbstractPluginController
 
             // Validate the HTTP request and return an AuthorizationRequest object.
             // The auth request object can be serialized into a user's session
-            $authRequest = $server->validateAuthorizationRequest($request);
+            $authRequest = $this->server->validateAuthorizationRequest($request);
             $user = new UserEntity();
             //FIXME: for both isLoggedIn and user_id, we can rely on login object stored in session
-            $user->setIdentifier($this->session->user_id);
+            $user->setIdentifier((string)$this->session->user_id);
             $authRequest->setUser($user);
 
             // Once the user has approved or denied the client update the status
@@ -208,25 +139,20 @@ final class AuthorizationController extends AbstractPluginController
                     true
                 );
                 $req_scopes = [];
-                $srepo = new ScopeRepository();
                 foreach ($scopes as $scope) {
-                    $req_scopes[] = $srepo->getScopeEntityByIdentifier($scope);
+                    $scope_entity = $this->scopeRepository->getScopeEntityByIdentifier($scope);
+                    if ($scope_entity !== null) {
+                        $req_scopes[] = $scope_entity;
+                    }
                 }
                 $authRequest->setScopes($req_scopes);
             } else {
-                $authRequest->setAuthorizationApproved(true);
-                $authRequest->setScopes([]);
-
-                throw OAuthServerException::accessDenied(
-                    sprintf(
-                        _T('Default scope (%s) has not been authorized.', 'oauth2'),
-                        'member'
-                    )
-                );
+                //refused: client will be redirected with an access_denied error
+                $authRequest->setAuthorizationApproved(false);
             }
 
             // Return the HTTP redirect response
-            $r = $server->completeAuthorizationRequest($authRequest, $response);
+            $r = $this->server->completeAuthorizationRequest($authRequest, $response);
             Analog::log(
                 'authorization/doAuthorize() exit ok',
                 Analog::DEBUG
@@ -236,10 +162,7 @@ final class AuthorizationController extends AbstractPluginController
         } catch (OAuthServerException $exception) {
             return $exception->generateHttpResponse($response);
         } catch (Exception $exception) {
-            $body = $response->getBody();
-            $body->write($exception->getMessage());
-
-            return $response->withStatus(500)->withBody($body);
+            return $this->errorResponse($response, $exception);
         } finally {
             $this->login->logout();
         }
@@ -248,12 +171,10 @@ final class AuthorizationController extends AbstractPluginController
     public function token(Request $request, Response $response): Response|ResponseInterface
     {
         Debug::logRequest('authorization/token()', $request);
-        $server = $this->container->get(AuthorizationServer::class);
-        $params = (array)$request->getParsedBody(); //POST
 
         try {
             // Try to respond to the access token request
-            $r = $server->respondToAccessTokenRequest($request, $response);
+            $r = $this->server->respondToAccessTokenRequest($request, $response);
             Debug::log('authorization/token() exit ok');
 
             return $r;
@@ -262,15 +183,22 @@ final class AuthorizationController extends AbstractPluginController
             // All instances of OAuthServerException can be converted to a PSR-7 response
             return $exception->generateHttpResponse($response);
         } catch (Exception $exception) {
-            Debug::log(
-                'authorization/Exception: '
-                . $exception->getMessage() . '<br>' . $exception->getTraceAsString()
-            );
             // Catch unexpected exceptions
-            $body = $response->getBody();
-            $body->write($exception->getMessage());
-
-            return $response->withStatus(500)->withBody($body);
+            return $this->errorResponse($response, $exception);
         }
+    }
+
+    /**
+     * Log an unexpected error, without disclosing its details
+     */
+    private function errorResponse(Response $response, Exception $exception): ResponseInterface
+    {
+        Analog::log(
+            'OAuth2 error: ' . $exception->getMessage() . "\n" . $exception->getTraceAsString(),
+            Analog::ERROR
+        );
+        $response->getBody()->write(_T('An error occurred', 'oauth2'));
+
+        return $response->withStatus(500);
     }
 }

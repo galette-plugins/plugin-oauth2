@@ -1,33 +1,22 @@
 <?php
 
 /**
- * Copyright © 2021-2025 The Galette Team
- *
- * This file is part of Galette OAuth2 plugin (https://galette-community.github.io/plugin-oauth2/).
- *
- * Galette is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Galette is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Galette OAuth2 plugin. If not, see <http://www.gnu.org/licenses/>.
+ * This file is part of Galette OAuth2 plugin (https://galette-plugins.github.io/plugin-oauth2/).
+ * SPDX-FileCopyrightText: Copyright © 2021-2026 The Galette Team
+ * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 declare(strict_types=1);
 
 namespace GaletteOAuth2\Middleware;
 
+use Analog\Analog;
+use DI\Attribute\Inject;
+use GaletteOAuth2\Repositories\ClientRepository;
 use GaletteOAuth2\Tools\Debug;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Server\RequestHandlerInterface as RequestHandler;
-use DI\Container;
 use RKA\Session;
 use Slim\Routing\RouteParser;
 
@@ -39,13 +28,12 @@ use Slim\Routing\RouteParser;
  */
 final class Authentication
 {
-    private RouteParser $routeparser;
-    private Session $session;
-
-    public function __construct(Container $container)
-    {
-        $this->routeparser = $container->get(RouteParser::class);
-        $this->session = $container->get('oauth_session');
+    public function __construct(
+        private readonly ClientRepository $clientRepository,
+        private readonly RouteParser $routeparser,
+        #[Inject('oauth_session')]
+        private readonly Session $session
+    ) {
     }
 
     /**
@@ -53,18 +41,41 @@ final class Authentication
      *
      * @param Request        $request PSR7 request
      * @param RequestHandler $handler PSR7 request handler
-     *
-     * @return Response
      */
     public function __invoke(Request $request, RequestHandler $handler): Response
     {
-        $loggedIn = $this->session->isLoggedIn ?? '';
+        // Validate client_id before proceeding
+        $queryParams = $request->getQueryParams();
+        $client_id = $queryParams['client_id'] ?? null;
 
-        if ('yes' !== $loggedIn) {
+        if (!$this->clientRepository->clientExists($client_id)) {
+            Analog::log(
+                sprintf(
+                    'OAuth2: Invalid or missing client_id "%s" in authorization request from IP %s',
+                    $client_id ?? 'null',
+                    $request->getServerParams()['REMOTE_ADDR'] ?? 'unknown'
+                ),
+                Analog::WARNING
+            );
+
+            $response = new \Slim\Psr7\Response();
+            $url = $this->routeparser->urlFor(
+                OAUTH2_PREFIX . '_error',
+                [],
+                ['message' => _T('Unknown client application', 'oauth2')]
+            );
+            return $response->withHeader('Location', $url)->withStatus(302);
+        }
+
+        $loggedIn = $this->session->isLoggedIn ?? '';
+        //login rights have been checked for one client only
+        $loggedClient = $this->session->client_id ?? null;
+
+        if ('yes' !== $loggedIn || $loggedClient !== $client_id) {
             $url = $this->routeparser->urlFor(
                 OAUTH2_PREFIX . '_login',
                 [],
-                ['redirect_url' => $_SERVER['REQUEST_URI']],
+                ['redirect_url' => $request->getUri()->getPath() . '?' . $request->getUri()->getQuery()],
             );
             Debug::log("Redirect to {$url}");
 

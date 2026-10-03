@@ -1,35 +1,21 @@
 <?php
 
 /**
- * Copyright © 2021-2025 The Galette Team
- *
- * This file is part of Galette OAuth2 plugin (https://galette-community.github.io/plugin-oauth2/).
- *
- * Galette is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Galette is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Galette OAuth2 plugin. If not, see <http://www.gnu.org/licenses/>.
+ * This file is part of Galette OAuth2 plugin (https://galette-plugins.github.io/plugin-oauth2/).
+ * SPDX-FileCopyrightText: Copyright © 2021-2026 The Galette Team
+ * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 declare(strict_types=1);
 
 namespace GaletteOAuth2\Repositories;
 
-use DI\Container;
+use Analog\Analog;
 use GaletteOAuth2\Entities\ClientEntity;
 use GaletteOAuth2\Tools\Config;
 use GaletteOAuth2\Tools\Debug;
 use League\OAuth2\Server\Entities\ClientEntityInterface;
 use League\OAuth2\Server\Repositories\ClientRepositoryInterface;
-use RKA\Session;
 
 /**
  * Client Repository
@@ -39,60 +25,105 @@ use RKA\Session;
  */
 final class ClientRepository implements ClientRepositoryInterface
 {
-    private Container $container;
-    private Config $config;
-    private Session $session;
+    private const string EXAMPLE_PASSWORD = 'abc123';
 
-    public function __construct(Container $container)
+    public function __construct(private readonly Config $config)
     {
-        $this->container = $container;
-        $this->config = $this->container->get(Config::class);
-        $this->session = $this->container->get('oauth_session');
     }
 
-    public function getClientEntity($client_id): ClientEntityInterface
+    /**
+     * Check if a client exists in the configuration
+     */
+    public function clientExists(?string $client_id): bool
     {
+        if (empty($client_id) || $client_id === 'global') {
+            return false;
+        }
+        if (!is_array($this->config->get($client_id))) {
+            return false;
+        }
+        if (count($this->getRedirectUris($client_id)) === 0) {
+            Analog::log(
+                sprintf(
+                    'OAuth2: no redirect_uri configured for client "%1$s", add "redirect_uri" to its entry in config.yml',
+                    $client_id
+                ),
+                Analog::ERROR
+            );
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Get redirect URIs allowed for a client
+     *
+     * @return string[]
+     */
+    private function getRedirectUris(string $client_id): array
+    {
+        $uris = $this->config->get("{$client_id}.redirect_uri");
+        if (is_string($uris)) {
+            $uris = [$uris];
+        }
+        if (!is_array($uris)) {
+            return [];
+        }
+
+        return array_values(
+            array_filter(
+                $uris,
+                fn($uri) => is_string($uri) && $uri !== ''
+            )
+        );
+    }
+
+    public function getClientEntity(string $client_id): ?ClientEntityInterface
+    {
+        if (!$this->clientExists($client_id)) {
+            return null;
+        }
+
         $client = new ClientEntity();
         $client->setIdentifier($this->config->get("{$client_id}.id", $client_id));
         $client->setName($client_id);
-        if (isset($this->session->$client_id)) {
-            $redirect_uri = $this->session->$client_id->redirect_uri;
-        } else {
-            $filename = OAUTH2_PREFIX . '_' . $client_id . '.redirect_uri.txt';
-            $redirect_uri = file_get_contents(GALETTE_CACHE_DIR . '/' . $filename);
-        }
-        $cid = $this->config->get("{$client_id}.redirect_uri");
-        /*$redirect_uri = $this->config->get("{$clientIdentifier}.redirect_uri");
-        if (empty($redirect_uri)) {
-            $filename = OAUTH2_PREFIX . '_' . $clientIdentifier . '.redirect_uri.txt';
-            $redirect_uri = file_get_contents(GALETTE_CACHE_DIR . '/' . $filename);
-        }*/
-        $client->setRedirectUri($redirect_uri);
+        $client->setRedirectUri($this->getRedirectUris($client_id));
         $client->setConfidential();
-
-        Debug::log('getClientEntity() ' . Debug::printVar($client));
 
         return $client;
     }
 
-    public function validateClient($clientIdentifier, $clientSecret, $grantType)
+    public function validateClient(string $clientIdentifier, ?string $clientSecret, ?string $grantType): bool
     {
-        if (!preg_match('/galette_/', $clientIdentifier)) {
+        if (!preg_match('/galette_/', $clientIdentifier) || !$this->clientExists($clientIdentifier)) {
             Debug::log("validateClient({$clientIdentifier}) denied");
 
             return false;
         }
 
         $password = $this->config->get($clientIdentifier . '.password');
-        if (!$password) {
-            $password = $this->config->get('global.password');
-        }
-        $pwd = password_hash($password, PASSWORD_BCRYPT);
-
-        if (password_verify($clientSecret, $pwd) === false) {
+        if (!is_string($password) || $password === '') {
+            Analog::log(
+                sprintf(
+                    'OAuth2: no password configured for client "%1$s", add "password" to its entry in config.yml',
+                    $clientIdentifier
+                ),
+                Analog::ERROR
+            );
             return false;
         }
 
-        return true;
+        if ($password === self::EXAMPLE_PASSWORD) {
+            Analog::log(
+                sprintf(
+                    'OAuth2: client "%1$s" still uses the example password, set a strong one in config.yml',
+                    $clientIdentifier
+                ),
+                Analog::ERROR
+            );
+            return false;
+        }
+
+        return hash_equals($password, (string)$clientSecret);
     }
 }

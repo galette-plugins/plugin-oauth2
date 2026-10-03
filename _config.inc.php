@@ -1,22 +1,9 @@
 <?php
 
 /**
- * Copyright © 2021-2025 The Galette Team
- *
- * This file is part of Galette OAuth2 plugin (https://galette-community.github.io/plugin-oauth2/).
- *
- * Galette is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Galette is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Galette OAuth2 plugin. If not, see <http://www.gnu.org/licenses/>.
+ * This file is part of Galette OAuth2 plugin (https://galette-plugins.github.io/plugin-oauth2/).
+ * SPDX-FileCopyrightText: Copyright © 2021-2026 The Galette Team
+ * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 declare(strict_types=1);
@@ -28,8 +15,9 @@ declare(strict_types=1);
  * @author Johan Cwiklinski <johan@x-tnd.be>
  */
 
-define('OAUTH2_LOG', true);
-define('OAUTH2_DEBUGSESSION', false);
+if (!defined('OAUTH2_DEBUGSESSION')) {
+    define('OAUTH2_DEBUGSESSION', false);
+}
 if (!defined('OAUTH2_CONFIGPATH')) {
     define('OAUTH2_CONFIGPATH', __DIR__ . '/config'); //For more security, you can move this folder
 }

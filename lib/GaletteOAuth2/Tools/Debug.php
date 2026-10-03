@@ -1,22 +1,9 @@
 <?php
 
 /**
- * Copyright © 2021-2025 The Galette Team
- *
- * This file is part of Galette OAuth2 plugin (https://galette-community.github.io/plugin-oauth2/).
- *
- * Galette is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Galette is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Galette OAuth2 plugin. If not, see <http://www.gnu.org/licenses/>.
+ * This file is part of Galette OAuth2 plugin (https://galette-plugins.github.io/plugin-oauth2/).
+ * SPDX-FileCopyrightText: Copyright © 2021-2026 The Galette Team
+ * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 declare(strict_types=1);
@@ -34,7 +21,16 @@ use Slim\Psr7\Request;
  */
 final class Debug
 {
-    public static function printVar($expression, bool $return = true)
+    private const array HIDDEN_PARAMS = [
+        'password',
+        'client_secret',
+        'code',
+        'refresh_token',
+        'access_token',
+        'code_verifier',
+    ];
+
+    public static function printVar(mixed $expression): string
     {
         $export = print_r($expression, true);
         $patterns = [
@@ -43,12 +39,8 @@ final class Debug
             "/=>[ ]?\n[ ]+\\[/" => '=> [',
             "/([ ]*)(\\'[^\\']+\\') => ([\\[\\'])/" => '$1$2 => $3',
         ];
-        $export = preg_replace(array_keys($patterns), array_values($patterns), $export);
 
-        if ($return) {
-            return $export;
-        }
-        echo $export;
+        return preg_replace(array_keys($patterns), array_values($patterns), $export);
     }
 
     public static function log(string $txt): void
@@ -59,21 +51,35 @@ final class Debug
         );
     }
 
+    /**
+     * Hide secrets from parameters before they are logged
+     *
+     * @param array<string, mixed> $params Request parameters
+     *
+     * @return array<string, mixed>
+     */
+    public static function hideSecrets(array $params): array
+    {
+        foreach (self::HIDDEN_PARAMS as $name) {
+            if (isset($params[$name])) {
+                $params[$name] = 'HIDDEN';
+            }
+        }
+        return $params;
+    }
+
     public static function logRequest(string $fct, Request $request): void
     {
         $msg = sprintf(
             "%s - URI: %s",
             $fct,
-            $request->getUri()
+            $request->getUri()->getPath()
         );
         if (count($qp = $request->getQueryParams()) > 0) {
-            $msg .= "\nGET dump: " . self::printVar($qp);
+            $msg .= "\nGET dump: " . self::printVar(self::hideSecrets($qp));
         }
         if (count($post = (array)$request->getParsedBody()) > 0) {
-            if (isset($post['password'])) {
-                $post['password'] = 'HIDDEN';
-            }
-            $msg .= "\nPOST dump: " . self::printVar($post);
+            $msg .= "\nPOST dump: " . self::printVar(self::hideSecrets($post));
         }
         $msg .= "\n";
         Analog::log(

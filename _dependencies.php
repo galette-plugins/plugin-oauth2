@@ -1,22 +1,9 @@
 <?php
 
 /**
- * Copyright © 2021-2025 The Galette Team
- *
- * This file is part of Galette OAuth2 plugin (https://galette-community.github.io/plugin-oauth2/).
- *
- * Galette is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Galette is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Galette OAuth2 plugin. If not, see <http://www.gnu.org/licenses/>.
+ * This file is part of Galette OAuth2 plugin (https://galette-plugins.github.io/plugin-oauth2/).
+ * SPDX-FileCopyrightText: Copyright © 2021-2026 The Galette Team
+ * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 declare(strict_types=1);
@@ -28,14 +15,15 @@ declare(strict_types=1);
  * @author Johan Cwiklinski <johan@x-tnd.be>
  */
 
-use Defuse\Crypto\Key;
+use Analog\Analog;
+use Galette\Core\Preferences;
 use GaletteOAuth2\Repositories\AccessTokenRepository;
 use GaletteOAuth2\Repositories\AuthCodeRepository;
 use GaletteOAuth2\Repositories\ClientRepository;
 use GaletteOAuth2\Repositories\RefreshTokenRepository;
 use GaletteOAuth2\Repositories\ScopeRepository;
-use GaletteOAuth2\Repositories\UserRepository;
 use GaletteOAuth2\Tools\Config;
+use GaletteOAuth2\Tools\EncryptionKey;
 use League\OAuth2\Server\AuthorizationServer;
 use League\OAuth2\Server\Grant\AuthCodeGrant;
 use League\OAuth2\Server\Grant\RefreshTokenGrant;
@@ -44,9 +32,9 @@ use Psr\Container\ContainerInterface;
 use RKA\SessionMiddleware;
 use Slim\Flash\Messages;
 
+/** @var \Slim\Routing\RouteCollectorProxy<\DI\Container> $app */
 $container = $app->getContainer();
 
-//$app->add($session);
 $container->set(
     'oauth_session',
     function (ContainerInterface $container) {
@@ -54,12 +42,16 @@ $container->set(
         $session_name = 'galette_oauth_' . $session_name;
         $session = new SessionMiddleware([
             'name'      => $session_name,
-            'lifetime'  => GALETTE_TIMEOUT
+            'lifetime'  => (int)$container->get(Preferences::class)->getConfigValue('pref_session_timeout')
         ]);
 
-        $galette_sid = session_id();
+        //close Galette session; OAuth one has its own cookie, so its identifier can be renewed on login
         session_write_close();
-        session_id('galette-oauth-' . $galette_sid);
+        $sid = $_COOKIE[$session_name] ?? '';
+        if (!is_string($sid) || !preg_match('/^[a-zA-Z0-9,-]{22,256}$/', $sid)) {
+            $sid = session_create_id('galette-oauth-');
+        }
+        session_id($sid);
         $session->start();
 
         $container->get(Messages::class)->__construct($_SESSION);
@@ -69,58 +61,31 @@ $container->set(
 
 $container->set(
     Config::class,
-    static function (ContainerInterface $container) {
-        $conf = new GaletteOAuth2\Tools\Config(OAUTH2_CONFIGPATH . '/config.yml');
-
-        do {
-            $key = $conf->key();
-            $current = $conf->current();
-            if (isset($current['options'])) {
-                Analog::log(
-                    '"options" is deprecated, please use "authorize" instead for ' . $key,
-                    Analog::WARNING
-                );
-
-                if (!isset($current['authorize'])) {
-                    $conf->set($key . '.authorize', $current['options']);
-                }
-                $conf->remove($key . '.options');
-            }
-        } while ($conf->next());
-
-        return $conf;
-    },
+    static fn() => Config::fromFile(OAUTH2_CONFIGPATH . '/config.yml')
 );
 
 $container->set(
     AuthorizationServer::class,
     function (ContainerInterface $container) {
-        include OAUTH2_CONFIGPATH . '/encryption-key.php';
-
         // Setup the authorization server
         $server = new AuthorizationServer(
-        // instance of ClientRepositoryInterface
-            new ClientRepository($container),
-            // instance of AccessTokenRepositoryInterface
-            new AccessTokenRepository(),
-            // instance of ScopeRepositoryInterface
-            new ScopeRepository(),
+            $container->get(ClientRepository::class),
+            $container->get(AccessTokenRepository::class),
+            $container->get(ScopeRepository::class),
             // path to private key
             'file://' . OAUTH2_CONFIGPATH . '/private.key',
             // encryption key
-            Key::loadFromAsciiSafeString($encryptionKey),
+            EncryptionKey::load($container->get(Config::class), OAUTH2_CONFIGPATH),
         );
 
-        $refreshTokenRepository = new RefreshTokenRepository();
+        $refreshTokenRepository = $container->get(RefreshTokenRepository::class);
         $grant = new AuthCodeGrant(
-            new AuthCodeRepository(),
-            // instance of RefreshTokenRepositoryInterface
+            $container->get(AuthCodeRepository::class),
             $refreshTokenRepository,
             new DateInterval('PT10M'),
         );
 
-        // Enable the password grant on the server
-        // with a token TTL of 1 hour
+        // Enable the authorization code grant on the server
         $server->enableGrantType(
             $grant,
             // access tokens will expire after 1 hour
@@ -138,27 +103,6 @@ $container->set(
             new DateInterval('PT1H'),
         );
 
-        //--
-        $userRepository = new UserRepository($container); // instance of UserRepositoryInterface
-        $grant = new \League\OAuth2\Server\Grant\PasswordGrant(
-            $userRepository,
-            $refreshTokenRepository,
-        );
-
-        $grant->setRefreshTokenTTL(new \DateInterval('P1M')); // refresh tokens will expire after 1 month
-
-        // Enable the password grant on the server
-        $server->enableGrantType(
-            $grant,
-            new \DateInterval('PT1H'), // access tokens will expire after 1 hour
-        );
-
-        // Enable the client credentials grant on the server
-        $server->enableGrantType(
-            new \League\OAuth2\Server\Grant\ClientCredentialsGrant(),
-            new \DateInterval('PT1H'), // access tokens will expire after 1 hour
-        );
-
         return $server;
     },
 );
@@ -169,7 +113,7 @@ $container->set(
         $publicKeyPath = 'file://' . OAUTH2_CONFIGPATH . '/public.key';
 
         return new ResourceServer(
-            new AccessTokenRepository(),
+            $container->get(AccessTokenRepository::class),
             $publicKeyPath,
         );
     },

@@ -1,27 +1,14 @@
 <?php
 
 /**
- * Copyright © 2021-2025 The Galette Team
- *
- * This file is part of Galette OAuth2 plugin (https://galette-community.github.io/plugin-oauth2/).
- *
- * Galette is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Galette is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Galette OAuth2 plugin. If not, see <http://www.gnu.org/licenses/>.
+ * This file is part of Galette OAuth2 plugin (https://galette-plugins.github.io/plugin-oauth2/).
+ * SPDX-FileCopyrightText: Copyright © 2021-2026 The Galette Team
+ * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 namespace GaletteOAuth2;
 
-use Galette\GaletteTestCase;
+use Galette\Tests\GaletteTestCase;
 
 /**
  * UserHelper tests
@@ -32,6 +19,7 @@ class GaletteOAuth2 extends GaletteTestCase
 {
     protected int $seed = 20240613200350;
     protected bool $load_plugins = true;
+    protected bool $db_transactions = false;
 
     /**
      * Set up tests
@@ -47,27 +35,17 @@ class GaletteOAuth2 extends GaletteTestCase
         $session = $this->session;
     }
 
-    /**
-     * Tear down tests
-     *
-     * @return void
-     */
-    public function tearDown(): void
-    {
-        $this->zdb = new \Galette\Core\Db();
 
-        $this->cleanMembers();
-        parent::tearDown();
-    }
 
     /**
-     * Test stripAccents
+     * Run the whole authorization code flow
      *
-     * @return void
+     * @param string[] $checked_scopes Scopes checked on the consent screen
+     *
+     * @return array<string, mixed> Resource owner data
      */
-    public function testFlow(): void
+    private function runFlow(array $checked_scopes): array
     {
-        $this->initStatus();
         $member_one = $this->getMemberOne();
         $data = $this->dataAdherentOne();
         $this->getAdminMember($member_one);
@@ -75,7 +53,7 @@ class GaletteOAuth2 extends GaletteTestCase
         $provider = new \Galette\OAuth2\Client\Provider\Galette([
             //information related to the app where you will use galette-oauth2
             'clientId'      => 'galette_cli',          // The client ID assigned to you
-            'clientSecret'  => '4567zyx',      // The client password assigned to you
+            'clientSecret'  => 'cli-secret-for-tests', // The client password assigned to you
             'redirectUri'   => 'http://localhost:8888', // The return URL you specified for your app
             //information related to the galette instance you want to connect to
             'instance'      => 'http://localhost:8888',    // The instance of Galette you want to connect to
@@ -122,7 +100,8 @@ class GaletteOAuth2 extends GaletteTestCase
 
         $response = $guzzle->request('POST', $authorizationUrl, [
             'form_params' => [
-                'approve' => true
+                'approve' => true,
+                'scopes' => $checked_scopes
             ]
         ]);
 
@@ -131,7 +110,6 @@ class GaletteOAuth2 extends GaletteTestCase
         $redirected_uri = $headersRedirect[0];
         parse_str(parse_url($redirected_uri, PHP_URL_QUERY), $url_arguments);
 
-        $this->assertIsArray($url_arguments);
         $this->assertArrayHasKey('code', $url_arguments);
         $this->assertArrayHasKey('state', $url_arguments);
 
@@ -158,7 +136,34 @@ class GaletteOAuth2 extends GaletteTestCase
         $this->assertSame($member_one->id, $resourceOwner->getId());
         $this->assertSame($data['login_adh'], $resourceOwner->getUsername());
         $this->assertSame($data['email_adh'], $resourceOwner->getEmail());
+
+        return $resourceOwner_array;
+    }
+
+    /**
+     * Test authorization code flow, all scopes checked
+     *
+     * @return void
+     */
+    public function testFlow(): void
+    {
+        $resourceOwner_array = $this->runFlow(['member', 'member:localization', 'member:due_date']);
+
+        $this->assertArrayHasKey('address', $resourceOwner_array);
         //due date scope is requested from configuration file
         $this->assertArrayHasKey('due_date', $resourceOwner_array);
+    }
+
+    /**
+     * Test scopes unchecked on the consent screen are not given
+     *
+     * @return void
+     */
+    public function testFlowWithUncheckedScope(): void
+    {
+        $resourceOwner_array = $this->runFlow(['member', 'member:localization', 'member:unknown']);
+
+        $this->assertArrayHasKey('address', $resourceOwner_array);
+        $this->assertArrayNotHasKey('due_date', $resourceOwner_array);
     }
 }
