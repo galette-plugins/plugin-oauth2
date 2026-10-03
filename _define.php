@@ -23,7 +23,7 @@ $this->register(
     version: '3.1.0',                              //Version
     compver: '1.3.0',                              //Galette compatible version
     route: 'oauth2',                               //routing name and translation domain
-    date: '2026-09-30',                            //Release date
+    date: '2026-10-03',                            //Release date
     acls: [                                        //Permissions needed
         'oauth2_authorize' => 'member'
     ],
