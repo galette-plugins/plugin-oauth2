@@ -13,6 +13,7 @@ namespace GaletteOAuth2\Controllers;
 use Analog\Analog;
 use DI\Attribute\Inject;
 use Galette\Controllers\AbstractPluginController;
+use Galette\Core\AuthThrottle;
 use GaletteOAuth2\Authorization\UserAuthorizationException;
 use GaletteOAuth2\Authorization\UserHelper;
 use GaletteOAuth2\Repositories\ClientRepository;
@@ -96,10 +97,11 @@ final class LoginController extends AbstractPluginController
     /**
      * Do login
      *
-     * @param Request  $request  Received request
-     * @param Response $response Response instance
+     * @param Request      $request  Received request
+     * @param Response     $response Response instance
+     * @param AuthThrottle $throttle Authentication throttle
      */
-    public function doLogin(Request $request, Response $response): Response
+    public function doLogin(Request $request, Response $response, AuthThrottle $throttle): Response
     {
         /** @phpstan-ignore-next-line */
         if (OAUTH2_DEBUGSESSION) {
@@ -114,7 +116,11 @@ final class LoginController extends AbstractPluginController
         $this->session->isLoggedIn = 'no';
         unset($this->session->client_id);
         $nick = (string)($params['login'] ?? '');
-        $this->session->user_id = $uid = $this->userHelper->login($nick, (string)($params['password'] ?? ''));
+        $this->session->user_id = $uid = $this->userHelper->login(
+            $nick,
+            (string)($params['password'] ?? ''),
+            $throttle
+        );
         Debug::log("UserHelper::login({$nick}) return '{$uid}'");
 
         if (false === $uid) {
