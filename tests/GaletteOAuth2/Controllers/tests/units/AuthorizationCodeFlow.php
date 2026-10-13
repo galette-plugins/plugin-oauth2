@@ -264,6 +264,46 @@ class AuthorizationCodeFlow extends GaletteRoutingTestCase
     }
 
     /**
+     * Test user data are sent in member's language, not in the one of client's request
+     *
+     * @return void
+     */
+    public function testUserDataInMemberLanguage(): void
+    {
+        $this->logSuperAdmin();
+        $member = clone $this->getMemberOne();
+        $check = $member->check(
+            [
+                'bool_admin_adh' => '1',
+                'pref_lang' => 'fr_FR',
+                'sexe_adh' => \Galette\Entity\Adherent::MAN,
+            ],
+            [],
+            []
+        );
+        if (is_array($check)) {
+            var_dump($check);
+        }
+        $this->assertTrue($check);
+        $this->assertTrue($member->store());
+        $this->login->logout();
+
+        $tokens = $this->exchangeCode(
+            $this->getAuthorizationCode($member->id, ['member', 'member:personal', 'member:groups'])
+        );
+        $this->assertSame('en_US', $this->i18n->getID());
+        $test_response = $this->requestUser($tokens['access_token']);
+        $this->assertSame(200, $test_response->getStatusCode());
+        $user = json_decode((string)$test_response->getBody(), true);
+
+        $this->assertSame('fr_FR', $user['locale']);
+        $this->assertSame('Homme', $user['gender']);
+        $this->assertSame($this->dataAdherentOne()['ddn_adh'], $user['birthdate']);
+        $this->assertSame(['Non-member', 'admin'], $user['groups']);
+        $this->assertSame('en_US', $this->i18n->getID());
+    }
+
+    /**
      * Test user data are refused when member is no longer authorized
      *
      * @return void

@@ -15,10 +15,12 @@ use DI\Attribute\Inject;
 use Galette\Core\AuthThrottle;
 use Galette\Core\Db;
 use Galette\Core\History;
+use Galette\Core\I18n;
 use Galette\Core\Login;
 use Galette\Core\Preferences;
 use Galette\Entity\Adherent;
 use Galette\Entity\Social;
+use Galette\Entity\Status;
 use GaletteOAuth2\Tools\Config;
 use GaletteOAuth2\Tools\Debug;
 use RKA\Session;
@@ -41,6 +43,7 @@ final class UserHelper
         private readonly Login $login,
         private readonly History $history,
         private readonly Preferences $preferences,
+        private readonly I18n $i18n,
         private readonly Messages $flash,
         #[Inject('oauth_session')]
         private readonly Session $session
@@ -154,6 +157,34 @@ final class UserHelper
             throw new UserAuthorizationException(_T('User not found.', 'oauth2'));
         }
 
+        //data are sent to client applications, that do not share member's session
+        $current_lang = $this->i18n->getID();
+        if ($member->language && $member->language !== $current_lang) {
+            $this->i18n->changeLanguage($member->language);
+        }
+        try {
+            return $this->buildUserData($member, $acl, $scopes, $legacy);
+        } finally {
+            if ($this->i18n->getID() !== $current_lang) {
+                $this->i18n->changeLanguage($current_lang);
+            }
+        }
+    }
+
+    /**
+     * Build user data, in current language
+     *
+     * @param Adherent $member Member
+     * @param string   $acl    Requested authorization
+     * @param string[] $scopes Scopes
+     * @param bool     $legacy Legacy mode for data
+     *
+     * @return array<string, mixed>
+     * @throws UserAuthorizationException
+     * @throws \Throwable
+     */
+    private function buildUserData(Adherent $member, string $acl, array $scopes, bool $legacy): array
+    {
         //check active member? Covers $acl === self::AUTH_ACTIVE
         if (!$member->isActive()) {
             throw new UserAuthorizationException(_T("Sorry, you can't login because you are not an active member.", "oauth2"));
@@ -234,7 +265,8 @@ final class UserHelper
 
         //member:personal
         if (in_array('member:personal', $scopes)) {
-            $oauth_data['birthdate'] = $member->birthdate;
+            //raw value: formatted dates follow current language
+            $oauth_data['birthdate'] = $member->rbirthdate;
             $oauth_data['birthplace'] = $member->birth_place;
             $oauth_data['job'] = $member->job;
             $oauth_data['gender'] = $member->sgender;
@@ -297,12 +329,12 @@ final class UserHelper
 
         //member:groups
         if (in_array('member:groups', $scopes)) {
-            $oauth_data['groups'] = self::getUserGroups($member, $legacy);
+            $oauth_data['groups'] = $this->getUserGroups($member, $legacy);
         }
 
         //member:due_date
         if (in_array('member:due_date', $scopes)) {
-            $oauth_data['due_date'] = $member->due_date;
+            $oauth_data['due_date'] = $member->rdue_date;
         }
 
         return $oauth_data;
@@ -316,7 +348,7 @@ final class UserHelper
      *
      * @return string[]
      */
-    protected static function getUserGroups(Adherent $member, bool $legacy = false): array
+    private function getUserGroups(Adherent $member, bool $legacy = false): array
     {
         $groups = array_map(
             function ($group) {
@@ -325,7 +357,9 @@ final class UserHelper
             array_values($member->getGroups())
         );
 
-        $groups[] = $member->sstatus;
+        //untranslated: groups are mapped by client applications, they must not depend on language
+        $status = new Status($this->zdb);
+        $groups[] = (string)$status->getLabel($member->status, false);
 
         if ($member->isAdmin()) {
             $groups[] = 'admin';

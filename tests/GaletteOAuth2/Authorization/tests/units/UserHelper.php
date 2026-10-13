@@ -128,7 +128,7 @@ class UserHelper extends GaletteTestCase
 
         $this->assertSame(
             $expected_base + [
-                'birthdate' => $user_data['birthdate'],
+                'birthdate' => $this->dataAdherentOne()['ddn_adh'],
                 'birthplace' => 'Gonzalez-sur-Meunier',
                 'job' => 'Chef de fabrication',
                 'gender' => 'Unspecified',
@@ -275,6 +275,95 @@ class UserHelper extends GaletteTestCase
             '',
             []
         );
+    }
+
+    /**
+     * Store a member speaking french
+     *
+     * @return \Galette\Entity\Adherent
+     */
+    private function getFrenchMember(): \Galette\Entity\Adherent
+    {
+        $this->logSuperAdmin();
+        $adh = new \Galette\Entity\Adherent($this->zdb);
+        $adh->setDependencies(
+            $this->preferences,
+            $this->members_fields,
+            $this->history
+        );
+
+        $data = $this->dataAdherentOne();
+        $data['pref_lang'] = 'fr_FR';
+        $data['sexe_adh'] = \Galette\Entity\Adherent::WOMAN;
+        $check = $adh->check($data, [], []);
+        if (is_array($check)) {
+            var_dump($check);
+        }
+        $this->assertTrue($check);
+
+        $this->assertTrue($adh->store());
+        $this->login->logout();
+
+        return $adh;
+    }
+
+    /**
+     * Test user data are translated in member's language, whatever the current one is
+     *
+     * @return void
+     */
+    public function testGetUserDataInMemberLanguage(): void
+    {
+        $member = $this->getFrenchMember();
+        $data = $this->dataAdherentOne();
+        $this->assertSame('en_US', $this->i18n->getID());
+
+        $user_data = $this->container->get(\GaletteOAuth2\Authorization\UserHelper::class)->getUserData(
+            $member->id,
+            '',
+            ['member', 'member:personal', 'member:groups', 'member:due_date']
+        );
+
+        $this->assertSame('fr_FR', $user_data['locale']);
+        $this->assertSame('Femme', $user_data['gender']);
+        //dates are not localized
+        $this->assertSame($data['ddn_adh'], $user_data['birthdate']);
+        $this->assertNull($user_data['due_date']);
+        //status in groups is not translated: client applications rely on it
+        $this->assertSame(['Non-member'], $user_data['groups']);
+
+        //current language is restored
+        $this->assertSame('en_US', $this->i18n->getID());
+        $this->assertSame('Woman', _T('Woman'));
+    }
+
+    /**
+     * Test refusal messages are in member's language, and current language is restored
+     *
+     * @return void
+     */
+    public function testRefusalInMemberLanguage(): void
+    {
+        $member = $this->getFrenchMember();
+
+        $this->i18n->changeLanguage('fr_FR');
+        $expected = _T("Sorry, you can't login because you are not a team member.", 'oauth2');
+        $this->i18n->changeLanguage('en_US');
+        $this->assertNotSame("Sorry, you can't login because you are not a team member.", $expected);
+
+        $exception_thrown = false;
+        try {
+            $this->container->get(\GaletteOAuth2\Authorization\UserHelper::class)->getUserData(
+                $member->id,
+                \GaletteOAuth2\Authorization\UserHelper::AUTH_TEAMONLY,
+                ['member']
+            );
+        } catch (\GaletteOAuth2\Authorization\UserAuthorizationException $e) {
+            $exception_thrown = true;
+            $this->assertSame($expected, $e->getMessage());
+        }
+        $this->assertTrue($exception_thrown);
+        $this->assertSame('en_US', $this->i18n->getID());
     }
 
     /**
