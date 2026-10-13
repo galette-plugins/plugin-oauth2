@@ -12,6 +12,7 @@ namespace GaletteOAuth2\Authorization;
 
 use Analog\Analog;
 use DI\Attribute\Inject;
+use Galette\Core\AuthThrottle;
 use Galette\Core\Db;
 use Galette\Core\History;
 use Galette\Core\Login;
@@ -49,11 +50,33 @@ final class UserHelper
     /**
      * Log in a member
      *
+     * @param string       $nick     Login
+     * @param string       $password Password
+     * @param AuthThrottle $throttle Authentication throttle
+     *
      * @return int|false Member ID, false on failure
      */
-    public function login(string $nick, string $password): int|false
+    public function login(string $nick, string $password, AuthThrottle $throttle): int|false
     {
         if (trim($nick) === '' || trim($password) === '') {
+            return false;
+        }
+
+        //evaluated before any credential check, so that a locked out caller
+        //costs nothing but a lookup
+        $delay = $throttle->getRetryDelay($nick);
+        if ($delay > 0) {
+            //no countdown on the page: how long is left measures what has been
+            //tried, and it belongs in the log
+            $this->flash->addMessage(
+                'error_detected',
+                _T("Too many failed attempts. Please try again later.")
+            );
+            $this->history->add(_T("Authentication throttled"), $nick);
+            Analog::log(
+                'Authentication throttled for `' . $nick . '`, ' . $delay . ' seconds left.',
+                Analog::INFO
+            );
             return false;
         }
 
@@ -85,11 +108,13 @@ final class UserHelper
         }
 
         if ($this->login->isLogged()) {
+            $throttle->recordSuccess($nick);
             $this->session->login = $this->login;
             $this->history->add(_T('Login'));
 
             return $this->login->id;
         }
+        $throttle->recordFailure($nick);
         $this->history->add(_T('Authentication failed'), $nick);
 
         $this->flash->addMessage(

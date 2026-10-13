@@ -355,4 +355,85 @@ class LoginController extends GaletteRoutingTestCase
         $this->assertSame('galette_cli', $this->session->client_id);
         $this->assertNotSame($sid, session_id());
     }
+
+    /**
+     * Failed logins are throttled, even the right password is refused afterwards
+     *
+     * @return void
+     */
+    public function testDoLoginIsThrottled(): void
+    {
+        $this->getAdminMember($this->getMemberOne());
+        $data = $this->dataAdherentOne();
+        $this->session->request_args = [
+            'response_type' => 'code',
+            'client_id' => 'galette_cli',
+            'redirect_uri' => 'http://localhost:8888',
+        ];
+        $threshold = $this->preferences->pref_throttle_account_ip_attempts;
+
+        for ($i = 0; $i < $threshold; $i++) {
+            $test_response = $this->app->handle($this->doLoginRequest($data['login_adh'], 'wrong'));
+            $this->assertSame(
+                ['Location' => [$this->routeparser->urlFor(OAUTH2_PREFIX . '_login')]],
+                $test_response->getHeaders()
+            );
+            $this->expectLogEntry(Analog::WARNING, 'Passwords mismatch for login');
+        }
+
+        //the right password no longer gets through
+        $test_response = $this->app->handle($this->doLoginRequest($data['login_adh'], $data['mdp_adh']));
+
+        $this->assertSame(
+            ['Location' => [$this->routeparser->urlFor(OAUTH2_PREFIX . '_login')]],
+            $test_response->getHeaders()
+        );
+        $this->assertSame('no', $this->session->isLoggedIn);
+        $this->assertFalse($this->session->user_id);
+        $this->expectLogEntry(Analog::INFO, 'Authentication throttled for `' . $data['login_adh'] . '`');
+    }
+
+    /**
+     * A successful login clears the failures counted on the account
+     *
+     * @return void
+     */
+    public function testDoLoginSuccessClearsThrottle(): void
+    {
+        $this->getAdminMember($this->getMemberOne());
+        $data = $this->dataAdherentOne();
+        $this->session->request_args = [
+            'response_type' => 'code',
+            'client_id' => 'galette_cli',
+            'redirect_uri' => 'http://localhost:8888',
+        ];
+
+        $this->app->handle($this->doLoginRequest($data['login_adh'], 'wrong'));
+        $this->expectLogEntry(Analog::WARNING, 'Passwords mismatch for login');
+
+        $select = $this->zdb->select(\Galette\Core\AuthThrottle::TABLE);
+        $select->where(
+            [
+                'scope' => \Galette\Core\AuthThrottle::SCOPE_ACCOUNT,
+                'identifier' => $data['login_adh']
+            ]
+        );
+        $this->assertSame(1, $this->zdb->execute($select)->count());
+
+        $this->app->handle($this->doLoginRequest($data['login_adh'], $data['mdp_adh']));
+        $this->assertSame('yes', $this->session->isLoggedIn);
+        $this->assertSame(0, $this->zdb->execute($select)->count());
+    }
+
+    /**
+     * Build a login request
+     *
+     * @param string $login    Login
+     * @param string $password Password
+     */
+    private function doLoginRequest(string $login, string $password): \Slim\Psr7\Request
+    {
+        return $this->createRequest(route_name: OAUTH2_PREFIX . '_doLogin', method: 'POST')
+            ->withParsedBody(['login' => $login, 'password' => $password]);
+    }
 }
