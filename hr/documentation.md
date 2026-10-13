@@ -1,19 +1,19 @@
 ---
-title: Documentation
-description: Galette oAuth2 server
+title: Dokumentacija
+description: Galetteov OAuth2 poslužitelj
 ---
 
-## Setup
+## Postavljanje
 
-To automatically download dependencies packages:
+Za automatsko preuzimanje paketa ovisnosti:
 ```
 cd plugin-oauth2
 composer install
 ```
 
-## Configuration
+## Podešavanje
 
-### Prepare public/private keys
+### Priprema javnog i privatnog ključa
 
 ```
 cd plugin-oauth2/config
@@ -24,10 +24,10 @@ vendor/bin/generate-defuse-key
 copy-paste the hexadecimal string result in plugin-oauth2/config/encryption-key.php
 ```
 
-### Configure a ClientEntity
+### Podešavanje ClientEntity
 
-Rename `config/config.yml.dist` to `config/config.yml` and edit according to
-your third party application settings:
+Preimenujte `config/config.yml.dist` u `config/config.yml` i uredite prema
+postavkama vanjske aplikacije:
 
 ```
 global:
@@ -45,29 +45,28 @@ galette_xxxxx:
 
 ```
 
-The corresponding Flarum configuration:
+Odgovarajuće postavke Flaruma:
 
-![Flarum configuration example](examples/flarum.png)
+![Primjer postavki Flaruma](examples/flarum.png)
 
-The corresponding NextCloud configuration:
+Odgovarajuće postavke Nextclouda:
 
-![Nextcloud configuration example](examples/nextcloud.png)
+![Primjer postavki Nextclouda](examples/nextcloud.png)
 
-#### Available options :
-* teamonly : only staff members can login
-* uptodate : only uptodate members can login
+#### Dostupne opcije:
+* teamonly: prijaviti se mogu samo članovi uprave
+* uptodate: prijaviti se mogu samo članovi s podmirenom članarinom
 
-## Usage
+## Uporaba
 
-### Nextcloud - how add groups for a specific member
-Edit a member : In `info_adh` field you can add a line with
-`#GROUPS:group1;group2#`
+### Nextcloud – dodavanje grupa određenom članu
+Uredite člana: u polje `info_adh` možete dodati redak `#GROUPS:group1;group2#`
 
-Example :
+Primjer:
 ```
 #GROUPS:accouting;home#
 ```
 
-## More information about OAuth2 Server
+## Više informacija o OAuth2 poslužitelju
 * https://oauth2.thephpleague.com/
 * https://github.com/thephpleague/oauth2-server/
