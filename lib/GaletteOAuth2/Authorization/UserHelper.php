@@ -18,6 +18,8 @@ use Galette\Core\History;
 use Galette\Core\I18n;
 use Galette\Core\Login;
 use Galette\Core\Preferences;
+use Galette\Core\TwoFactorAuth;
+use Galette\Core\TwoFactorSecret;
 use Galette\Entity\Adherent;
 use Galette\Entity\Social;
 use Galette\Entity\Status;
@@ -61,6 +63,9 @@ final class UserHelper
      */
     public function login(string $nick, string $password, AuthThrottle $throttle): int|false
     {
+        //a second factor owed by a previous attempt must not outlive it
+        unset($this->session->login);
+
         if (trim($nick) === '' || trim($password) === '') {
             return false;
         }
@@ -110,6 +115,14 @@ final class UserHelper
             $this->login->logIn($nick, $password);
         }
 
+        if ($this->login->isTwoFactorPending()) {
+            //credentials are accepted, but isLogged() stays false until the
+            //second factor is produced. The session is kept for the next step,
+            //so that the password is not carried over.
+            $this->session->login = $this->login;
+            return false;
+        }
+
         if ($this->login->isLogged()) {
             $throttle->recordSuccess($nick);
             $this->session->login = $this->login;
@@ -126,6 +139,87 @@ final class UserHelper
         );
 
         return false;
+    }
+
+    /**
+     * Are credentials accepted, but a second factor still owed?
+     */
+    public function isTwoFactorPending(): bool
+    {
+        $login = $this->session->login ?? null;
+        return $login instanceof Login && $login->isTwoFactorPending();
+    }
+
+    /**
+     * Check the second factor of a pending login
+     *
+     * Same checks as the core challenge: throttled, and a recovery code is
+     * accepted as well. When the second factor cannot be checked any more, the
+     * pending login is dropped and isTwoFactorPending() turns false.
+     *
+     * @param string        $code     Submitted code
+     * @param TwoFactorAuth $tfa      Second factor service
+     * @param AuthThrottle  $throttle Authentication throttle
+     *
+     * @return int|false Member ID, false on failure
+     */
+    public function verifySecondFactor(string $code, TwoFactorAuth $tfa, AuthThrottle $throttle): int|false
+    {
+        if (!$this->isTwoFactorPending()) {
+            return false;
+        }
+
+        /** @var Login $login */
+        $login = $this->session->login;
+        $nick = (string)$login->login;
+
+        //evaluated before any verification: reaching this stage means holding
+        //the password, so an attacker gets no free tries at the code
+        $delay = $throttle->getSecondFactorDelay($nick);
+        if ($delay > 0) {
+            Analog::log(
+                'Second factor throttled for `' . $nick . '`, ' . $delay . ' seconds left.',
+                Analog::INFO
+            );
+            $this->flash->addMessage(
+                'error_detected',
+                _T("Too many failed attempts. Please try again later.")
+            );
+            return false;
+        }
+
+        $secret = $tfa->storeFor($login);
+        if (!$secret->isEnabled()) {
+            //removed while this session was mid-challenge
+            Analog::log(
+                'No enabled second factor for ' . $secret->getOwner() . ' during challenge',
+                Analog::WARNING
+            );
+            $throttle->recordSecondFactorFailure($nick);
+            $login->logOut();
+            unset($this->session->login);
+            $this->flash->addMessage('error_detected', _T("Two-factor authentication failed."));
+            return false;
+        }
+
+        $accepted = $tfa->verify($secret, $code)
+            || ($secret instanceof TwoFactorSecret && $secret->consumeRecoveryCode($code));
+
+        if (!$accepted) {
+            $throttle->recordSecondFactorFailure($nick);
+            $this->history->add(_T("Second factor failed"), $nick);
+            $this->flash->addMessage('error_detected', _T("Two-factor authentication failed."));
+            return false;
+        }
+
+        //the authentication is only complete now, so this is where the counters
+        //of both stages are cleared
+        $throttle->recordSuccess($nick);
+        $login->validateTwoFactor();
+        $this->session->login = $login;
+        $this->history->add(_T('Login'));
+
+        return $login->id;
     }
 
     /**

@@ -14,6 +14,7 @@ use Analog\Analog;
 use DI\Attribute\Inject;
 use Galette\Controllers\AbstractPluginController;
 use Galette\Core\AuthThrottle;
+use Galette\Core\TwoFactorAuth;
 use GaletteOAuth2\Authorization\UserAuthorizationException;
 use GaletteOAuth2\Authorization\UserHelper;
 use GaletteOAuth2\Repositories\ClientRepository;
@@ -128,10 +129,91 @@ final class LoginController extends AbstractPluginController
                 ->withStatus(302)
                 ->withHeader(
                     'Location',
-                    $this->routeparser->urlFor(OAUTH2_PREFIX . '_login')
+                    $this->routeparser->urlFor(
+                        $this->userHelper->isTwoFactorPending()
+                            ? OAUTH2_PREFIX . '_twoFactor'
+                            : OAUTH2_PREFIX . '_login'
+                    )
                 );
         }
 
+        return $this->completeLogin($response, $uid);
+    }
+
+    /**
+     * Display second factor form
+     *
+     * @param Request  $request  Received request
+     * @param Response $response Response instance
+     */
+    public function twoFactor(Request $request, Response $response): Response
+    {
+        Debug::logRequest('twoFactor()', $request);
+
+        if (!$this->userHelper->isTwoFactorPending()) {
+            return $response
+                ->withStatus(302)
+                ->withHeader('Location', $this->routeparser->urlFor(OAUTH2_PREFIX . '_login'));
+        }
+
+        $this->view->render(
+            $response,
+            $this->getTemplate(OAUTH2_PREFIX . '_two_factor'),
+            [
+                'page_title' => _T("Two-factor authentication"),
+                'prefix' => OAUTH2_PREFIX
+            ]
+        );
+        return $response;
+    }
+
+    /**
+     * Check second factor
+     *
+     * @param Request       $request  Received request
+     * @param Response      $response Response instance
+     * @param TwoFactorAuth $tfa      Second factor service
+     * @param AuthThrottle  $throttle Authentication throttle
+     */
+    public function doTwoFactor(
+        Request $request,
+        Response $response,
+        TwoFactorAuth $tfa,
+        AuthThrottle $throttle
+    ): Response {
+        $params = $request->getParsedBody();
+        $code = is_array($params) ? ($params['code'] ?? '') : '';
+        $code = is_scalar($code) ? trim((string)$code) : '';
+
+        $this->session->isLoggedIn = 'no';
+        unset($this->session->client_id);
+        $this->session->user_id = $uid = $this->userHelper->verifySecondFactor($code, $tfa, $throttle);
+        Debug::log("UserHelper::verifySecondFactor() return '{$uid}'");
+
+        if (false === $uid) {
+            return $response
+                ->withStatus(302)
+                ->withHeader(
+                    'Location',
+                    $this->routeparser->urlFor(
+                        $this->userHelper->isTwoFactorPending()
+                            ? OAUTH2_PREFIX . '_twoFactor'
+                            : OAUTH2_PREFIX . '_login'
+                    )
+                );
+        }
+
+        return $this->completeLogin($response, $uid);
+    }
+
+    /**
+     * Check rights of an authenticated member, then go on with authorization
+     *
+     * @param Response $response Response instance
+     * @param int      $uid      Member ID
+     */
+    private function completeLogin(Response $response, int $uid): Response
+    {
         try {
             $client_id = $this->session->request_args['client_id'];
             $this->userHelper->getUserData(

@@ -426,6 +426,171 @@ class LoginController extends GaletteRoutingTestCase
     }
 
     /**
+     * A member with a second factor is asked for it before the flow goes on
+     *
+     * @return void
+     */
+    public function testDoLoginWithSecondFactor(): void
+    {
+        //clients are team only by default
+        $member = $this->getAdminMember($this->getMemberOne());
+        $data = $this->dataAdherentOne();
+        $secret = $this->enrolSecondFactor($member->id);
+        $this->session->request_args = [
+            'response_type' => 'code',
+            'client_id' => 'galette_cli',
+            'redirect_uri' => 'http://localhost:8888',
+            'scope' => 'member',
+            'state' => 'login-state',
+        ];
+
+        $test_response = $this->app->handle($this->doLoginRequest($data['login_adh'], $data['mdp_adh']));
+
+        $this->assertSame(302, $test_response->getStatusCode());
+        $this->assertSame(
+            ['Location' => [$this->routeparser->urlFor(OAUTH2_PREFIX . '_twoFactor')]],
+            $test_response->getHeaders()
+        );
+        //credentials alone do not open the authorization
+        $this->assertSame('no', $this->session->isLoggedIn);
+        $this->assertFalse($this->session->user_id);
+
+        //the second factor page is reachable
+        $test_response = $this->app->handle(
+            $this->createRequest(route_name: OAUTH2_PREFIX . '_twoFactor')
+        );
+        $this->assertSame(200, $test_response->getStatusCode());
+        $this->assertStringContainsString(
+            'action="' . $this->routeparser->urlFor(OAUTH2_PREFIX . '_doTwoFactor') . '"',
+            (string)$test_response->getBody()
+        );
+
+        //a wrong code keeps the door shut
+        $test_response = $this->app->handle($this->doTwoFactorRequest('000000'));
+        $this->assertSame(302, $test_response->getStatusCode());
+        $this->assertSame(
+            ['Location' => [$this->routeparser->urlFor(OAUTH2_PREFIX . '_twoFactor')]],
+            $test_response->getHeaders()
+        );
+        $this->assertSame('no', $this->session->isLoggedIn);
+
+        //the right one goes on with the authorization
+        $tfa = $this->container->get(\Galette\Core\TwoFactorAuth::class);
+        $sid = session_id();
+        $test_response = $this->app->handle($this->doTwoFactorRequest($tfa->getCodeAt($secret->getSecret())));
+
+        $this->assertSame(302, $test_response->getStatusCode());
+        $this->assertStringStartsWith(
+            $this->routeparser->urlFor(OAUTH2_PREFIX . '_authorize') . '?',
+            $test_response->getHeaderLine('Location')
+        );
+        $this->assertSame('yes', $this->session->isLoggedIn);
+        $this->assertSame($member->id, $this->session->user_id);
+        $this->assertSame('galette_cli', $this->session->client_id);
+        $this->assertNotSame($sid, session_id());
+    }
+
+    /**
+     * A recovery code gets through the second factor too
+     *
+     * @return void
+     */
+    public function testDoTwoFactorWithRecoveryCode(): void
+    {
+        //clients are team only by default
+        $member = $this->getAdminMember($this->getMemberOne());
+        $data = $this->dataAdherentOne();
+        $secret = $this->enrolSecondFactor($member->id);
+        $codes = $secret->generateRecoveryCodes();
+        $this->session->request_args = [
+            'response_type' => 'code',
+            'client_id' => 'galette_cli',
+            'redirect_uri' => 'http://localhost:8888',
+            'scope' => 'member',
+        ];
+
+        $this->app->handle($this->doLoginRequest($data['login_adh'], $data['mdp_adh']));
+        $test_response = $this->app->handle($this->doTwoFactorRequest($codes[0]));
+
+        $this->assertStringStartsWith(
+            $this->routeparser->urlFor(OAUTH2_PREFIX . '_authorize') . '?',
+            $test_response->getHeaderLine('Location')
+        );
+        $this->assertSame($member->id, $this->session->user_id);
+
+        //and that code is spent
+        $reloaded = new \Galette\Core\TwoFactorSecret($this->zdb);
+        $reloaded->load($member->id);
+        $this->assertSame(count($codes) - 1, $reloaded->countRemainingCodes());
+    }
+
+    /**
+     * Failed codes are throttled, even the right one is refused afterwards
+     *
+     * @return void
+     */
+    public function testDoTwoFactorIsThrottled(): void
+    {
+        $member = $this->getMemberOne();
+        $data = $this->dataAdherentOne();
+        $secret = $this->enrolSecondFactor($member->id);
+        $this->session->request_args = [
+            'response_type' => 'code',
+            'client_id' => 'galette_cli',
+            'redirect_uri' => 'http://localhost:8888',
+        ];
+
+        $this->app->handle($this->doLoginRequest($data['login_adh'], $data['mdp_adh']));
+        for ($i = 0; $i < 10; ++$i) {
+            $this->app->handle($this->doTwoFactorRequest('000000'));
+        }
+
+        $tfa = $this->container->get(\Galette\Core\TwoFactorAuth::class);
+        $test_response = $this->app->handle($this->doTwoFactorRequest($tfa->getCodeAt($secret->getSecret())));
+
+        $this->assertSame(
+            ['Location' => [$this->routeparser->urlFor(OAUTH2_PREFIX . '_twoFactor')]],
+            $test_response->getHeaders()
+        );
+        $this->assertSame('no', $this->session->isLoggedIn);
+        $this->expectLogEntry(Analog::INFO, 'Second factor throttled for `' . $data['login_adh'] . '`');
+    }
+
+    /**
+     * With nothing pending, the second factor is not a page anyone can sit on
+     *
+     * @return void
+     */
+    public function testTwoFactorNeedsAPendingLogin(): void
+    {
+        $login_url = $this->routeparser->urlFor(OAUTH2_PREFIX . '_login');
+
+        $test_response = $this->app->handle(
+            $this->createRequest(route_name: OAUTH2_PREFIX . '_twoFactor')
+        );
+        $this->assertSame(['Location' => [$login_url]], $test_response->getHeaders());
+
+        $test_response = $this->app->handle($this->doTwoFactorRequest('000000'));
+        $this->assertSame(['Location' => [$login_url]], $test_response->getHeaders());
+        $this->assertSame('no', $this->session->isLoggedIn);
+    }
+
+    /**
+     * Enrol a member with a known secret, second factor being optional
+     *
+     * @param int $id_adh Member identifier
+     */
+    private function enrolSecondFactor(int $id_adh): \Galette\Core\TwoFactorSecret
+    {
+        $this->preferences->pref_2fa_mode = \Galette\Core\TwoFactorAuth::MODE_OPTIONAL;
+
+        $secret = new \Galette\Core\TwoFactorSecret($this->zdb);
+        $secret->create($id_adh, 'GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ');
+        $secret->enable();
+        return $secret;
+    }
+
+    /**
      * Build a login request
      *
      * @param string $login    Login
@@ -435,5 +600,16 @@ class LoginController extends GaletteRoutingTestCase
     {
         return $this->createRequest(route_name: OAUTH2_PREFIX . '_doLogin', method: 'POST')
             ->withParsedBody(['login' => $login, 'password' => $password]);
+    }
+
+    /**
+     * Build a second factor request
+     *
+     * @param string $code Code to submit
+     */
+    private function doTwoFactorRequest(string $code): \Slim\Psr7\Request
+    {
+        return $this->createRequest(route_name: OAUTH2_PREFIX . '_doTwoFactor', method: 'POST')
+            ->withParsedBody(['code' => $code]);
     }
 }

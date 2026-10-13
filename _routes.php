@@ -44,6 +44,17 @@ $app->post(
     [LoginController::class, 'doLogin']
 )->setName(OAUTH2_PREFIX . '_doLogin');
 
+//second factor, when the member has one
+$app->get(
+    '/two-factor',
+    [LoginController::class, 'twoFactor']
+)->setName(OAUTH2_PREFIX . '_twoFactor');
+
+$app->post(
+    '/two-factor',
+    [LoginController::class, 'doTwoFactor']
+)->setName(OAUTH2_PREFIX . '_doTwoFactor');
+
 $app->map(
     ['GET', 'POST'],
     '/logout',
