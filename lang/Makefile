@@ -1,9 +1,9 @@
 INSTALLDIR = $(shell pwd)
 LANGUAGES = `find ./ -name "oauth2_*.po" -print | sed 's|^\./oauth2_\(.*\).po|\1|'`
 DOMAINS = oauth2
-PHP_SOURCES = $(shell find ../ -maxdepth 1 -name \*.php) \
-              $(shell find ../lib/GaletteOAuth2/ -name \*.php) \
-              $(shell find ../tempcache -name \*.twig)
+PHP_SOURCES = $(sort $(shell find ../ -maxdepth 1 -name \*.php)) \
+              $(sort $(shell find ../lib/GaletteOAuth2/ -name \*.php)) \
+              $(sort $(shell find ../tempcache -name \*.twig))
 
 all : extract mo
 
@@ -32,5 +32,5 @@ extract : twig ${PHP_SOURCES} Makefile
 	cd ../../../../ && bin/console galette:twig-pot-references $(CURDIR)/oauth2.pot $(shell basename $(abspath $(CURDIR)/..))
 	echo "Generating en_US:"
 	@for d in ${DOMAINS}; do \
-	  LANG=C msginit --no-translator -i $$d.pot --locale=en_US.utf8 -o $${d}_en_US.po; \
+	  sed 's/charset=CHARSET/charset=UTF-8/' $$d.pot | LANG=C msginit --no-translator -i - --locale=en_US.utf8 -o $${d}_en_US.po; \
 	done

@@ -12,12 +12,17 @@ namespace GaletteOAuth2\Authorization;
 
 use Analog\Analog;
 use DI\Attribute\Inject;
+use Galette\Core\AuthThrottle;
 use Galette\Core\Db;
 use Galette\Core\History;
+use Galette\Core\I18n;
 use Galette\Core\Login;
 use Galette\Core\Preferences;
+use Galette\Core\TwoFactorAuth;
+use Galette\Core\TwoFactorSecret;
 use Galette\Entity\Adherent;
 use Galette\Entity\Social;
+use Galette\Entity\Status;
 use GaletteOAuth2\Tools\Config;
 use GaletteOAuth2\Tools\Debug;
 use RKA\Session;
@@ -40,6 +45,7 @@ final class UserHelper
         private readonly Login $login,
         private readonly History $history,
         private readonly Preferences $preferences,
+        private readonly I18n $i18n,
         private readonly Messages $flash,
         #[Inject('oauth_session')]
         private readonly Session $session
@@ -49,11 +55,36 @@ final class UserHelper
     /**
      * Log in a member
      *
+     * @param string       $nick     Login
+     * @param string       $password Password
+     * @param AuthThrottle $throttle Authentication throttle
+     *
      * @return int|false Member ID, false on failure
      */
-    public function login(string $nick, string $password): int|false
+    public function login(string $nick, string $password, AuthThrottle $throttle): int|false
     {
+        //a second factor owed by a previous attempt must not outlive it
+        unset($this->session->login);
+
         if (trim($nick) === '' || trim($password) === '') {
+            return false;
+        }
+
+        //evaluated before any credential check, so that a locked out caller
+        //costs nothing but a lookup
+        $delay = $throttle->getRetryDelay($nick);
+        if ($delay > 0) {
+            //no countdown on the page: how long is left measures what has been
+            //tried, and it belongs in the log
+            $this->flash->addMessage(
+                'error_detected',
+                _T("Too many failed attempts. Please try again later.")
+            );
+            $this->history->add(_T("Authentication throttled"), $nick);
+            Analog::log(
+                'Authentication throttled for `' . $nick . '`, ' . $delay . ' seconds left.',
+                Analog::INFO
+            );
             return false;
         }
 
@@ -84,12 +115,22 @@ final class UserHelper
             $this->login->logIn($nick, $password);
         }
 
+        if ($this->login->isTwoFactorPending()) {
+            //credentials are accepted, but isLogged() stays false until the
+            //second factor is produced. The session is kept for the next step,
+            //so that the password is not carried over.
+            $this->session->login = $this->login;
+            return false;
+        }
+
         if ($this->login->isLogged()) {
+            $throttle->recordSuccess($nick);
             $this->session->login = $this->login;
             $this->history->add(_T('Login'));
 
             return $this->login->id;
         }
+        $throttle->recordFailure($nick);
         $this->history->add(_T('Authentication failed'), $nick);
 
         $this->flash->addMessage(
@@ -98,6 +139,87 @@ final class UserHelper
         );
 
         return false;
+    }
+
+    /**
+     * Are credentials accepted, but a second factor still owed?
+     */
+    public function isTwoFactorPending(): bool
+    {
+        $login = $this->session->login ?? null;
+        return $login instanceof Login && $login->isTwoFactorPending();
+    }
+
+    /**
+     * Check the second factor of a pending login
+     *
+     * Same checks as the core challenge: throttled, and a recovery code is
+     * accepted as well. When the second factor cannot be checked any more, the
+     * pending login is dropped and isTwoFactorPending() turns false.
+     *
+     * @param string        $code     Submitted code
+     * @param TwoFactorAuth $tfa      Second factor service
+     * @param AuthThrottle  $throttle Authentication throttle
+     *
+     * @return int|false Member ID, false on failure
+     */
+    public function verifySecondFactor(string $code, TwoFactorAuth $tfa, AuthThrottle $throttle): int|false
+    {
+        if (!$this->isTwoFactorPending()) {
+            return false;
+        }
+
+        /** @var Login $login */
+        $login = $this->session->login;
+        $nick = (string)$login->login;
+
+        //evaluated before any verification: reaching this stage means holding
+        //the password, so an attacker gets no free tries at the code
+        $delay = $throttle->getSecondFactorDelay($nick);
+        if ($delay > 0) {
+            Analog::log(
+                'Second factor throttled for `' . $nick . '`, ' . $delay . ' seconds left.',
+                Analog::INFO
+            );
+            $this->flash->addMessage(
+                'error_detected',
+                _T("Too many failed attempts. Please try again later.")
+            );
+            return false;
+        }
+
+        $secret = $tfa->storeFor($login);
+        if (!$secret->isEnabled()) {
+            //removed while this session was mid-challenge
+            Analog::log(
+                'No enabled second factor for ' . $secret->getOwner() . ' during challenge',
+                Analog::WARNING
+            );
+            $throttle->recordSecondFactorFailure($nick);
+            $login->logOut();
+            unset($this->session->login);
+            $this->flash->addMessage('error_detected', _T("Two-factor authentication failed."));
+            return false;
+        }
+
+        $accepted = $tfa->verify($secret, $code)
+            || ($secret instanceof TwoFactorSecret && $secret->consumeRecoveryCode($code));
+
+        if (!$accepted) {
+            $throttle->recordSecondFactorFailure($nick);
+            $this->history->add(_T("Second factor failed"), $nick);
+            $this->flash->addMessage('error_detected', _T("Two-factor authentication failed."));
+            return false;
+        }
+
+        //the authentication is only complete now, so this is where the counters
+        //of both stages are cleared
+        $throttle->recordSuccess($nick);
+        $login->validateTwoFactor();
+        $this->session->login = $login;
+        $this->history->add(_T('Login'));
+
+        return $login->id;
     }
 
     /**
@@ -129,6 +251,34 @@ final class UserHelper
             throw new UserAuthorizationException(_T('User not found.', 'oauth2'));
         }
 
+        //data are sent to client applications, that do not share member's session
+        $current_lang = $this->i18n->getID();
+        if ($member->language && $member->language !== $current_lang) {
+            $this->i18n->changeLanguage($member->language);
+        }
+        try {
+            return $this->buildUserData($member, $acl, $scopes, $legacy);
+        } finally {
+            if ($this->i18n->getID() !== $current_lang) {
+                $this->i18n->changeLanguage($current_lang);
+            }
+        }
+    }
+
+    /**
+     * Build user data, in current language
+     *
+     * @param Adherent $member Member
+     * @param string   $acl    Requested authorization
+     * @param string[] $scopes Scopes
+     * @param bool     $legacy Legacy mode for data
+     *
+     * @return array<string, mixed>
+     * @throws UserAuthorizationException
+     * @throws \Throwable
+     */
+    private function buildUserData(Adherent $member, string $acl, array $scopes, bool $legacy): array
+    {
         //check active member? Covers $acl === self::AUTH_ACTIVE
         if (!$member->isActive()) {
             throw new UserAuthorizationException(_T("Sorry, you can't login because you are not an active member.", "oauth2"));
@@ -209,7 +359,8 @@ final class UserHelper
 
         //member:personal
         if (in_array('member:personal', $scopes)) {
-            $oauth_data['birthdate'] = $member->birthdate;
+            //raw value: formatted dates follow current language
+            $oauth_data['birthdate'] = $member->rbirthdate;
             $oauth_data['birthplace'] = $member->birth_place;
             $oauth_data['job'] = $member->job;
             $oauth_data['gender'] = $member->sgender;
@@ -272,12 +423,12 @@ final class UserHelper
 
         //member:groups
         if (in_array('member:groups', $scopes)) {
-            $oauth_data['groups'] = self::getUserGroups($member, $legacy);
+            $oauth_data['groups'] = $this->getUserGroups($member, $legacy);
         }
 
         //member:due_date
         if (in_array('member:due_date', $scopes)) {
-            $oauth_data['due_date'] = $member->due_date;
+            $oauth_data['due_date'] = $member->rdue_date;
         }
 
         return $oauth_data;
@@ -291,7 +442,7 @@ final class UserHelper
      *
      * @return string[]
      */
-    protected static function getUserGroups(Adherent $member, bool $legacy = false): array
+    private function getUserGroups(Adherent $member, bool $legacy = false): array
     {
         $groups = array_map(
             function ($group) {
@@ -300,7 +451,9 @@ final class UserHelper
             array_values($member->getGroups())
         );
 
-        $groups[] = $member->sstatus;
+        //untranslated: groups are mapped by client applications, they must not depend on language
+        $status = new Status($this->zdb);
+        $groups[] = (string)$status->getLabel($member->status, false);
 
         if ($member->isAdmin()) {
             $groups[] = 'admin';
