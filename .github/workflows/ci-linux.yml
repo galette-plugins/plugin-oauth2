@@ -64,7 +64,7 @@ jobs:
           repository: galette/galette
           path: galette-core
           fetch-depth: 1
-          ref: develop
+          ref: master
 
       - name: Checkout plugin
         uses: actions/checkout@v7
@@ -164,6 +164,7 @@ jobs:
         uses: galette/.github/actions/build-galette@main
         with:
           php-version: ${{ matrix.php-version }}
+          galette-ref: master
 
       - name: Checkout plugin
         uses: actions/checkout@v7
@@ -277,6 +278,7 @@ jobs:
         with:
           php-version: "8.5"
           enable-assets-cache: true
+          galette-ref: master
 
       - name: Checkout plugin
         uses: actions/checkout@v7
