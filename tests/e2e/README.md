@@ -1,64 +1,29 @@
 # OAuth2 Plugin E2E Tests
 
-## Prerequisites
+Plugin E2E tests run with Galette core tooling: see the "Plugins" section of
+`tests/e2e/README.md` in Galette for prerequisites, shared fixtures and helpers,
+and how to run them.
 
-- Galette installed and configured
-- Test database initialized (`bin/console galette:install`), fixture data added
-- Playwright installed (`npm install` from Galette root)
+## OAuth2 specific setup
 
-You can find useful information on Playwright setup in the `tests/e2e/README.md` file from Galette.
+The authorization server needs its keys and configuration. `tests/e2e/setup.sh`
+creates them, from the plugin directory:
+
+```bash
+cd galette/plugins/plugin-oauth2
+bash tests/e2e/setup.sh
+```
+
+On CI, the `plugin-e2e` workflow of [galette/.github](https://github.com/galette/.github)
+runs it before seeding the fixtures.
 
 ## Running tests
 
-### From Galette root directory:
+From Galette root directory:
 
 ```bash
-# Run OAuth2 E2E tests only
 npx playwright test galette/plugins/plugin-oauth2/tests/e2e/specs/
-
-# Run with visible browser (headed mode)
-npx playwright test galette/plugins/plugin-oauth2/tests/e2e/specs/ --headed
-
-# Debug mode (step-by-step)
-npx playwright test galette/plugins/plugin-oauth2/tests/e2e/specs/ --debug
-
-# UI mode
-npx playwright test galette/plugins/plugin-oauth2/tests/e2e/specs/ --ui
-
-# Run specific test
-npx playwright test galette/plugins/plugin-oauth2/tests/e2e/specs/oauth2-flow.spec.ts
 ```
-
-### Start test server manually:
-
-```bash
-# Terminal 1: Start PHP server
-cd /path/to/galette
-DB=pgsql GALETTE_TESTS=1 php -S 0.0.0.0:8090 -t galette/webroot tests/router_e2e.php
-
-# Terminal 2: Run tests
-E2E_BASE_URL=http://127.0.0.1:8090 npx playwright test galette/plugins/plugin-oauth2/tests/e2e/specs/
-```
-
-## Using Galette shared fixtures
-
-Plugin specs can import Galette E2E fixtures via the `@e2e` alias defined in
-`tsconfig.json`:
-
-```typescript
-import { test as base, expect } from '@playwright/test';
-import { test } from '@e2e/fixtures/auth.fixture';
-
-// Use `base(...)` for tests with a plain page (no auth)
-base('my test', async ({ page }) => { ... });
-
-// Use `test(...)` for tests with a pre-authenticated page
-test('my test', async ({ loggedInPage }) => { ... });
-```
-
-Available fixtures:
-- **`@e2e/fixtures/auth.fixture`** — provides `loggedInPage` (logged in as admin)
-- **`@e2e/fixtures/a11y.fixture`** — provides `axeBuilder()` and `formatViolations()` for accessibility audits
 
 ## Test Coverage
 
