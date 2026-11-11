@@ -54,10 +54,7 @@ final class EncryptionKey
         try {
             return Key::loadFromAsciiSafeString($encryptionKey);
         } catch (BadFormatException $e) {
-            throw new RuntimeException(
-                'OAuth2 encryption key is invalid: generate a new one with vendor/bin/generate-defuse-key.',
-                previous: $e
-            );
+            throw new RuntimeException('OAuth2 encryption key is invalid: generate a new one with vendor/bin/generate-defuse-key.', $e->getCode(), previous: $e);
         }
     }
 
@@ -68,6 +65,6 @@ final class EncryptionKey
      */
     private static function isSet(mixed $key): bool
     {
-        return is_string($key) && $key !== '' && !in_array($key, self::PLACEHOLDERS, true);
+        return is_string($key) && $key !== '' && !in_array($key, self::PLACEHOLDERS, strict: true);
     }
 }

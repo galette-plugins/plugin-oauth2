@@ -32,7 +32,7 @@ final class Debug
 
     public static function printVar(mixed $expression): string
     {
-        $export = print_r($expression, true);
+        $export = print_r($expression, return: true);
         $patterns = [
             '/array \\(/' => '[',
             '/^([ ]*)\\)(,?)$/m' => '$1]$2',

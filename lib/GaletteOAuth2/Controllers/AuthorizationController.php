@@ -80,10 +80,10 @@ final class AuthorizationController extends AbstractPluginController
                 $application
             );
             $scopes = UserHelper::mergeScopes(
-                $this->config,
-                $client_id,
-                $queryParams['scope'] ?? [],
-                true
+                config: $this->config,
+                client_id: $client_id,
+                requested_scopes: $queryParams['scope'] ?? [],
+                with_default: true
             );
             //unknown scopes, from a configuration typo for example, cannot be granted
             $scopes = array_values(array_intersect($scopes, array_keys(ScopeRepository::knownScopes())));
@@ -133,10 +133,10 @@ final class AuthorizationController extends AbstractPluginController
             if (isset($params['approve'])) {
                 $authRequest->setAuthorizationApproved(true);
                 $scopes = UserHelper::mergeScopes(
-                    null,
-                    $queryParams['client_id'],
-                    $params['scopes'] ?? [],
-                    true
+                    config: null,
+                    client_id: $queryParams['client_id'],
+                    requested_scopes: $params['scopes'] ?? [],
+                    with_default: true
                 );
                 $req_scopes = [];
                 foreach ($scopes as $scope) {

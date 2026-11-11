@@ -41,7 +41,7 @@ class Config extends GaletteTestCase
         $this->assertSame('Galette', $config->get('global.title'));
         $this->assertSame('My app', $config->get('galette_app.title', 'default'));
         $this->assertSame(['member', 'member:phones'], $config->get('galette_app.scopes'));
-        $this->assertSame(false, $config->get('galette_app.legacy_data', true));
+        $this->assertSame(false, $config->get('galette_app.legacy_data', default: true));
         $this->assertIsArray($config->get('galette_app'));
 
         //missing or empty values give the default

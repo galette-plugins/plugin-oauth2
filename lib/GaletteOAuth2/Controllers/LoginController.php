@@ -217,15 +217,15 @@ final class LoginController extends AbstractPluginController
         try {
             $client_id = $this->session->request_args['client_id'];
             $this->userHelper->getUserData(
-                $uid,
-                UserHelper::getAuthorization($this->config, $client_id),
-                UserHelper::mergeScopes(
-                    $this->config,
-                    $client_id,
-                    $this->session->request_args['scope'] ?? [],
-                    true
+                id: $uid,
+                acl: UserHelper::getAuthorization($this->config, $client_id),
+                scopes: UserHelper::mergeScopes(
+                    config: $this->config,
+                    client_id: $client_id,
+                    requested_scopes: $this->session->request_args['scope'] ?? [],
+                    with_default: true
                 ),
-                (bool)$this->config->get($client_id . '.legacy_data', false)
+                legacy: (bool)$this->config->get($client_id . '.legacy_data', default: false)
             );
         } catch (UserAuthorizationException $e) {
             $this->userHelper->logout();

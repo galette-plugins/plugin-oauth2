@@ -93,7 +93,7 @@ if (getenv('GALETTE_TESTS') !== false || defined('GALETTE_TESTS')) {
         function ($request, $response) {
             $params = $request->getQueryParams();
             $html = '<!DOCTYPE html><html lang="en"><body><h1>OAuth2 Test Callback</h1>';
-            $html .= '<pre>' . htmlspecialchars(print_r($params, true)) . '</pre>';
+            $html .= '<pre>' . htmlspecialchars(print_r($params, return: true)) . '</pre>';
             $html .= '</body></html>';
             $response->getBody()->write($html);
             return $response->withHeader('Content-Type', 'text/html');

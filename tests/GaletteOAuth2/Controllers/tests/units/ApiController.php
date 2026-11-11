@@ -46,7 +46,7 @@ class ApiController extends GaletteRoutingTestCase
 
         $this->assertSame(401, $test_response->getStatusCode());
         $this->assertSame('application/json', $test_response->getHeaderLine('Content-Type'));
-        $body = json_decode((string)$test_response->getBody(), true);
+        $body = json_decode((string)$test_response->getBody(), associative: true);
         $this->assertSame('access_denied', $body['error']);
 
         $request = $request->withHeader('Authorization', 'Bearer not-a-valid-token');
@@ -54,7 +54,7 @@ class ApiController extends GaletteRoutingTestCase
 
         $this->assertSame(401, $test_response->getStatusCode());
         $this->assertSame('application/json', $test_response->getHeaderLine('Content-Type'));
-        $body = json_decode((string)$test_response->getBody(), true);
+        $body = json_decode((string)$test_response->getBody(), associative: true);
         $this->assertSame('access_denied', $body['error']);
     }
 }

@@ -367,7 +367,7 @@ class AuthorizationController extends GaletteRoutingTestCase
         $test_response = $this->app->handle($request);
 
         $this->assertSame(400, $test_response->getStatusCode());
-        $body = json_decode((string)$test_response->getBody(), true);
+        $body = json_decode((string)$test_response->getBody(), associative: true);
         $this->assertSame('unsupported_grant_type', $body['error']);
     }
 }
