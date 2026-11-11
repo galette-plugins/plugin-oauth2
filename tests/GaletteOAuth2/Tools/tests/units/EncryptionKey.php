@@ -39,7 +39,7 @@ class EncryptionKey extends TestCase
      */
     public function tearDown(): void
     {
-        array_map('unlink', glob($this->config_path . '/*'));
+        array_map(unlink(...), glob($this->config_path . '/*'));
         rmdir($this->config_path);
     }
 
@@ -100,7 +100,7 @@ class EncryptionKey extends TestCase
             \GaletteOAuth2\Tools\EncryptionKey::load($config, $this->config_path)->saveToAsciiSafeString()
         );
 
-        $config = $this->writeConfig(null, $key);
+        $config = $this->writeConfig(config_key: null, file_key: $key);
         $this->assertSame(
             $key,
             \GaletteOAuth2\Tools\EncryptionKey::load($config, $this->config_path)->saveToAsciiSafeString()
@@ -128,7 +128,7 @@ class EncryptionKey extends TestCase
      */
     public function testInvalidKey(): void
     {
-        $config = $this->writeConfig('not-a-defuse-key', null);
+        $config = $this->writeConfig('not-a-defuse-key', file_key: null);
 
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('OAuth2 encryption key is invalid');

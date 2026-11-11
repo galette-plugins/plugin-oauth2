@@ -16,7 +16,7 @@ $db = 'mysql';
 $dbenv = getenv('DB');
 if (
     $dbenv === 'pgsql'
-    || substr($dbenv, 0, strlen('postgres')) === 'postgres'
+    || str_starts_with($dbenv, 'postgres')
 ) {
     $db = 'pgsql';
 }

@@ -131,7 +131,7 @@ class AuthorizationCodeFlow extends GaletteRoutingTestCase
         ]);
         $this->assertSame(200, $test_response->getStatusCode(), (string)$test_response->getBody());
 
-        $tokens = json_decode((string)$test_response->getBody(), true);
+        $tokens = json_decode((string)$test_response->getBody(), associative: true);
         $this->assertIsArray($tokens);
         return $tokens;
     }
@@ -183,7 +183,7 @@ class AuthorizationCodeFlow extends GaletteRoutingTestCase
             'client_secret' => 'wrong-secret',
         ]);
         $this->assertSame(401, $test_response->getStatusCode());
-        $body = json_decode((string)$test_response->getBody(), true);
+        $body = json_decode((string)$test_response->getBody(), associative: true);
         $this->assertSame('invalid_client', $body['error']);
 
         $test_response = $this->requestToken([
@@ -192,7 +192,7 @@ class AuthorizationCodeFlow extends GaletteRoutingTestCase
             'redirect_uri' => 'http://127.0.0.1/callback',
         ]);
         $this->assertSame(400, $test_response->getStatusCode());
-        $body = json_decode((string)$test_response->getBody(), true);
+        $body = json_decode((string)$test_response->getBody(), associative: true);
         $this->assertSame('invalid_request', $body['error']);
     }
 
@@ -211,14 +211,14 @@ class AuthorizationCodeFlow extends GaletteRoutingTestCase
             'refresh_token' => $tokens['refresh_token'],
         ]);
         $this->assertSame(200, $test_response->getStatusCode(), (string)$test_response->getBody());
-        $refreshed = json_decode((string)$test_response->getBody(), true);
+        $refreshed = json_decode((string)$test_response->getBody(), associative: true);
         $this->assertNotSame($tokens['access_token'], $refreshed['access_token']);
         $this->assertNotSame($tokens['refresh_token'], $refreshed['refresh_token']);
 
         //refreshed token keeps scopes
         $test_response = $this->requestUser($refreshed['access_token']);
         $this->assertSame(200, $test_response->getStatusCode());
-        $data = json_decode((string)$test_response->getBody(), true);
+        $data = json_decode((string)$test_response->getBody(), associative: true);
         $this->assertArrayHasKey('due_date', $data);
     }
 
@@ -236,7 +236,7 @@ class AuthorizationCodeFlow extends GaletteRoutingTestCase
         $test_response = $this->requestUser($tokens['access_token']);
         $this->assertSame(200, $test_response->getStatusCode());
         $this->assertSame('application/json', $test_response->getHeaderLine('Content-Type'));
-        $user = json_decode((string)$test_response->getBody(), true);
+        $user = json_decode((string)$test_response->getBody(), associative: true);
 
         $this->assertSame($member->id, $user['id']);
         $this->assertSame($member->id, $user['sub']);
@@ -254,7 +254,7 @@ class AuthorizationCodeFlow extends GaletteRoutingTestCase
         );
         $test_response = $this->requestUser($tokens['access_token']);
         $this->assertSame(200, $test_response->getStatusCode());
-        $user = json_decode((string)$test_response->getBody(), true);
+        $user = json_decode((string)$test_response->getBody(), associative: true);
 
         $this->assertArrayHasKey('birthdate', $user);
         $this->assertArrayHasKey('address', $user);
@@ -294,7 +294,7 @@ class AuthorizationCodeFlow extends GaletteRoutingTestCase
         $this->assertSame('en_US', $this->i18n->getID());
         $test_response = $this->requestUser($tokens['access_token']);
         $this->assertSame(200, $test_response->getStatusCode());
-        $user = json_decode((string)$test_response->getBody(), true);
+        $user = json_decode((string)$test_response->getBody(), associative: true);
 
         $this->assertSame('fr_FR', $user['locale']);
         $this->assertSame('Homme', $user['gender']);
@@ -318,7 +318,7 @@ class AuthorizationCodeFlow extends GaletteRoutingTestCase
 
         $this->assertSame(401, $test_response->getStatusCode());
         $this->assertSame('application/json', $test_response->getHeaderLine('Content-Type'));
-        $body = json_decode((string)$test_response->getBody(), true);
+        $body = json_decode((string)$test_response->getBody(), associative: true);
         $this->assertSame(
             "Sorry, you can't login because you are not a team member.",
             $body['message']

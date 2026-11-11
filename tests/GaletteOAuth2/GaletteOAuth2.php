@@ -72,8 +72,8 @@ class GaletteOAuth2 extends GaletteTestCase
         $state = $provider->getState();
 
         $jar = new \GuzzleHttp\Cookie\CookieJar(
-            false,
-            [
+            strictMode: false,
+            cookieArray: [
                 [
                     'Name' => 'session_id',
                     'Value' => 'galette-oauthtests-session',

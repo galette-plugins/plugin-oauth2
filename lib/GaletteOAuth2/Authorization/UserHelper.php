@@ -34,21 +34,21 @@ use Slim\Flash\Messages;
  * @author Manuel Hervouet <manuelh78dev@ik.me>
  * @author Johan Cwiklinski <johan@x-tnd.be>
  */
-final class UserHelper
+final readonly class UserHelper
 {
-    public const AUTH_TEAMONLY = 'teamonly';
-    public const AUTH_UPTODATE = 'uptodate';
-    public const AUTH_ACTIVE = 'active';
+    public const string AUTH_TEAMONLY = 'teamonly';
+    public const string AUTH_UPTODATE = 'uptodate';
+    public const string AUTH_ACTIVE = 'active';
 
     public function __construct(
-        private readonly Db $zdb,
-        private readonly Login $login,
-        private readonly History $history,
-        private readonly Preferences $preferences,
-        private readonly I18n $i18n,
-        private readonly Messages $flash,
+        private Db $zdb,
+        private Login $login,
+        private History $history,
+        private Preferences $preferences,
+        private I18n $i18n,
+        private Messages $flash,
         #[Inject('oauth_session')]
-        private readonly Session $session
+        private Session $session
     ) {
     }
 
@@ -257,7 +257,7 @@ final class UserHelper
             $this->i18n->changeLanguage($member->language);
         }
         try {
-            return $this->buildUserData($member, $acl, $scopes, $legacy);
+            return $this->buildUserData(member: $member, acl: $acl, scopes: $scopes, legacy: $legacy);
         } finally {
             if ($this->i18n->getID() !== $current_lang) {
                 $this->i18n->changeLanguage($current_lang);
@@ -290,7 +290,7 @@ final class UserHelper
         }
 
         if ($acl === self::AUTH_TEAMONLY) {
-            if (!$member->isAdmin() && !$member->isStaff() && !$member->isGroupManager(null)) {
+            if (!$member->isAdmin() && !$member->isStaff() && !$member->isGroupManager(group_name: null)) {
                 throw new UserAuthorizationException(
                     _T("Sorry, you can't login because you are not a team member.", 'oauth2')
                 );
@@ -305,7 +305,7 @@ final class UserHelper
             }
         }
 
-        $default_scope = array_search('member', $scopes, true);
+        $default_scope = array_search('member', $scopes, strict: true);
         if ($default_scope !== false) {
             unset($scopes[$default_scope]);
         } else {
@@ -445,15 +445,13 @@ final class UserHelper
     private function getUserGroups(Adherent $member, bool $legacy = false): array
     {
         $groups = array_map(
-            function ($group) {
-                return $group->getName();
-            },
+            fn($group) => $group->getName(),
             array_values($member->getGroups())
         );
 
         //untranslated: groups are mapped by client applications, they must not depend on language
         $status = new Status($this->zdb);
-        $groups[] = (string)$status->getLabel($member->status, false);
+        $groups[] = (string)$status->getLabel($member->status, translated: false);
 
         if ($member->isAdmin()) {
             $groups[] = 'admin';
@@ -474,7 +472,14 @@ final class UserHelper
         if ($legacy === true) {
             //Add externals groups (free text in info_adh)
             //Example #GROUPS:compta;accueil#
-            if (preg_match('/#GROUPS:([^#]*([^#]*))#/mui', $member->others_infos_admin, $matches, PREG_OFFSET_CAPTURE)) {
+            if (
+                preg_match(
+                    pattern: '/#GROUPS:([^#]*([^#]*))#/mui',
+                    subject: $member->others_infos_admin,
+                    matches: $matches,
+                    flags: PREG_OFFSET_CAPTURE
+                )
+            ) {
                 $g = $matches[1][0];
                 $groups = array_merge($groups, explode(';', $g));
             }
@@ -507,7 +512,7 @@ final class UserHelper
             return $acl;
         }
 
-        if (!in_array($conf_acls, self::getKnownAuthorizations(), true)) {
+        if (!in_array($conf_acls, self::getKnownAuthorizations(), strict: true)) {
             Analog::log(
                 sprintf(
                     'Invalid authorization "%1$s" for client "%2$s"',
@@ -549,7 +554,7 @@ final class UserHelper
         //handle requested scopes
         if (!is_array($requested_scopes)) {
             $requested_scopes = str_replace([';', ','], ' ', $requested_scopes);
-            $requested_scopes = preg_split('/ /', $requested_scopes, -1, PREG_SPLIT_NO_EMPTY);
+            $requested_scopes = preg_split(pattern: '/ /', subject: $requested_scopes, limit: -1, flags: PREG_SPLIT_NO_EMPTY);
         }
         $scopes = array_merge($scopes, $requested_scopes);
 
@@ -565,7 +570,7 @@ final class UserHelper
             }
         }
 
-        $scopes = array_map('strtolower', $scopes);
+        $scopes = array_map(strtolower(...), $scopes);
         $scopes = array_values(array_unique($scopes));
         Debug::log('Scopes: ' . implode(' ', $scopes));
 

@@ -23,11 +23,11 @@ use League\OAuth2\Server\Repositories\ClientRepositoryInterface;
  * @author Manuel Hervouet <manuelh78dev@ik.me>
  * @author Johan Cwiklinski <johan@x-tnd.be>
  */
-final class ClientRepository implements ClientRepositoryInterface
+final readonly class ClientRepository implements ClientRepositoryInterface
 {
     private const string EXAMPLE_PASSWORD = 'abc123';
 
-    public function __construct(private readonly Config $config)
+    public function __construct(private Config $config)
     {
     }
 

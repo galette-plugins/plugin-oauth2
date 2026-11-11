@@ -62,15 +62,15 @@ final class ApiController extends AbstractPluginController
 
         try {
             $data = $this->userHelper->getUserData(
-                $oauth_user_id,
-                UserHelper::getAuthorization($this->config, $client_id),
+                id: $oauth_user_id,
+                acl: UserHelper::getAuthorization($this->config, $client_id),
                 //only scopes the user has consented to, stored in the token
-                UserHelper::mergeScopes(
-                    null,
-                    $client_id,
-                    $rep->getAttribute('oauth_scopes')
+                scopes: UserHelper::mergeScopes(
+                    config: null,
+                    client_id: $client_id,
+                    requested_scopes: $rep->getAttribute('oauth_scopes')
                 ),
-                (bool)$this->config->get($client_id . '.legacy_data', false)
+                legacy: (bool)$this->config->get($client_id . '.legacy_data', default: false)
             );
         } catch (UserAuthorizationException $e) {
             $this->userHelper->logout();

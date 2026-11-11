@@ -20,7 +20,7 @@ use Symfony\Component\Yaml\Yaml;
  * @author Manuel Hervouet <manuelh78dev@ik.me>
  * @author Johan Cwiklinski <johan@x-tnd.be>
  */
-final class Config
+final readonly class Config
 {
     /** @var array<mixed> */
     private array $data;

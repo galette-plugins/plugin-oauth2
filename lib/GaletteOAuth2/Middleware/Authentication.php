@@ -26,13 +26,13 @@ use Slim\Routing\RouteParser;
  * @author Manuel Hervouet <manuelh78dev@ik.me>
  * @author Johan Cwiklinski <johan@x-tnd.be>
  */
-final class Authentication
+final readonly class Authentication
 {
     public function __construct(
-        private readonly ClientRepository $clientRepository,
-        private readonly RouteParser $routeparser,
+        private ClientRepository $clientRepository,
+        private RouteParser $routeparser,
         #[Inject('oauth_session')]
-        private readonly Session $session
+        private Session $session
     ) {
     }
 
