@@ -74,7 +74,7 @@ class UserHelper extends GaletteTestCase
 
         $expected_base = [
             'id' => $member_one->id,
-            'sub' => $member_one->id,
+            'sub' => (string)$member_one->id,
             'identifier' => $member_one->id,
             'name' => $member_one->sfullname,
             'displayName' => $member_one->sname,
@@ -101,7 +101,7 @@ class UserHelper extends GaletteTestCase
 
         $expected_base = [
             'id' => $member_one->id,
-            'sub' => $member_one->id,
+            'sub' => (string)$member_one->id,
             'identifier' => $member_one->id,
             'name' => $member_one->sfullname,
             'displayName' => $member_one->sname,
