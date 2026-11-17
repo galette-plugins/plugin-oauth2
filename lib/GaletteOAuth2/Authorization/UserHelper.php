@@ -344,7 +344,7 @@ final readonly class UserHelper
         //FIXME: be compliant with OpenID-Connect (see https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims)
         $oauth_data = [
             'id' => $member->id,
-            'sub' => $member->id, //drupal / OpenID-Connect
+            'sub' => (string)$member->id, //drupal / OpenID-Connect
             'identifier' => $member->id, //nextcloud
             'name' => $member->sfullname, //OpenID-Connect
             'displayName' => $member->sname,

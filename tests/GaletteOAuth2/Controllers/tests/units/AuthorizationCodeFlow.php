@@ -239,7 +239,7 @@ class AuthorizationCodeFlow extends GaletteRoutingTestCase
         $user = json_decode((string)$test_response->getBody(), associative: true);
 
         $this->assertSame($member->id, $user['id']);
-        $this->assertSame($member->id, $user['sub']);
+        $this->assertSame((string)$member->id, $user['sub']);
         $this->assertSame($data['login_adh'], $user['username']);
         $this->assertSame($data['email_adh'], $user['email']);
         foreach (['birthdate', 'address', 'phone', 'socials', 'groups', 'due_date'] as $key) {
